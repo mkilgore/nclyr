@@ -1,0 +1,3 @@
+
+objs-y += pianobar.o
+
