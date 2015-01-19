@@ -1,5 +1,5 @@
 
 objs-y += players.o
 
-subdir-y += pianobar
+subdir-$(CONFIG_PLAYER_PIANOBAR) += pianobar
 

@@ -13,6 +13,7 @@
 
 #include "player.h"
 #include "song.h"
+#include "pianobar.h"
 #include "debug.h"
 
 const static char *piano_bar_nowplaying = "/home/dsman195276/.config/pianobar/nowplaying";
@@ -122,7 +123,7 @@ static void *pianobar_inotify_thread(void *nothing)
     return NULL;
 }
 
-void pianobar_setup_notification(int pipfd)
+static void pianobar_setup_notification(int pipfd)
 {
     memset(&notif_thread, 0, sizeof(notif_thread));
 
@@ -134,10 +135,18 @@ void pianobar_setup_notification(int pipfd)
     return ;
 }
 
-void pianobar_stop_notification(void)
+static void pianobar_stop_notification(void)
 {
     int tmp = 2;
     write(stop_fd[1], &tmp, sizeof(tmp));
     pthread_join(notif_thread, NULL);
 }
+
+struct pianobar_player pianobar_player = {
+    .player = {
+        "pianobar",
+        pianobar_setup_notification,
+        pianobar_stop_notification
+    }
+};
 

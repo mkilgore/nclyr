@@ -8,6 +8,7 @@
 
 struct player;
 
+/* pointers are set to NULL if player doesn't support that feature */
 struct player_controls {
     void (*pause) (struct player *);
     void (*play) (struct player *);
@@ -40,7 +41,7 @@ struct player_notification {
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
 
-extern struct player players[];
+extern struct player *players[];
 struct player *player_current_used(void);
 
 void player_setup_notification(int pipefd);

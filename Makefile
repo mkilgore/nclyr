@@ -38,6 +38,14 @@ ifdef NCLYR_DEBUG
 	LDFLAGS += -g
 endif
 
+define add_player
+ifeq ($$(CONFIG_PLAYER_$(1)),y)
+CPPFLAGS += -DCONFIG_PLAYER_$(1)
+endif
+endef
+
+$(foreach player,$(NCLYR_PLAYERS),$(eval $(call add_player,$(player))))
+
 _echo_cmd = echo $(2)
 quiet_echo_cmd = echo $(1)
 slient_echo_cmd = true

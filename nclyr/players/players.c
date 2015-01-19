@@ -4,25 +4,27 @@
 #include "player.h"
 #include "pianobar/pianobar.h"
 
-struct player players[] = {
-    { "pianobar", pianobar_setup_notification, pianobar_stop_notification },
-    { NULL }
+struct player *players[] = {
+#ifdef CONFIG_PLAYER_PIANOBAR
+    &pianobar_player.player,
+#endif
+    NULL
 };
 
 struct player *player_current_used(void)
 {
-    return players;
+    return players[0];
 }
 
 void player_setup_notification(int pipefd)
 {
-    pianobar_setup_notification(pipefd);
+    players[0]->start_monitor(pipefd);
     return ;
 }
 
 void player_stop_notification(void)
 {
-    pianobar_stop_notification();
+    players[0]->stop_monitor();
     return ;
 }
 

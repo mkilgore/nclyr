@@ -14,3 +14,8 @@ NCLYR_CFLAGS  += -DNCLYR_VERSION=$(NCLYR_VERSION)       \
 
 NCLYR_OBJS += ./nclyr.o
 
+ifeq ($(CONFIG_PLAYER_MPRIS2),y)
+NCLYR_CFLAGS += $(shell pkg-config --cflags dbus-1)
+NCLYR_LIBFLAGS += $(shell pkg-config --libs dbus-1)
+endif
+

@@ -17,9 +17,9 @@ void debug_printf(const char *file, const char *func, const char *line, const ch
 
 #else
 
-#define DEBUG_INIT()
-#define DEBUG_CLOSE()
-#define DEBUG_PRINTF(...)
+#define DEBUG_INIT() do { ; } while (0)
+#define DEBUG_CLOSE() do { ; } while (0)
+#define DEBUG_PRINTF(...) do { ; } while (0)
 
 #endif
 

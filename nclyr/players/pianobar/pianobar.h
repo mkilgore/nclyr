@@ -3,7 +3,10 @@
 
 #include "player.h"
 
-void pianobar_setup_notification(int pipefd);
-void pianobar_stop_notification(void);
+struct pianobar_player {
+    struct player player;
+};
+
+extern struct pianobar_player pianobar_player;
 
 #endif
