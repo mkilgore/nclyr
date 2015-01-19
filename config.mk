@@ -24,9 +24,11 @@ NCLYR_DEBUG := y
 
 NCLYR_PLAYERS := \
 	PIANOBAR \
+	MPD \
 
 # Set this to 'n' instead of 'y' to avoid compiling in support for any of these
 # players.
 CONFIG_PLAYER_PIANOBAR := y
+CONFIG_PLAYER_MPD := y
 
 
