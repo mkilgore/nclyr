@@ -18,8 +18,6 @@
 
 const static char *piano_bar_nowplaying = "/home/dsman195276/.config/pianobar/nowplaying";
 
-static struct song_info current_song;
-
 static void pianobar_get_cur_song(struct song_info *sng)
 {
     char buffer[500];
@@ -60,12 +58,9 @@ static void pianobar_get_cur_song(struct song_info *sng)
     return ;
 }
 
-static int pipefd;
-static int stop_fd[2];
-static pthread_t notif_thread;
-
-static void *pianobar_inotify_thread(void *nothing)
+static void *pianobar_inotify_thread(void *player)
 {
+    struct pianobar_player *pianobar = player;
     char buffer[2048];
     int inotify, exit_flag = 0;
     struct player_notification notif;
@@ -77,12 +72,12 @@ static void *pianobar_inotify_thread(void *nothing)
 
     memset(&notif, 0, sizeof(struct player_notification));
     notif.type = PLAYER_NO_SONG;
-    write(pipefd, &notif, sizeof(notif));
+    write(pianobar->output_pipe, &notif, sizeof(notif));
 
     fds[0].fd = inotify;
     fds[0].events = POLLIN;
 
-    fds[1].fd = stop_fd[0];
+    fds[1].fd = pianobar->stop_pipe[0];
     fds[1].events = POLLIN;
 
     do {
@@ -101,20 +96,20 @@ static void *pianobar_inotify_thread(void *nothing)
             if (!song.artist || !song.title || !song.album)
                 continue ;
 
-            if (song_equal(&song, &current_song)) {
+            if (song_equal(&song, &pianobar->current_song)) {
                 song_clear(&song);
                 continue ;
             }
 
             DEBUG_PRINTF("New song: %s by %s on %s\n", song.title, song.artist, song.album);
 
-            song_clear(&current_song);
-            current_song = song;
+            song_clear(&pianobar->current_song);
+            pianobar->current_song = song;
 
             memset(&notif, 0, sizeof(struct player_notification));
             notif.type = PLAYER_SONG;
-            song_copy(&notif.u.song, &current_song);
-            write(pipefd, &notif, sizeof(notif));
+            song_copy(&notif.u.song, &pianobar->current_song);
+            write(pianobar->output_pipe, &notif, sizeof(notif));
         }
 
     } while (!exit_flag);
@@ -123,23 +118,27 @@ static void *pianobar_inotify_thread(void *nothing)
     return NULL;
 }
 
-static void pianobar_setup_notification(int pipfd)
+static void pianobar_setup_notification(struct player *player, int pipfd)
 {
-    memset(&notif_thread, 0, sizeof(notif_thread));
+    struct pianobar_player *pianobar = container_of(player, struct pianobar_player, player);
 
-    pipe(stop_fd);
-    pipefd = pipfd;
+    memset(&pianobar->notif_thread, 0, sizeof(pianobar->notif_thread));
 
-    pthread_create(&notif_thread, NULL, pianobar_inotify_thread, NULL);
+    pipe(pianobar->stop_pipe);
+    pianobar->output_pipe = pipfd;
+
+    pthread_create(&pianobar->notif_thread, NULL, pianobar_inotify_thread, pianobar);
 
     return ;
 }
 
-static void pianobar_stop_notification(void)
+static void pianobar_stop_notification(struct player *player)
 {
+    struct pianobar_player *pianobar = container_of(player, struct pianobar_player, player);
     int tmp = 2;
-    write(stop_fd[1], &tmp, sizeof(tmp));
-    pthread_join(notif_thread, NULL);
+
+    write(pianobar->stop_pipe[1], &tmp, sizeof(tmp));
+    pthread_join(pianobar->notif_thread, NULL);
 }
 
 struct pianobar_player pianobar_player = {
@@ -147,6 +146,8 @@ struct pianobar_player pianobar_player = {
         "pianobar",
         pianobar_setup_notification,
         pianobar_stop_notification
-    }
+    },
+    .output_pipe = 0,
+    .stop_pipe = { 0, 0},
 };
 

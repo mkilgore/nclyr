@@ -18,13 +18,13 @@ struct player *player_current_used(void)
 
 void player_setup_notification(int pipefd)
 {
-    players[0]->start_monitor(pipefd);
+    players[0]->start_monitor(players[0], pipefd);
     return ;
 }
 
 void player_stop_notification(void)
 {
-    players[0]->stop_monitor();
+    players[0]->stop_monitor(players[0]);
     return ;
 }
 

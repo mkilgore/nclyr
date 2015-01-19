@@ -24,8 +24,8 @@ struct player_controls {
 struct player {
     const char *name;
 
-    void (*start_monitor) (int pipe_fd);
-    void (*stop_monitor) (void);
+    void (*start_monitor) (struct player *, int pipe_fd);
+    void (*stop_monitor) (struct player *);
 
     struct player_controls ctrls;
 };
