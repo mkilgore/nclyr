@@ -8,6 +8,7 @@
 #include <ncurses.h>
 
 #include "song.h"
+#include "lyr_thread.h"
 #include "player.h"
 #include "window.h"
 #include "lyrics_win.h"
@@ -77,13 +78,13 @@ static void lyrics_clear_song_data (struct nclyr_win *win)
     free_lyrics_lines(lyrics);
 }
 
-static void lyrics_new_song_data (struct nclyr_win *win, const struct song_thread_notify *song_notif)
+static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread_notify *song_notif)
 {
     char *start, *ptr;
     size_t line_count;
     struct lyrics_win *lyrics = container_of(win, struct lyrics_win, super_win);
 
-    if (song_notif->type != SONG_LYRICS)
+    if (song_notif->type != LYR_LYRICS)
         return ;
 
     free_lyrics_lines(lyrics);
@@ -137,7 +138,7 @@ struct lyrics_win lyrics_window = {
         .win_name = "Lyrics",
         .win = NULL,
         .timeout = -1,
-        .types = (const enum song_data_type[]) { SONG_LYRICS, -1 },
+        .types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             { 'j', handle_lyrics_keypress, "Scroll lyrics down."},
             { 'k', handle_lyrics_keypress, "Scroll lyrics up." },

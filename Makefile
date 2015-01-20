@@ -46,6 +46,10 @@ endef
 
 $(foreach player,$(NCLYR_PLAYERS),$(eval $(call add_player,$(player))))
 
+ifeq ($(CONFIG_LIB_GLYR),y)
+	CPPFLAGS += -DCONFIG_LIB_GLYR
+endif
+
 _echo_cmd = echo $(2)
 quiet_echo_cmd = echo $(1)
 slient_echo_cmd = true

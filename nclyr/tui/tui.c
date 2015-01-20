@@ -9,6 +9,7 @@
 
 #include "song.h"
 #include "player.h"
+#include "lyr_thread.h"
 #include "window.h"
 #include "tui_state.h"
 #include "tui_internal.h"
@@ -18,7 +19,9 @@
 
 static struct nclyr_win *nclyr_windows[] = {
     &clock_window.super_win,
+#ifdef CONFIG_LIB_GLYR
     &lyrics_window.super_win,
+#endif
 };
 
 static int tui_exit_flag = 0;
@@ -67,7 +70,7 @@ static void handle_player_fd(int playerfd)
             tui.windows[i]->already_lookedup = 0;
 
         tui.windows[tui.sel_window]->already_lookedup = 1;
-        song_thread_song_lookup(&tui.cur_song, tui.windows[tui.sel_window]->types);
+        lyr_thread_song_lookup(&tui.cur_song, tui.windows[tui.sel_window]->types);
     }
     player_notification_free(&notif);
     return ;
@@ -76,8 +79,8 @@ static void handle_player_fd(int playerfd)
 static void handle_notify_fd(int notifyfd)
 {
     int i = 0;
-    struct song_thread_notify song_notif;
-    const enum song_data_type *song_data;
+    struct lyr_thread_notify song_notif;
+    const enum lyr_data_type *song_data;
 
     read(notifyfd, &song_notif, sizeof(song_notif));
 
@@ -92,7 +95,7 @@ static void handle_notify_fd(int notifyfd)
                 tui.windows[i]->new_song_data(tui.windows[i], &song_notif);
 
 clear_song_notify:
-    song_thread_notify_clear(&song_notif);
+    lyr_thread_notify_clear(&song_notif);
     return ;
 }
 

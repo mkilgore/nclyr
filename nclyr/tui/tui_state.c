@@ -7,6 +7,7 @@
 #include <ncurses.h>
 
 #include "song.h"
+#include "lyr_thread.h"
 #include "tui_state.h"
 
 void tui_state_change_song (struct tui_state *tui, struct song_info *song)
@@ -26,7 +27,7 @@ void tui_state_change_window (struct tui_state *tui, int win)
 
     if (!tui->windows[tui->sel_window]->already_lookedup) {
         tui->windows[tui->sel_window]->already_lookedup = 1;
-        song_thread_song_lookup(&tui->cur_song, tui->windows[tui->sel_window]->types);
+        lyr_thread_song_lookup(&tui->cur_song, tui->windows[tui->sel_window]->types);
     }
 }
 

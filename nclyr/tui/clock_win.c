@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <sys/poll.h>
 #include <signal.h>
+#include <time.h>
 #include <ncurses.h>
 
 #include "song.h"
+#include "lyr_thread.h"
 #include "player.h"
 #include "window.h"
 #include "clock_win.h"
@@ -253,7 +255,7 @@ struct clock_win clock_window = {
         .win_name = "Clock",
         .win = NULL,
         .timeout = 500,
-        .types = (const enum song_data_type[]) { -1 },
+        .types = (const enum lyr_data_type[]) { -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             { '\0', NULL, NULL }
         },

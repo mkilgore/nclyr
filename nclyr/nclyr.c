@@ -12,6 +12,7 @@
 
 #include "player.h"
 #include "song.h"
+#include "lyr_thread.h"
 #include "signal_handler.h"
 #include "tui.h"
 #include "debug.h"
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
 
     DEBUG_INIT();
 
-    DEBUG_PRINTF("Started!\n");
+    DEBUG_PRINTF("nclyr started!\n");
 
     pipe(pipefd);
     pipe(notifyfd);
@@ -35,14 +36,14 @@ int main(int argc, char **argv)
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 
-    song_thread_start(notifyfd[1]);
+    lyr_thread_start(notifyfd[1]);
     player_setup_notification(pipefd[1]);
 
     tui_main_loop(signalfd[0], pipefd[0], notifyfd[0]);
 
     signal_stop_handler();
     player_stop_notification();
-    song_thread_stop();
+    lyr_thread_stop();
 
     song_clear(song);
     free(song);

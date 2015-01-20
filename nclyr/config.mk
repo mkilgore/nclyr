@@ -6,7 +6,7 @@ NCLYR_SUBLEVEL  := 1
 NCLYR_PATCH     := 0
 NCLYR_VERSION_N := $(NCLYR_VERSION).$(NCLYR_SUBLEVEL).$(NCLYR_PATCH)
 
-NCLYR_LIBFLAGS := -lncurses -lglyr -pthread
+NCLYR_LIBFLAGS := -lncurses -pthread
 NCLYR_CFLAGS  += -DNCLYR_VERSION=$(NCLYR_VERSION)       \
 				 -DNCLYR_SUBLEVEL=$(NCLYR_SUBLEVEL)     \
 				 -DNCLYR_PATCH=$(NCLYR_PATCH)           \
@@ -14,8 +14,17 @@ NCLYR_CFLAGS  += -DNCLYR_VERSION=$(NCLYR_VERSION)       \
 
 NCLYR_OBJS += ./nclyr.o
 
+ifeq ($(CONFIG_LIB_GLYR),y)
+NCLYR_LIBFLAGS += -lglyr
+endif
+
 ifeq ($(CONFIG_PLAYER_MPRIS2),y)
 NCLYR_CFLAGS += $(shell pkg-config --cflags dbus-1)
 NCLYR_LIBFLAGS += $(shell pkg-config --libs dbus-1)
+endif
+
+ifeq ($(CONFIG_PLAYER_MPD),y)
+NCLYR_CFLAGS += $(shell pkg-config --cflags libmpdclient)
+NCLYR_LIBFLAGS += $(shell pkg-config --libs libmpdclient)
 endif
 
