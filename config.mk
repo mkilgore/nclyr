@@ -20,7 +20,7 @@ DOCDIR  := $(PREFIX)/share/doc/$(EXE)
 # V := y
 
 # Turn on debugging
-NCLYR_DEBUG := y
+NCLYR_DEBUG ?= n
 
 NCLYR_PLAYERS := \
 	PIANOBAR \
@@ -28,9 +28,9 @@ NCLYR_PLAYERS := \
 
 # Set this to 'n' instead of 'y' to avoid compiling in support for any of these
 # players.
-CONFIG_PLAYER_PIANOBAR := y
-CONFIG_PLAYER_MPD := y
+CONFIG_PLAYER_PIANOBAR ?= y
+CONFIG_PLAYER_MPD ?= y
 
-CONFIG_LIB_GLYR := y
+CONFIG_LIB_GLYR ?= y
 
 
