@@ -99,7 +99,7 @@ static void *mpd_thread(void *p)
     return NULL;
 }
 
-static void mpd_setup_notification(struct player *p, int pipfd)
+static void mpd_start_thread(struct player *p, int pipfd)
 {
     struct mpd_player *player = container_of(p, struct mpd_player, player);
 
@@ -110,7 +110,7 @@ static void mpd_setup_notification(struct player *p, int pipfd)
     return ;
 }
 
-static void mpd_stop_notification(struct player *p)
+static void mpd_stop_thread(struct player *p)
 {
     struct mpd_player *player = container_of(p, struct mpd_player, player);
     int tmp = 0;
@@ -124,8 +124,8 @@ static void mpd_stop_notification(struct player *p)
 struct mpd_player mpd_player = {
     .player = {
         .name = "mpd",
-        .start_monitor = mpd_setup_notification,
-        .stop_monitor = mpd_stop_notification
+        .start_thread = mpd_start_thread,
+        .stop_thread = mpd_stop_thread
     }
 };
 

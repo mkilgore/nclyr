@@ -34,23 +34,30 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    /* Open up three pipes that we'll use to communicate with the three main
+     * threads */
     pipe(pipefd);
     pipe(notifyfd);
     pipe(signalfd);
 
+    /* Start a thread to catch all of our signals and send them down the
+     * signalfd pipe. This thread has to be started before we mask all the
+     * signals on the main thread */
     signal_start_handler(signalfd[1]);
 
+    /* Make sure no threads but the signal thread recieves any signals by
+     * masking them on the main thread. */
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 
     lyr_thread_start(notifyfd[1]);
-    player_setup_notification(pipefd[1]);
+    player_start_thread(player_current(), pipefd[1]);
 
     tui_main_loop(signalfd[0], pipefd[0], notifyfd[0]);
 
-    signal_stop_handler();
-    player_stop_notification();
+    player_stop_thread(player_current());
     lyr_thread_stop();
+    signal_stop_handler();
 
     song_clear(song);
     free(song);

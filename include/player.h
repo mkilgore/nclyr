@@ -6,17 +6,25 @@
 
 #include <limits.h>
 
+enum player_state {
+    PLAYER_PAUSED,
+    PLAYER_PLAYING,
+    PLAYER_STOPPED
+};
+
 enum player_notif_type {
     PLAYER_NO_SONG,
     PLAYER_SONG,
     PLAYER_IS_UP,
-    PLAYER_IS_DOWN
+    PLAYER_IS_DOWN,
+    PLAYER_STATE,
 };
 
 struct player_notification {
     enum player_notif_type type;
     union {
         struct song_info song;
+        enum player_state state;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -39,8 +47,8 @@ struct player_controls {
 struct player {
     const char *name;
 
-    void (*start_monitor) (struct player *, int pipe_fd);
-    void (*stop_monitor) (struct player *);
+    void (*start_thread) (struct player *, int pipe_fd);
+    void (*stop_thread) (struct player *);
 
     struct player_controls ctrls;
 
@@ -52,8 +60,8 @@ struct player {
 extern struct player *players[];
 struct player *player_current(void);
 
-void player_setup_notification(int pipefd);
-void player_stop_notification(void);
+void player_start_thread(struct player *player, int pipefd);
+void player_stop_thread(struct player *player);
 
 void player_notification_free(struct player_notification *);
 

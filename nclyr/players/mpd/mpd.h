@@ -5,6 +5,7 @@
 #include <mpd/client.h>
 
 #include "player.h"
+#include "song.h"
 
 struct mpd_player {
     struct player player;
@@ -13,6 +14,8 @@ struct mpd_player {
     int stop_fd[2];
 
     struct mpd_connection *conn;
+
+    struct song_info cur_song;
 };
 
 extern struct mpd_player mpd_player;

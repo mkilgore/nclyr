@@ -3,11 +3,12 @@
 
 #include <ncurses.h>
 
+struct nclyr_keypress;
+struct nclyr_win;
+
 #include "song.h"
 #include "player.h"
 #include "lyr_thread.h"
-
-struct nclyr_keypress;
 
 struct nclyr_win {
     /* Name to identify this window */

@@ -118,7 +118,7 @@ static void *pianobar_inotify_thread(void *player)
     return NULL;
 }
 
-static void pianobar_setup_notification(struct player *player, int pipfd)
+static void pianobar_start_thread(struct player *player, int pipfd)
 {
     struct pianobar_player *pianobar = container_of(player, struct pianobar_player, player);
 
@@ -132,7 +132,7 @@ static void pianobar_setup_notification(struct player *player, int pipfd)
     return ;
 }
 
-static void pianobar_stop_notification(struct player *player)
+static void pianobar_stop_thread(struct player *player)
 {
     struct pianobar_player *pianobar = container_of(player, struct pianobar_player, player);
     int tmp = 2;
@@ -144,8 +144,8 @@ static void pianobar_stop_notification(struct player *player)
 struct pianobar_player pianobar_player = {
     .player = {
         .name = "pianobar",
-        .start_monitor = pianobar_setup_notification,
-        .stop_monitor = pianobar_stop_notification,
+        .start_thread = pianobar_start_thread,
+        .stop_thread = pianobar_stop_thread,
         .player_windows = (const struct nclyr_win *[]) { NULL }
     },
     .output_pipe = 0,

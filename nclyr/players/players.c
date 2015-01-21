@@ -39,21 +39,21 @@ struct player *player_current(void)
     return sel_player;
 }
 
-void player_setup_notification(int pipefd)
+void player_start_thread(struct player *player, int pipefd)
 {
-    if (!sel_player)
+    if (!player)
         return ;
 
-    sel_player->start_monitor(sel_player, pipefd);
+    player->start_thread(player, pipefd);
     return ;
 }
 
-void player_stop_notification(void)
+void player_stop_thread(struct player *player)
 {
-    if (!sel_player)
+    if (!player)
         return ;
 
-    sel_player->stop_monitor(sel_player);
+    player->stop_thread(player);
     return ;
 }
 
