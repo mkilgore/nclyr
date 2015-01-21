@@ -1,6 +1,8 @@
 
 #include "common.h"
 
+#include <string.h>
+
 #include "player.h"
 #include "pianobar/pianobar.h"
 #include "mpd/mpd.h"
@@ -15,31 +17,56 @@ struct player *players[] = {
     NULL
 };
 
-struct player *player_current_used(void)
+static struct player *sel_player = NULL;
+
+struct player *player_find(const char *name)
 {
-    return players[0];
+    struct player **player;
+    for (player = players; *player; player++)
+        if (strcmp((*player)->name, name) == 0)
+            return *player;
+
+    return NULL;
+}
+
+void player_set_current(struct player *player)
+{
+    sel_player = player;
+}
+
+struct player *player_current(void)
+{
+    return sel_player;
 }
 
 void player_setup_notification(int pipefd)
 {
-    players[0]->start_monitor(players[0], pipefd);
+    if (!sel_player)
+        return ;
+
+    sel_player->start_monitor(sel_player, pipefd);
     return ;
 }
 
 void player_stop_notification(void)
 {
-    players[0]->stop_monitor(players[0]);
+    if (!sel_player)
+        return ;
+
+    sel_player->stop_monitor(sel_player);
     return ;
 }
 
 void player_notification_free(struct player_notification *notif)
 {
     switch (notif->type) {
-    case PLAYER_NO_SONG:
-
-        break;
     case PLAYER_SONG:
         song_clear(&notif->u.song);
+        break;
+
+    case PLAYER_NO_SONG:
+    case PLAYER_IS_DOWN:
+    case PLAYER_IS_UP:
         break;
     }
 }

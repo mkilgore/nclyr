@@ -6,6 +6,21 @@
 
 #include <limits.h>
 
+enum player_notif_type {
+    PLAYER_NO_SONG,
+    PLAYER_SONG,
+    PLAYER_IS_UP,
+    PLAYER_IS_DOWN
+};
+
+struct player_notification {
+    enum player_notif_type type;
+    union {
+        struct song_info song;
+    } u;
+};
+STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
+
 struct player;
 
 /* pointers are set to NULL if player doesn't support that feature */
@@ -28,25 +43,21 @@ struct player {
     void (*stop_monitor) (struct player *);
 
     struct player_controls ctrls;
+
+    /* List of extra windows that should be displayed when using this player */
+    const struct nclyr_win **player_windows;
 };
 
-struct player_notification {
-    enum {
-        PLAYER_NO_SONG,
-        PLAYER_SONG
-    } type;
-    union {
-        struct song_info song;
-    } u;
-};
-STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
 
 extern struct player *players[];
-struct player *player_current_used(void);
+struct player *player_current(void);
 
 void player_setup_notification(int pipefd);
 void player_stop_notification(void);
 
 void player_notification_free(struct player_notification *);
+
+struct player *player_find(const char *name);
+void player_set_current(struct player *);
 
 #endif

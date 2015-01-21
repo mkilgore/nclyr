@@ -3,6 +3,8 @@
 
 #include <ncurses.h>
 
+#include "player.h"
+
 struct statusline {
     WINDOW *win;
 
@@ -10,6 +12,9 @@ struct statusline {
     void (*clean) (struct statusline *);
     void (*resize) (struct statusline *, int cols);
     void (*update) (struct statusline *);
+    void (*player_notif) (struct statusline *, const struct player_notification *);
+
+    int player_is_running :1;
 };
 
 extern struct statusline statusline;

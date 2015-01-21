@@ -143,9 +143,10 @@ static void pianobar_stop_notification(struct player *player)
 
 struct pianobar_player pianobar_player = {
     .player = {
-        "pianobar",
-        pianobar_setup_notification,
-        pianobar_stop_notification
+        .name = "pianobar",
+        .start_monitor = pianobar_setup_notification,
+        .stop_monitor = pianobar_stop_notification,
+        .player_windows = (const struct nclyr_win *[]) { NULL }
     },
     .output_pipe = 0,
     .stop_pipe = { 0, 0},

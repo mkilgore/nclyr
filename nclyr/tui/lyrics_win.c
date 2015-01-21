@@ -10,7 +10,7 @@
 #include "song.h"
 #include "lyr_thread.h"
 #include "player.h"
-#include "window.h"
+#include "tui/window.h"
 #include "lyrics_win.h"
 
 static void lyrics_update (struct nclyr_win *win)
@@ -133,12 +133,17 @@ static void lyrics_switch_to (struct nclyr_win *win)
     return ;
 }
 
+static void lyrics_new_player_notif (struct nclyr_win *win, const struct player_notification *notif)
+{
+    return ;
+}
+
 struct lyrics_win lyrics_window = {
     .super_win = {
         .win_name = "Lyrics",
         .win = NULL,
         .timeout = -1,
-        .types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             { 'j', handle_lyrics_keypress, "Scroll lyrics down."},
             { 'k', handle_lyrics_keypress, "Scroll lyrics up." },
@@ -151,6 +156,7 @@ struct lyrics_win lyrics_window = {
         .resize = lyrics_resize,
         .clear_song_data = lyrics_clear_song_data,
         .new_song_data = lyrics_new_song_data,
+        .new_player_notif = lyrics_new_player_notif,
     },
     .lines = 0,
     .disp_offset = 0,

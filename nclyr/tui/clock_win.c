@@ -11,7 +11,7 @@
 #include "song.h"
 #include "lyr_thread.h"
 #include "player.h"
-#include "window.h"
+#include "tui/window.h"
 #include "clock_win.h"
 
 static char big_num[15][5][3] = {
@@ -250,12 +250,17 @@ static void clock_switch_to (struct nclyr_win *win)
     return ;
 }
 
+static void clock_new_player_notif (struct nclyr_win *win, const struct player_notification *notif)
+{
+    return ;
+}
+
 struct clock_win clock_window = {
     .super_win = {
         .win_name = "Clock",
         .win = NULL,
         .timeout = 500,
-        .types = (const enum lyr_data_type[]) { -1 },
+        .lyr_types = (const enum lyr_data_type[]) { -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             { '\0', NULL, NULL }
         },
@@ -266,6 +271,7 @@ struct clock_win clock_window = {
         .resize = clock_resize,
         .clear_song_data = clock_clear_song_data,
         .new_song_data = NULL,
+        .new_player_notif = clock_new_player_notif,
     },
 };
 

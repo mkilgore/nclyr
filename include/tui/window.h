@@ -4,6 +4,7 @@
 #include <ncurses.h>
 
 #include "song.h"
+#include "player.h"
 #include "lyr_thread.h"
 
 struct nclyr_keypress;
@@ -20,6 +21,11 @@ struct nclyr_win {
     /* The actual ncurses WINDOW * associated with this window */
     WINDOW *win;
 
+    /* Set when this window should be shown and allowed to be switched too.  If
+     * this window should be displayed for whatever reason, this flag should be
+     * set */
+    int show_window :1;
+
     /* Set when the song data required has already been submitted to the query
      * thread */
     int already_lookedup :1;
@@ -27,7 +33,7 @@ struct nclyr_win {
     /* If true, the cursor will be shown in the same place as on win */
     int show_cursor :1;
 
-    const enum lyr_data_type *types; /* This list should be terminated with -1 */
+    const enum lyr_data_type *lyr_types; /* This list should be terminated with -1 */
     const struct nclyr_keypress *keypresses; /* This list should be terminated with ch='\0' */
 
     /* Called when nclyr starts - y and x are window cords, rows and cols are
@@ -52,6 +58,8 @@ struct nclyr_win {
 
     /* Called when we recieve a response from the query thread that this window asked for */
     void (*new_song_data) (struct nclyr_win *, const struct lyr_thread_notify *);
+
+    void (*new_player_notif) (struct nclyr_win *, const struct player_notification *);
 };
 
 struct nclyr_keypress {

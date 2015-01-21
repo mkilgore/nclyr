@@ -2,24 +2,25 @@
 #define NCLYR_TUI_TUI_STATE_H
 
 #include "song.h"
-#include "window.h"
+#include "tui/window.h"
 #include "statusline.h"
 
 struct tui_state {
     struct song_info cur_song;
 
     struct nclyr_win **windows;
-    size_t window_count;
+    int window_count;
 
     const struct nclyr_keypress *global_keys;
 
     int show_status :1;
     struct statusline *status;
 
-    int sel_window;
+    int sel_window_index;
+    struct nclyr_win *sel_window;
 };
 
 void tui_state_change_song (struct tui_state *, struct song_info *);
-void tui_state_change_window (struct tui_state *, int win);
+void tui_state_change_window (struct tui_state *, struct nclyr_win *);
 
 #endif

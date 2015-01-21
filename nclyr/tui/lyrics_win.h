@@ -1,7 +1,7 @@
 #ifndef NCLYR_CURSES_LYRICS_WIN_H
 #define NCLYR_CURSES_LYRICS_WIN_H
 
-#include "window.h"
+#include "tui/window.h"
 
 struct lyrics_win {
     struct nclyr_win super_win;

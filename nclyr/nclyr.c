@@ -27,6 +27,13 @@ int main(int argc, char **argv)
 
     DEBUG_PRINTF("nclyr started!\n");
 
+    player_set_current(player_find("mpd"));
+
+    if (player_current() == NULL) {
+        printf("%s: Error, no music player selected.\n", argv[0]);
+        return 0;
+    }
+
     pipe(pipefd);
     pipe(notifyfd);
     pipe(signalfd);
