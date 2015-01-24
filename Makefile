@@ -15,7 +15,7 @@ CLEAN_LIST :=
 # List of files that dependency files should be generated for
 DEPS :=
 
-# Current project being compiled (Ex. cmips, ncmips, ...) - Blank for core
+# Current project being compiled - Blank for core
 PROJ :=
 EXES :=
 SRC_OBJS :=
@@ -127,18 +127,13 @@ endef
 $(eval $(call proj_inc,nclyr))
 CLEAN_LIST += $(objtree)/bin
 
-# Include tests
-ifneq (,$(filter $(MAKECMDGOALS),check clean))
-include ./test/Makefile
-endif
-
 
 # Actual entry
 real-all: $(EXES)
 
 dist: clean
 	$(Q)mkdir -p $(EXE)-$(VERSION_N)
-	$(Q)cp -R Makefile README.md config.mk LICENSE ./doc ./include ./src ./cmips ./test $(EXE)-$(VERSION_N)
+	$(Q)cp -R Makefile README.md config.mk LICENSE ./doc ./include ./src ./nclyr $(EXE)-$(VERSION_N)
 	$(Q)tar -cf $(EXE)-$(VERSION_N).tar $(EXE)-$(VERSION_N)
 	$(Q)gzip $(EXE)-$(VERSION_N).tar
 	$(Q)rm -fr $(EXE)-$(VERSION_N)
