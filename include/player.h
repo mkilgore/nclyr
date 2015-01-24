@@ -29,19 +29,44 @@ struct player_notification {
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
 
+enum player_ctrl_msg_type {
+    PLAYER_CTRL_PLAY,
+    PLAYER_CTRL_PAUSE,
+    PLAYER_CTRL_TOGGLE_PAUSE,
+    PLAYER_CTRL_NEXT,
+    PLAYER_CTRL_PREV,
+    PLAYER_CTRL_SEEK,
+    PLAYER_CTRL_SHUFFLE,
+    PLAYER_CTRL_SET_VOLUME,
+    PLAYER_CTRL_CHANGE_VOLUME,
+};
+
+struct player_ctrl_msg {
+    enum player_ctrl_msg_type type;
+    union {
+        size_t seek_pos;
+        size_t volume;
+        int pause;
+        int vol_change;
+    } u;
+};
+STATIC_ASSERT(sizeof(struct player_ctrl_msg) <= PIPE_BUF);
+
 struct player;
 
 /* pointers are set to NULL if player doesn't support that feature */
 struct player_controls {
-    void (*pause) (struct player *);
-    void (*play) (struct player *);
-    void (*next) (struct player *);
-    void (*prev) (struct player *);
+    void (*ctrl) (struct player *, const struct player_ctrl_msg *);
 
-    void (*seek) (struct player *, size_t position);
-
-    void (*shuffle) (struct player *);
-    void (*set_volume) (struct player *, size_t volume);
+    unsigned int has_pause :1;
+    unsigned int has_toggle_pause :1;
+    unsigned int has_play :1;
+    unsigned int has_next :1;
+    unsigned int has_prev :1;
+    unsigned int has_seek :1;
+    unsigned int has_shuffle :1;
+    unsigned int has_set_volume :1;
+    unsigned int has_change_volume :1;
 };
 
 struct player {
@@ -67,5 +92,15 @@ void player_notification_free(struct player_notification *);
 
 struct player *player_find(const char *name);
 void player_set_current(struct player *);
+
+void player_pause(struct player *, int pause);
+void player_toggle_pause(struct player *);
+void player_play(struct player *);
+void player_next(struct player *);
+void player_prev(struct player *);
+void player_seek(struct player *, size_t pos);
+void player_shuffle(struct player *);
+void player_set_volume(struct player *, size_t volume);
+void player_change_volume(struct player *, int change);
 
 #endif

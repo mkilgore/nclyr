@@ -12,6 +12,7 @@ struct mpd_player {
     pthread_t mpd_thread;
     int notify_fd;
     int stop_fd[2];
+    int ctrl_fd[2];
 
     struct mpd_connection *conn;
 
