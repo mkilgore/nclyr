@@ -20,7 +20,7 @@ static void lyrics_update (struct nclyr_win *win)
 
     if (line->line_count == 0) {
         werase(win->win);
-        wprintw(win->win, "Lyrics not avilable.");
+        wprintw(win->win, "Lyrics not available.");
         wrefresh(win->win);
     } else {
         line_update(win);
