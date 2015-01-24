@@ -16,6 +16,7 @@
 #include "statusline.h"
 #include "clock_win.h"
 #include "lyrics_win.h"
+#include "help_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -25,20 +26,29 @@ static struct nclyr_win *nclyr_windows[] = {
 #ifdef CONFIG_LIB_GLYR
     &lyrics_window.super_win,
 #endif
+    &help_window.super_win,
     NULL
 };
 
 static int tui_exit_flag = 0;
 
 static void global_keys(struct nclyr_win *, int ch);
+static void player_keys(struct nclyr_win *, int ch);
 
 struct tui_state tui = {
     .cur_song = { NULL },
     .windows = nclyr_windows,
     .window_count = sizeof(nclyr_windows)/sizeof(*nclyr_windows) - 1,
     .global_keys = (const struct nclyr_keypress[]) {
-        { 'q', global_keys, NULL },
-        { 'w', global_keys, NULL },
+        { 'q', global_keys, "Switch to previous window." },
+        { 'w', global_keys, "Switch to next window." },
+
+        { ' ', player_keys, "Toggle Pause" },
+        { 'p', player_keys, "Previous song" },
+        { 'n', player_keys, "Next song" },
+        { '+', player_keys, "+1 volume" },
+        { '-', player_keys, "-1 volume" },
+
         { '\0', NULL, NULL }
     },
     .show_status = 1,
@@ -46,6 +56,32 @@ struct tui_state tui = {
     .sel_window_index = 0,
     .sel_window = NULL,
 };
+
+static void player_keys(struct nclyr_win *win, int ch)
+{
+    struct player *player = player_current();
+    switch (ch) {
+    case ' ':
+        player_toggle_pause(player);
+        break;
+
+    case 'p':
+        player_prev(player);
+        break;
+
+    case 'n':
+        player_next(player);
+        break;
+
+    case '+':
+        player_change_volume(player, 1);
+        break;
+
+    case '-':
+        player_change_volume(player, -1);
+        break;
+    }
+}
 
 static void global_keys(struct nclyr_win *win, int ch)
 {
