@@ -177,9 +177,10 @@ static void clock_update (struct nclyr_win *win)
         clock->last_buf = strdup(buf);
 
         clock->color = (clock->color + 1) % 8;
-        clock->y += clock->ydir;
-        clock->x += clock->xdir;
     }
+
+    clock->y += clock->ydir;
+    clock->x += clock->xdir;
 
     clock_strlen(clock->last_buf, &width, &height);
 
