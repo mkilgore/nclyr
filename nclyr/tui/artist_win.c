@@ -12,35 +12,43 @@
 #include "player.h"
 #include "tui/window.h"
 #include "line_win.h"
-#include "window_center.h"
 #include "lyrics_win.h"
+#include "window_center.h"
+#include "artist_win.h"
+#include "debug.h"
 
-static void lyrics_update (struct nclyr_win *win)
+static void artist_update (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
     if (line->line_count == 0) {
         werase(win->win);
-        win_center_str(win->win, "Lyrics not available");
+        win_center_str(win->win, "Artist bio not available");
         wrefresh(win->win);
     } else {
         line_update(win);
     }
 }
 
-static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread_notify *song_notif)
+static void artist_new_song_data (struct nclyr_win *win, const struct lyr_thread_notify *song_notif)
 {
-    char *start, *ptr;
-    size_t line_count;
     struct line_win *line = container_of(win, struct line_win, super_win);
 
-    if (song_notif->type != LYR_LYRICS)
+    DEBUG_PRINTF("Got artist song_notif\n");
+
+    if (song_notif->type != LYR_ARTIST_BIO)
         return ;
 
     line_free_lines(line);
 
+    line->line_count = 1;
+    line->disp_offset = 0;
+    line->lines = malloc(line->line_count * sizeof(char *));
+    line->lines[0] = strdup(song_notif->u.bio);
+
+    /*
     line_count = 0;
-    for (ptr = song_notif->u.lyrics; *ptr; ptr++)
+    for (ptr = song_notif->u.bio; *ptr; ptr++)
         if (*ptr == '\n')
             line_count++;
 
@@ -49,7 +57,7 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
     line->lines = malloc(line_count * sizeof(char *));
 
     line_count = 0;
-    for (start = ptr = song_notif->u.lyrics; *ptr; ptr++) {
+    for (start = ptr = song_notif->u.bio; *ptr; ptr++) {
         if (*ptr == '\n') {
             line->lines[line_count] = malloc(ptr - start + 1);
             memset(line->lines[line_count], 0, ptr - start + 1);
@@ -59,27 +67,27 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
             line_count++;
             start = ptr + 1;
         }
-    }
+    } */
 }
 
-void lyrics_clear_song_data (struct nclyr_win *win)
+void artist_clear_song_data (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
     line_free_lines(line);
 }
 
-void lyrics_new_player_notif(struct nclyr_win *win, const struct player_notification *notif)
+void artist_new_player_notif(struct nclyr_win *win, const struct player_notification *notif)
 {
     return ;
 }
 
-struct line_win lyrics_window = {
+struct line_win artist_window = {
     .super_win = {
-        .win_name = "Lyrics",
+        .win_name = "Artist bio",
         .win = NULL,
         .timeout = -1,
-        .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_ARTIST_BIO, -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES,
             { '\0', NULL, NULL }
@@ -87,11 +95,11 @@ struct line_win lyrics_window = {
         .init = line_init,
         .clean = line_clean,
         .switch_to = line_switch_to,
-        .update = lyrics_update,
+        .update = artist_update,
         .resize = line_resize,
-        .clear_song_data = lyrics_clear_song_data,
-        .new_song_data = lyrics_new_song_data,
-        .new_player_notif = lyrics_new_player_notif,
+        .clear_song_data = artist_clear_song_data,
+        .new_song_data = artist_new_song_data,
+        .new_player_notif = artist_new_player_notif,
     },
     .line_count = 0,
     .disp_offset = 0,

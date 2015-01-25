@@ -11,6 +11,7 @@
 
 #include "player.h"
 #include "lyr_thread.h"
+#include "debug.h"
 
 struct lyr_thread {
     const struct song_info *song;
@@ -138,18 +139,22 @@ static void *lyr_thread(void *nothing)
 
                 switch (cur->type) {
                 case GLYR_TYPE_ARTIST_BIO:
+                    DEBUG_PRINTF("Got artist bio\n");
                     song_notify.type = LYR_ARTIST_BIO;
                     song_notify.u.bio = strdup(cur->data);
                     break;
                 case GLYR_TYPE_SIMILAR_SONG:
+                    DEBUG_PRINTF("Got similar song\n");
                     song_notify.type = LYR_SIMILAR_SONG;
                     song_notify.u.similar_songs = strdup(cur->data);
                     break;
                 case GLYR_TYPE_SIMILAR_ARTIST:
+                    DEBUG_PRINTF("Got similar artist\n");
                     song_notify.type = LYR_SIMILAR_ARTIST;
                     song_notify.u.similar_artist = strdup(cur->data);
                     break;
                 case GLYR_TYPE_COVERART:
+                    DEBUG_PRINTF("Got coverart\n");
                     song_notify.type = LYR_COVERART;
                     song_notify.u.img.format = strdup(cur->img_format);
                     song_notify.u.img.data = malloc(cur->size);
@@ -157,6 +162,7 @@ static void *lyr_thread(void *nothing)
                     song_notify.u.img.size = cur->size;
                     break;
                 case GLYR_TYPE_LYRICS:
+                    DEBUG_PRINTF("Got lyrics\n");
                     song_notify.type = LYR_LYRICS;
                     song_notify.u.lyrics = strdup(cur->data);
                     break;

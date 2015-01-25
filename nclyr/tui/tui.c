@@ -17,6 +17,7 @@
 #include "clock_win.h"
 #include "lyrics_win.h"
 #include "help_win.h"
+#include "artist_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -25,6 +26,7 @@ static struct nclyr_win *nclyr_windows[] = {
     &clock_window.super_win,
 #ifdef CONFIG_LIB_GLYR
     &lyrics_window.super_win,
+    &artist_window.super_win,
 #endif
     &help_window.super_win,
     NULL
@@ -138,10 +140,14 @@ static void handle_notify_fd(int notifyfd)
 
     read(notifyfd, &song_notif, sizeof(song_notif));
 
+    DEBUG_PRINTF("Got Lyr-thread notification: %d\n", song_notif.type);
+
     if (strcmp(song_notif.song->title, tui.cur_song.title) != 0
             || strcmp(song_notif.song->artist, tui.cur_song.artist) != 0
-            || strcmp(song_notif.song->album, tui.cur_song.album) != 0)
+            || strcmp(song_notif.song->album, tui.cur_song.album) != 0) {
+        DEBUG_PRINTF("Song didn't match!\n");
         goto clear_song_notify;
+    }
 
     for (win = tui.windows; *win; win++)
         for (song_data = (*win)->lyr_types; *song_data != -1; song_data++)
@@ -248,7 +254,12 @@ void tui_main_loop(int signalfd, int pipefd, int notifyfd)
 
         for (i = 0; i < COLS; i++)
             mvaddch(rows, i, ACS_HLINE);
-        mvprintw(rows, COLS / 2 - strlen(tui.sel_window->win_name) / 2, "%s", tui.sel_window->win_name);
+
+        move(rows, COLS / 2 - strlen(tui.sel_window->win_name) / 2 - 2);
+
+        addch(ACS_RTEE);
+        printw(" %s ", tui.sel_window->win_name);
+        addch(ACS_LTEE);
 
         refresh();
 
