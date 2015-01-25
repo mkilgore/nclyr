@@ -13,6 +13,7 @@
 #include "player.h"
 #include "lyr_thread.h"
 #include "tui/window.h"
+#include "char_to_str.h"
 #include "help_win.h"
 
 static int help_count_lines(void)
@@ -66,7 +67,7 @@ static int help_create_key_text(char **lines, const char *title, const struct nc
     l_count++;
 
     for (i = 0; keys[i].ch != '\0'; i++) {
-        a_sprintf(lines + i + 2, "      %c : %s", keys[i].ch, keys[i].help_text);
+        a_sprintf(lines + i + 2, "   %12s : %s", char_to_str(keys[i].ch), keys[i].help_text);
         l_count++;
     }
 
