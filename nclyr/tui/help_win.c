@@ -17,20 +17,17 @@
 
 static int help_count_lines(void)
 {
-    int lines = 0;
+    int lines = 2;
     struct nclyr_win **win;
     const struct nclyr_keypress *key;
-
-    lines += 1;
 
     for (key = tui.global_keys; key->ch != '\0'; key++)
         lines++;
 
     for (win = tui.windows; *win; win++) {
-        lines += 2;
+        lines += 4;
         for (key = (*win)->keypresses; key->ch != '\0'; key++)
             lines++;
-        lines += 2;
     }
 
     return lines;
@@ -72,8 +69,6 @@ static int help_create_key_text(char **lines, const char *title, const struct nc
         a_sprintf(lines + i + 2, "      %c : %s", keys[i].ch, keys[i].help_text);
         l_count++;
     }
-    lines[l_count++] = strdup("");
-    lines[l_count++] = strdup("");
 
     return l_count;
 }
@@ -82,9 +77,12 @@ static void help_create_text(struct line_win *line)
 {
     struct nclyr_win **win;
     int next;
-    next = help_create_key_text(line->lines, "Global", tui.global_keys) - 1;
-    for (win = tui.windows; *win; win++)
-        next += help_create_key_text(line->lines + next, (*win)->win_name, (*win)->keypresses) - 1;
+    next = help_create_key_text(line->lines, "Global", tui.global_keys);
+    for (win = tui.windows; *win; win++) {
+        line->lines[next++] = strdup("");
+        line->lines[next++] = strdup("");
+        next += help_create_key_text(line->lines + next, (*win)->win_name, (*win)->keypresses);
+    }
 }
 
 static void help_init(struct nclyr_win *win, int y, int x, int rows, int cols)
