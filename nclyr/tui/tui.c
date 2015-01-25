@@ -60,6 +60,9 @@ struct tui_state tui = {
 static void player_keys(struct nclyr_win *win, int ch)
 {
     struct player *player = player_current();
+
+    DEBUG_PRINTF("Got player key: %c\n", ch);
+
     switch (ch) {
     case ' ':
         player_toggle_pause(player);
@@ -86,6 +89,7 @@ static void player_keys(struct nclyr_win *win, int ch)
 static void global_keys(struct nclyr_win *win, int ch)
 {
 
+    DEBUG_PRINTF("Got global key: %c\n", ch);
     if (ch == 'w') {
         tui.sel_window_index = (tui.sel_window_index + 1) % tui.window_count;
         tui_state_change_window(&tui, tui.windows[tui.sel_window_index]);
