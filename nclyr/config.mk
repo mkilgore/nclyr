@@ -28,3 +28,17 @@ NCLYR_CFLAGS += $(shell pkg-config --cflags libmpdclient)
 NCLYR_LIBFLAGS += $(shell pkg-config --libs libmpdclient)
 endif
 
+NCLYR_BUILD_SETTINGS :=
+
+ifeq ($(CONFIG_PLAYER_MPD),y)
+	NCLYR_BUILD_SETTINGS += mpd
+endif
+ifeq ($(CONFIG_PLAYER_PIANOBAR),y)
+	NCLYR_BUILD_SETTINGS += pianobar
+endif
+ifeq ($(CONFIG_LIB_GLYR),y)
+	NCLYR_BUILD_SETTINGS += glyr
+endif
+
+NCLYR_CFLAGS += -DNCLYR_BUILD_SETTINGS="$(NCLYR_BUILD_SETTINGS)"
+

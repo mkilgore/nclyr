@@ -1,4 +1,6 @@
 
+#include "common.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,10 +17,13 @@
 #include "lyr_thread.h"
 #include "signal_handler.h"
 #include "tui.h"
+#include "arg_parser.h"
+#include "args.h"
 #include "debug.h"
 
 int main(int argc, char **argv)
 {
+    const char *player, *command;
     int pipefd[2], notifyfd[2], signalfd[2];
     struct song_info *song = NULL;
     sigset_t set;
@@ -26,6 +31,9 @@ int main(int argc, char **argv)
     DEBUG_INIT();
 
     DEBUG_PRINTF("nclyr started!\n");
+
+    if (parse_args(argc, argv, &player, &command) != 0)
+        return 0;
 
     if (argc > 1)
         player_set_current(player_find(argv[1]));
