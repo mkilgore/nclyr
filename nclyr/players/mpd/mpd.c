@@ -22,6 +22,7 @@ static void mpd_song_to_song_info(struct mpd_song *msong, struct song_info *ison
     isong->artist = strdup(mpd_song_get_tag(msong, MPD_TAG_ARTIST, 0));
     isong->title = strdup(mpd_song_get_tag(msong, MPD_TAG_TITLE, 0));
     isong->album = strdup(mpd_song_get_tag(msong, MPD_TAG_ALBUM, 0));
+    isong->duration = mpd_song_get_duration(msong);
 }
 
 static void get_cur_song(struct mpd_connection *conn, struct song_info *song)
@@ -42,18 +43,44 @@ static void get_cur_song(struct mpd_connection *conn, struct song_info *song)
     mpd_song_free(msong);
 }
 
-static void get_and_send_cur_song(struct mpd_connection *conn, int notify_fd)
+static void get_and_send_cur_song(struct mpd_player *player)
 {
     struct song_info song;
-    struct player_notification notif;
 
-    get_cur_song(conn, &song);
-    memset(&notif, 0, sizeof(notif));
-    notif.type = PLAYER_SONG;
-    notif.u.song = song;
-    write(notify_fd, &notif, sizeof(notif));
+    get_cur_song(player->conn, &song);
 
+    if (song_equal(&song, &player->cur_song)) {
+        song_clear(&song);
+        return ;
+    }
+
+    song_clear(&player->cur_song);
+    player->cur_song = song;
+
+    player_send_cur_song(&player->player, &player->cur_song);
     return ;
+}
+
+static void update_status(struct mpd_player *player)
+{
+    struct mpd_status *status;
+
+    status = mpd_run_status(player->conn);
+
+    if (mpd_status_get_elapsed_time(player->cur_status)
+            != mpd_status_get_elapsed_time(status)) {
+        player_send_seek(&player->player, mpd_status_get_elapsed_time(status));
+        DEBUG_PRINTF("Seek: %d\n", mpd_status_get_elapsed_time(status));
+    }
+
+    if (mpd_status_get_volume(player->cur_status)
+            != mpd_status_get_volume(status)) {
+        player_send_volume(&player->player, mpd_status_get_volume(status));
+        DEBUG_PRINTF("Volume: %d\n", mpd_status_get_elapsed_time(status));
+    }
+
+    mpd_status_free(player->cur_status);
+    player->cur_status = status;
 }
 
 static void *mpd_thread(void *p)
@@ -62,7 +89,6 @@ static void *mpd_thread(void *p)
     struct mpd_player *player = p;
     struct pollfd fds[3] = { { 0 } };
     enum mpd_idle idle;
-    struct player_notification notif;
 
     DEBUG_PRINTF("Connecting to mpd...\n");
     player->conn = mpd_connection_new("127.0.0.1", 6600, 0);
@@ -74,11 +100,11 @@ static void *mpd_thread(void *p)
 
     DEBUG_PRINTF("Connection sucessfull\n");
 
-    memset(&notif, 0, sizeof(notif));
-    notif.type = PLAYER_IS_UP;
-    write(player->notify_fd, &notif, sizeof(notif));
+    player_send_is_up(&player->player);
 
-    get_and_send_cur_song(player->conn, player->notify_fd);
+    get_and_send_cur_song(player);
+    player_send_seek(&player->player, 0);
+    player->cur_status = mpd_status_begin();
 
     fds[0].fd = mpd_connection_get_fd(player->conn);
     fds[0].events = POLLIN;
@@ -93,14 +119,14 @@ static void *mpd_thread(void *p)
         int handle_idle = 0;
 
         mpd_send_idle(player->conn);
-        poll(fds, sizeof(fds)/sizeof(*fds), -1);
+        poll(fds, sizeof(fds)/sizeof(*fds), 900);
 
         if (fds[2].revents & POLLIN) {
             stop_flag = 1;
             continue;
         }
 
-        if (fds[1].revents & POLLIN) {
+        if (!(fds[0].revents & POLLIN)) {
             mpd_send_noidle(player->conn);
             handle_idle = 1;
         }
@@ -109,7 +135,7 @@ static void *mpd_thread(void *p)
             DEBUG_PRINTF("Recieved idle info from mpd!\n");
             idle = mpd_recv_idle(player->conn, false);
             if (idle & MPD_IDLE_PLAYER)
-                get_and_send_cur_song(player->conn, player->notify_fd);
+                get_and_send_cur_song(player);
         }
 
         if (fds[1].revents & POLLIN) {
@@ -154,6 +180,9 @@ static void *mpd_thread(void *p)
             }
         }
 
+        if (player->conn)
+            update_status(player);
+
     } while (!stop_flag);
 
     mpd_connection_free(player->conn);
@@ -161,11 +190,10 @@ static void *mpd_thread(void *p)
     return NULL;
 }
 
-static void mpd_start_thread(struct player *p, int pipfd)
+static void mpd_start_thread(struct player *p)
 {
     struct mpd_player *player = container_of(p, struct mpd_player, player);
 
-    player->notify_fd = pipfd;
     pipe(player->stop_fd);
     pipe(player->ctrl_fd);
 

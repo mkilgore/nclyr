@@ -10,13 +10,13 @@
 struct mpd_player {
     struct player player;
     pthread_t mpd_thread;
-    int notify_fd;
     int stop_fd[2];
     int ctrl_fd[2];
 
     struct mpd_connection *conn;
 
     struct song_info cur_song;
+    struct mpd_status *cur_status;
 };
 
 extern struct mpd_player mpd_player;

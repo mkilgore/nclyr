@@ -22,6 +22,9 @@ DOCDIR  := $(PREFIX)/share/doc/$(EXE)
 # Turn on debugging
 NCLYR_DEBUG ?= n
 
+# Turn on profiling
+NCLYR_PROF ?= n
+
 NCLYR_PLAYERS := \
 	PIANOBAR \
 	MPD \

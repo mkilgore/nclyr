@@ -5,6 +5,8 @@
 
 #include <limits.h>
 
+#include "song.h"
+
 enum lyr_data_type {
     LYR_ARTIST_BIO,
     LYR_SIMILAR_SONG,
@@ -15,7 +17,7 @@ enum lyr_data_type {
 };
 
 struct lyr_thread_notify {
-    const struct song_info *song;
+    struct song_info song;
     enum lyr_data_type type;
     union {
         char *lyrics;

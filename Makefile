@@ -31,11 +31,16 @@ ifdef silent
 	quiet := silent
 endif
 
-ifdef NCLYR_DEBUG
+ifeq ($(NCLYR_DEBUG),y)
 	CPPFLAGS += -DNCLYR_DEBUG
 	CFLAGS += -g
 	ASFLAGS += -g
 	LDFLAGS += -g
+endif
+
+ifeq ($(NCLYR_PROF),y)
+	CFLAGS += -pg
+	LDFLAGS += -pg
 endif
 
 define add_player
@@ -108,7 +113,7 @@ endef
 define proj_ccld_rule
 $(1): $(2) | $$(objtree)/bin
 	@$$(call mecho," CCLD    $$@","$$(CC) $(3) $(2) -o $$@ $(4)")
-	$$(Q)$$(CC) $(3) $(2) -o $$@ $(4)
+	$$(Q)$$(CC) $$(LDFLAGS) $(3) $(2) -o $$@ $(4)
 endef
 
 define proj_inc
@@ -153,7 +158,7 @@ $(objtree)/bin:
 
 $(objtree)/%.o: $(srctree)/%.c
 	@$(call mecho," CC      $@","$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@")
-	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ -gp
 
 $(objtree)/.%.d: $(srctree)/%.c
 	@$(call mecho," CCDEP   $@","$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@")

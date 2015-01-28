@@ -18,6 +18,8 @@ enum player_notif_type {
     PLAYER_IS_UP,
     PLAYER_IS_DOWN,
     PLAYER_STATE,
+    PLAYER_SEEK,
+    PLAYER_VOLUME,
 };
 
 struct player_notification {
@@ -25,6 +27,8 @@ struct player_notification {
     union {
         struct song_info song;
         enum player_state state;
+        size_t seek_pos;
+        size_t volume;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -71,8 +75,9 @@ struct player_controls {
 
 struct player {
     const char *name;
+    int notify_fd;
 
-    void (*start_thread) (struct player *, int pipe_fd);
+    void (*start_thread) (struct player *);
     void (*stop_thread) (struct player *);
 
     struct player_controls ctrls;
@@ -102,5 +107,13 @@ void player_seek(struct player *, size_t pos);
 void player_shuffle(struct player *);
 void player_set_volume(struct player *, size_t volume);
 void player_change_volume(struct player *, int change);
+
+void player_send_is_up(struct player *);
+void player_send_is_down(struct player *);
+void player_send_state(struct player *, enum player_state);
+void player_send_no_song(struct player *);
+void player_send_cur_song(struct player *, const struct song_info *);
+void player_send_seek(struct player *, size_t seek_pos);
+void player_send_volume(struct player *, size_t volume);
 
 #endif

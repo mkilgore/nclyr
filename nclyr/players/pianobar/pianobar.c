@@ -72,7 +72,7 @@ static void *pianobar_inotify_thread(void *player)
 
     memset(&notif, 0, sizeof(struct player_notification));
     notif.type = PLAYER_NO_SONG;
-    write(pianobar->output_pipe, &notif, sizeof(notif));
+    write(pianobar->player.notify_fd, &notif, sizeof(notif));
 
     fds[0].fd = inotify;
     fds[0].events = POLLIN;
@@ -106,10 +106,7 @@ static void *pianobar_inotify_thread(void *player)
             song_clear(&pianobar->current_song);
             pianobar->current_song = song;
 
-            memset(&notif, 0, sizeof(struct player_notification));
-            notif.type = PLAYER_SONG;
-            song_copy(&notif.u.song, &pianobar->current_song);
-            write(pianobar->output_pipe, &notif, sizeof(notif));
+            player_send_cur_song(&pianobar->player, &pianobar->current_song);
         }
 
     } while (!exit_flag);
@@ -118,14 +115,13 @@ static void *pianobar_inotify_thread(void *player)
     return NULL;
 }
 
-static void pianobar_start_thread(struct player *player, int pipfd)
+static void pianobar_start_thread(struct player *player)
 {
     struct pianobar_player *pianobar = container_of(player, struct pianobar_player, player);
 
     memset(&pianobar->notif_thread, 0, sizeof(pianobar->notif_thread));
 
     pipe(pianobar->stop_pipe);
-    pianobar->output_pipe = pipfd;
 
     pthread_create(&pianobar->notif_thread, NULL, pianobar_inotify_thread, pianobar);
 
@@ -148,7 +144,6 @@ struct pianobar_player pianobar_player = {
         .stop_thread = pianobar_stop_thread,
         .player_windows = (const struct nclyr_win *[]) { NULL }
     },
-    .output_pipe = 0,
     .stop_pipe = { 0, 0},
 };
 

@@ -44,6 +44,7 @@ struct tui_state tui = {
     .global_keys = (const struct nclyr_keypress[]) {
         { 'q', global_keys, "Switch to previous window." },
         { 'w', global_keys, "Switch to next window." },
+        { 'Q', global_keys, "Exit TUI." },
 
         { ' ', player_keys, "Toggle Pause" },
         { 'p', player_keys, "Previous song" },
@@ -101,6 +102,8 @@ static void global_keys(struct nclyr_win *win, int ch)
             tui.sel_window_index = tui.window_count - 1;
 
         tui_state_change_window(&tui, tui.windows[tui.sel_window_index]);
+    } else if (ch == 'Q') {
+        tui_exit_flag = 1;
     }
 }
 
@@ -142,9 +145,7 @@ static void handle_notify_fd(int notifyfd)
 
     DEBUG_PRINTF("Got Lyr-thread notification: %d\n", song_notif.type);
 
-    if (strcmp(song_notif.song->title, tui.cur_song.title) != 0
-            || strcmp(song_notif.song->artist, tui.cur_song.artist) != 0
-            || strcmp(song_notif.song->album, tui.cur_song.album) != 0) {
+    if (!song_equal(&song_notif.song, &tui.cur_song)) {
         DEBUG_PRINTF("Song didn't match!\n");
         goto clear_song_notify;
     }

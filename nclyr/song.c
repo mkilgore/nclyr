@@ -19,14 +19,15 @@ void song_clear(struct song_info *sng)
     free(sng->album);
 }
 
-void song_copy(struct song_info *dest, struct song_info *src)
+void song_copy(struct song_info *dest, const struct song_info *src)
 {
     dest->title = strdup(src->title);
     dest->artist = strdup(src->artist);
     dest->album = strdup(src->album);
+    dest->duration = src->duration;
 }
 
-int song_equal(struct song_info *src1, struct song_info *src2)
+int song_equal(const struct song_info *src1, const struct song_info *src2)
 {
     if (!src1 || !src2)
         return 0;
@@ -35,6 +36,8 @@ int song_equal(struct song_info *src1, struct song_info *src2)
     if (!src1->artist || !src2->artist || !!strcmp(src1->artist, src2->artist))
         return 0;
     if (!src1->album || !src2->album || !!strcmp(src1->album, src2->album))
+        return 0;
+    if (src1->duration != src2->duration)
         return 0;
     return 1;
 }

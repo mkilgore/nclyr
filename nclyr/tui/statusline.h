@@ -15,6 +15,7 @@ struct statusline {
     void (*player_notif) (struct statusline *, const struct player_notification *);
 
     int player_is_running :1;
+    size_t cur_pos;
 };
 
 extern struct statusline statusline;
