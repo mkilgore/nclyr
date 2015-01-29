@@ -74,6 +74,17 @@ void lyrics_new_player_notif(struct nclyr_win *win, const struct player_notifica
     return ;
 }
 
+static void lyrics_handle_keypress(struct nclyr_win *win, int ch)
+{
+    struct line_win *line = container_of(win, struct line_win, super_win);
+
+    switch (ch) {
+    case 'c':
+        line->center = !line->center;
+        break;
+    }
+}
+
 struct line_win lyrics_window = {
     .super_win = {
         .win_name = "Lyrics",
@@ -82,6 +93,7 @@ struct line_win lyrics_window = {
         .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES,
+            { 'c', lyrics_handle_keypress, "Toggle line centering" },
             { '\0', NULL, NULL }
         },
         .init = line_init,
