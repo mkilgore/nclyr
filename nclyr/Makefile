@@ -12,6 +12,6 @@ objs-$(CONFIG_LIB_GLYR) += lyr_thread.o
 objs-$(NCLYR_DEBUG) += debug.o
 
 subdir-y += players
-subdir-y += tui
+subdir-$(CONFIG_TUI) += tui
 subdir-y += config
 

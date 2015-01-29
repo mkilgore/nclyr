@@ -36,4 +36,6 @@ CONFIG_PLAYER_MPD ?= y
 
 CONFIG_LIB_GLYR ?= y
 
+CONFIG_TUI ?= y
+
 
