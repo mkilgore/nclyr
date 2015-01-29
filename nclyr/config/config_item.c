@@ -46,8 +46,6 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
     if (id2 == NULL)
         len = strlen(id);
 
-    DEBUG_PRINTF("Id: %s, Id2: %s\n", id, id2);
-
     group = &root->group;
 
     do {
@@ -58,7 +56,6 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
 
         for (i = 0; i < group->item_count; i++) {
             struct config_item *item2 = group->items + i;
-            DEBUG_PRINTF("Checking item: %s\n", item2->name);
             if (strncmp(item2->name, id, len) == 0) {
                 if (id2 == NULL) {
                     if (item2->type != CONFIG_GROUP)
