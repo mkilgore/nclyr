@@ -211,7 +211,7 @@ found_key:
     return ;
 }
 
-void tui_main_loop(int signalfd, int pipefd, int notifyfd)
+static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 {
     int i = 0;
     int rows;
@@ -236,13 +236,13 @@ void tui_main_loop(int signalfd, int pipefd, int notifyfd)
     for (win = tui.windows; *win; win++)
         (*win)->init(*win, rows + 1, 0, LINES - rows - 1, COLS);
 
-    main_notify[0].fd = pipefd;
+    main_notify[0].fd = pipes->player[0];
     main_notify[0].events = POLLIN;
 
-    main_notify[1].fd = notifyfd;
+    main_notify[1].fd = pipes->lyr[0];
     main_notify[1].events = POLLIN;
 
-    main_notify[2].fd = signalfd;
+    main_notify[2].fd = pipes->sig[0];
     main_notify[2].events = POLLIN;
 
     main_notify[3].fd = STDIN_FILENO;
@@ -273,17 +273,17 @@ void tui_main_loop(int signalfd, int pipefd, int notifyfd)
         poll(main_notify, sizeof(main_notify)/sizeof(main_notify[0]), tui.sel_window->timeout);
 
         if (main_notify[0].revents & POLLIN) {
-            handle_player_fd(pipefd);
+            handle_player_fd(main_notify[0].fd);
             continue;
         }
 
         if (main_notify[1].revents & POLLIN) {
-            handle_notify_fd(notifyfd);
+            handle_notify_fd(main_notify[1].fd);
             continue;
         }
 
         if (main_notify[2].revents & POLLIN) {
-            handle_signal_fd(signalfd);
+            handle_signal_fd(main_notify[2].fd);
             continue;
         }
 
@@ -302,4 +302,10 @@ void tui_main_loop(int signalfd, int pipefd, int notifyfd)
 
     return ;
 }
+
+struct nclyr_iface tui_iface  = {
+    .name = "tui",
+    .description = "Text (ncurses-based) User Interface",
+    .main_loop = tui_main_loop
+};
 

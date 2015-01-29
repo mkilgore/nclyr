@@ -20,6 +20,7 @@
 #include "config.h"
 #include "nclyr_conf.h"
 #include "args.h"
+#include "iface.h"
 #include "debug.h"
 
 static int arg_handle(struct arg_parser *, int index, const char *arg);
@@ -28,6 +29,7 @@ struct arg_parser_extra {
     struct arg_parser parser;
     const char *player;
     const char *command;
+    const char *interface;
 };
 
 static struct arg_parser_extra args = {
@@ -40,7 +42,8 @@ static struct arg_parser_extra args = {
                         "         running that command\n",
     },
     .player = NULL,
-    .command = NULL
+    .command = NULL,
+    .interface = "tui",
 };
 
 static const char *version_text = "nclyr-" Q(NCLYR_VERSION_N) " Copyright (C) 2015 Matt Kilgore\n"
@@ -54,8 +57,7 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
 {
     struct arg_parser_extra *extra = container_of(parser, struct arg_parser_extra, parser);
     struct player **player;
-
-    printf("In arg handle!\n");
+    struct nclyr_iface **iface;
 
     switch (index) {
     case ARG_help:
@@ -73,6 +75,16 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
         for (player = players; *player; player++)
             printf("  - %s\n", (*player)->name);
         return 1;
+
+    case ARG_list_interfaces:
+        printf("Available interfaces:\n");
+        for (iface = nclyr_iface_list; *iface; iface++)
+            printf("  - %s: %s\n", (*iface)->name, (*iface)->description);
+        return 1;
+
+    case ARG_interface:
+        extra->interface = arg;
+        break;
 
     case ARG_EXTRA:
         DEBUG_PRINTF("Extra argument: %s\n", arg);
@@ -104,8 +116,8 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
 int main(int argc, const char **argv)
 {
     const char *config = NULL;
-    int pipefd[2], notifyfd[2], signalfd[2];
-    struct song_info *song = NULL;
+    struct nclyr_pipes pipes;
+    struct nclyr_iface *iface;
     sigset_t set;
 
     DEBUG_INIT();
@@ -129,10 +141,8 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    if (config_load_from_args(&nclyr_config, &args.parser) != 0) {
-        printf("%s: Something happened when parsing args\n", argv[0]);
-        return 1;
-    }
+    if (config_load_from_args(&nclyr_config, &args.parser) != 0)
+        return 0;
 
     if (!args.player)
         args.player = "mpd";
@@ -144,35 +154,40 @@ int main(int argc, const char **argv)
         return 0;
     }
 
-    /* Open up three pipes that we'll use to communicate with the three main
-     * threads */
-    pipe(pipefd);
-    pipe(notifyfd);
-    pipe(signalfd);
+    iface = nclyr_iface_find(args.interface);
+    if (!iface) {
+        printf("%s: Error, interface '%s' does not exist.\n", argv[0], args.interface);
+        return 1;
+    }
+
+    nclyr_pipes_open(&pipes);
 
     /* Start a thread to catch all of our signals and send them down the
      * signalfd pipe. This thread has to be started before we mask all the
      * signals on the main thread */
-    signal_start_handler(signalfd[1]);
+    signal_start_handler(pipes.sig[1]);
 
     /* Make sure no threads but the signal thread recieves any signals by
      * masking them on the main thread. */
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 
-    lyr_thread_start(notifyfd[1]);
-    player_start_thread(player_current(), pipefd[1]);
+    /* Start 'lyr_thread', which runs glyr and querys for song information */
+    lyr_thread_start(pipes.lyr[1]);
 
-    tui_main_loop(signalfd[0], pipefd[0], notifyfd[0]);
+    /* Start the 'player' thread for the current player, which interfaces with
+     * the actual music player */
+    player_start_thread(player_current(), pipes.player[1]);
+
+    iface->main_loop(iface, &pipes);
 
     player_stop_thread(player_current());
     lyr_thread_stop();
     signal_stop_handler();
 
-    song_clear(song);
-    free(song);
-
     nclyr_conf_clear();
+
+    DEBUG_PRINTF("nclyr ending!\n");
 
     DEBUG_CLOSE();
 
