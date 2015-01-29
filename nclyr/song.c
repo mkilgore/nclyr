@@ -3,6 +3,7 @@
 
 #include <string.h>
 
+#include "nstrdup.h"
 #include "song.h"
 
 void song_init(struct song_info *sng)
@@ -21,9 +22,10 @@ void song_clear(struct song_info *sng)
 
 void song_copy(struct song_info *dest, const struct song_info *src)
 {
-    dest->title = strdup(src->title);
-    dest->artist = strdup(src->artist);
-    dest->album = strdup(src->album);
+    dest->title = nstrdup(src->title);
+    dest->artist = nstrdup(src->artist);
+    dest->album = nstrdup(src->album);
+
     dest->duration = src->duration;
 }
 
