@@ -134,12 +134,6 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    config_print(&nclyr_config);
-
-    nclyr_conf_clear();
-    DEBUG_CLOSE();
-    return 0;
-
     if (!args.player)
         args.player = "mpd";
 
