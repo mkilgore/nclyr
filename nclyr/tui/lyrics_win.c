@@ -96,5 +96,6 @@ struct line_win lyrics_window = {
     .line_count = 0,
     .disp_offset = 0,
     .lines = NULL,
+    .center = 1
 };
 

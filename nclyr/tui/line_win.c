@@ -15,10 +15,14 @@ void line_update (struct nclyr_win *win)
     int i, rows, cols;
     werase(curwin);
 
-
     getmaxyx(curwin, rows, cols);
-    for (i = 0; i < rows && i + line->disp_offset < line->line_count; i++)
-        mvwprintw(curwin, i, 0, "%-*s", cols, line->lines[i + line->disp_offset]);
+    for (i = 0; i < rows && i + line->disp_offset < line->line_count; i++) {
+        const char *l = line->lines[i + line->disp_offset];
+        if (!line->center)
+            mvwprintw(curwin, i, 0, "%-*s", cols, l);
+        else
+            mvwprintw(curwin, i, cols / 2 - strlen(l) / 2, "%s", l);
+    }
 
     wrefresh(curwin);
 }

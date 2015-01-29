@@ -10,6 +10,8 @@ struct line_win {
     size_t line_count;
     size_t disp_offset;
     char **lines;
+
+    unsigned int center:1;
 };
 
 void line_update(struct nclyr_win *);
