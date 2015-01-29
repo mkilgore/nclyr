@@ -23,7 +23,7 @@ SRC_OBJS :=
 # Set configuration options
 Q := @
 quiet := quiet
-ifdef V
+ifeq ($(V),y)
 	quiet :=
 endif
 

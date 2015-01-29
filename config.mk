@@ -17,7 +17,7 @@ MAN1DIR := $(MANDIR)/man1
 DOCDIR  := $(PREFIX)/share/doc/$(EXE)
 
 # Show all commands executed by the Makefile
-# V := y
+V ?= n
 
 # Turn on debugging
 NCLYR_DEBUG ?= n
