@@ -14,6 +14,7 @@ NCLYR_CONFIG_CFLAGS  += -DNCLYR_CONFIG_VERSION=$(NCLYR_CONFIG_VERSION)       \
 
 NCLYR_CONFIG_OBJS += ./config.o
 
+ifneq ($(MAKECMDGOALS),clean)
 $(objtree)/include/gen_config.h: $(srctree)/nclyr_build.conf $(objtree)/bin/config
 	@$(call mecho," CONFIG  $@","./bin/config c < $< > $@")
 	$(Q)./bin/config c < $< > $@
@@ -21,7 +22,7 @@ $(objtree)/include/gen_config.h: $(srctree)/nclyr_build.conf $(objtree)/bin/conf
 $(objtree)/gen_config.mk: $(srctree)/nclyr_build.conf $(objtree)/bin/config
 	@$(call mecho," CONFIG  $@","./bin/config m < $< > $@")
 	$(Q)./bin/config m < $< > $@
+endif
 
 CLEAN_LIST += $(objtree)/include/gen_config.h
-CLEAN_LIST += $(objtree)/gen_config.mk
 

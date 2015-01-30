@@ -24,7 +24,7 @@
 
 static struct nclyr_win *nclyr_windows[] = {
     &clock_window.super_win,
-#ifdef CONFIG_LIB_GLYR
+#if CONFIG_LIB_GLYR
     &lyrics_window.super_win,
     &artist_window.super_win,
 #endif

@@ -24,4 +24,6 @@
 #define TP2(x, y) x ## y
 #define TP(x, y) TP2(x, y)
 
+#include "gen_config.h"
+
 #endif

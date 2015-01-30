@@ -9,10 +9,10 @@
 #include "mpd/mpd.h"
 
 struct player *players[] = {
-#ifdef CONFIG_PLAYER_PIANOBAR
+#if CONFIG_PLAYER_PIANOBAR
     &pianobar_player.player,
 #endif
-#ifdef CONFIG_PLAYER_MPD
+#if CONFIG_PLAYER_MPD
     &mpd_player.player,
 #endif
     NULL

@@ -16,11 +16,11 @@
 #include "song.h"
 #include "lyr_thread.h"
 #include "signal_handler.h"
-#include "tui.h"
 #include "config.h"
 #include "nclyr_conf.h"
 #include "args.h"
 #include "iface.h"
+#include "build.h"
 #include "debug.h"
 
 static int arg_handle(struct arg_parser *, int index, const char *arg);
@@ -46,10 +46,9 @@ static struct arg_parser_extra args = {
     .interface = "tui",
 };
 
-static const char *version_text = "nclyr-" Q(NCLYR_VERSION_N) " Copyright (C) 2015 Matt Kilgore\n"
-                                  "Build settings: " Q(NCLYR_BUILD_SETTINGS) "\n"
-                                  "\n"
-                                  "This is free software: you are free to change and redistribute it.\n"
+static const char *version_text = "nclyr-" Q(NCLYR_VERSION_N) " Copyright (C) 2015 Matt Kilgore\n";
+
+static const char *license_text = "This is free software: you are free to change and redistribute it.\n"
                                   "There is NO WARRANTY, to the extent permitted by law.\n";
 
 
@@ -68,6 +67,10 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
         return 1;
     case ARG_version:
         printf("%s", version_text);
+        build_settings_print(stdout);
+        putchar('\n');
+        putchar('\n');
+        printf("%s", license_text);
         return 1;
 
     case ARG_list_players:

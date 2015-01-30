@@ -33,7 +33,7 @@ struct lyr_thread_notify {
 };
 STATIC_ASSERT(sizeof(struct lyr_thread_notify) <= PIPE_BUF);
 
-#ifdef CONFIG_LIB_GLYR
+#if CONFIG_LIB_GLYR
 void lyr_thread_start(int notify_fd);
 void lyr_thread_stop(void);
 

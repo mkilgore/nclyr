@@ -7,11 +7,13 @@ objs-y += stringcasecmp.o
 objs-y += args.o
 objs-y += nclyr_conf.o
 objs-y += iface.o
+objs-y += build.o
 
 objs-$(CONFIG_LIB_GLYR) += lyr_thread.o
 objs-$(NCLYR_DEBUG) += debug.o
 
 subdir-y += players
-subdir-$(CONFIG_TUI) += tui
 subdir-y += config
+subdir-$(CONFIG_TUI) += tui
+subdir-$(CONFIG_CONSOLE) += console
 

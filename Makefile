@@ -118,9 +118,7 @@ endef
 
 $(eval $(call proj_inc,config))
 
-ifneq ($(MAKECMDGOALS),clean)
 -include $(objtree)/gen_config.mk
-endif
 
 $(eval $(call proj_inc,nclyr))
 CLEAN_LIST += $(objtree)/bin

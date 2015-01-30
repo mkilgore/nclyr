@@ -9,7 +9,7 @@
 #include "debug.h"
 
 struct nclyr_iface *nclyr_iface_list[] = {
-#ifdef CONFIG_TUI
+#if CONFIG_TUI
     &tui_iface,
 #endif
     NULL
