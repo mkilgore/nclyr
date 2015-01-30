@@ -7,7 +7,7 @@ objtree := .
 # we need to define this fairly high-up.
 all: real-all
 
-PHONY += all install clean dist real-all
+PHONY += all install clean dist real-all configure
 
 # Predefine this variable. It contains a list of extra files to clean. Ex.
 CLEAN_LIST :=
@@ -41,18 +41,6 @@ endif
 ifeq ($(NCLYR_PROF),y)
 	CFLAGS += -pg
 	LDFLAGS += -pg
-endif
-
-define add_player
-ifeq ($$(CONFIG_PLAYER_$(1)),y)
-CPPFLAGS += -DCONFIG_PLAYER_$(1)
-endif
-endef
-
-$(foreach player,$(NCLYR_PLAYERS),$(eval $(call add_player,$(player))))
-
-ifeq ($(CONFIG_LIB_GLYR),y)
-	CPPFLAGS += -DCONFIG_LIB_GLYR
 endif
 
 _echo_cmd = echo $(2)
@@ -120,7 +108,6 @@ define proj_inc
 include $(1)/config.mk
 PROG := $$(objtree)/bin/$$(EXE)
 PROJ := $$(EXEC)
-EXES += $$(PROG)
 
 objs := $$(sort $$($$(EXEC)_OBJS) $$(SRC_OBJS))
 
@@ -129,12 +116,20 @@ $$(eval $$(call subdir_inc,$$(EXE)))
 CLEAN_LIST += $$(PROG)
 endef
 
+$(eval $(call proj_inc,config))
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(objtree)/gen_config.mk
+endif
+
 $(eval $(call proj_inc,nclyr))
 CLEAN_LIST += $(objtree)/bin
 
+EXES := $(objtree)/bin/nclyr
+
 
 # Actual entry
-real-all: $(EXES)
+real-all: configure $(EXES)
 
 dist: clean
 	$(Q)mkdir -p $(EXE)-$(VERSION_N)
@@ -152,6 +147,8 @@ clean:
 		fi \
 	done
 
+configure: $(objtree)/gen_config.mk $(objtree)/include/gen_config.h
+
 $(objtree)/bin:
 	@$(call mecho," MKDIR   $@","$(MKDIR) $@")
 	$(Q)$(MKDIR) $@
@@ -160,9 +157,10 @@ $(objtree)/%.o: $(srctree)/%.c
 	@$(call mecho," CC      $@","$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@")
 	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ -gp
 
-$(objtree)/.%.d: $(srctree)/%.c
+$(objtree)/.%.d: $(srctree)/%.c $(objtree)/include/gen_config.h
 	@$(call mecho," CCDEP   $@","$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@")
 	$(Q)$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@
+
 
 DEP_LIST := $(foreach dep,$(DEPS),$(dir $(dep)).$(notdir $(dep)))
 DEP_LIST := $(DEP_LIST:.o=.d)
