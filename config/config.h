@@ -4,7 +4,7 @@
 struct config_output {
     void (*start) (void);
     void (*end) (void);
-    void (*write_var) (const char *var, int set);
+    void (*write_var) (const char *var, int set, const char *dat);
 };
 
 #endif

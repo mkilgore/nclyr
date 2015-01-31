@@ -48,9 +48,11 @@ int main(int argc, char **argv)
             }
 
             if (strcmp(yytext, "y") == 0)
-                out->write_var(token_str, 1);
+                out->write_var(token_str, 1, NULL);
+            else if (strcmp(yytext, "n") == 0)
+                out->write_var(token_str, 0, NULL);
             else
-                out->write_var(token_str, 0);
+                out->write_var(token_str, 2, yytext);
 
             free(token_str);
         }

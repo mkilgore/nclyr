@@ -24,6 +24,10 @@
     return TOK_STRING;
 }
 
+\".*\" {
+    return TOK_STRING;
+}
+
 <<EOF>> {
     return TOK_EOF;
 }

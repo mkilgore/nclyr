@@ -14,12 +14,14 @@ void c_end(void)
     printf("#endif\n");
 }
 
-void c_write_var(const char *var, int set)
+void c_write_var(const char *var, int set, const char *dat)
 {
-    if (set)
+    if (set == 1)
         printf("#define %s 1\n", var);
-    else
+    else if (set == 0)
         printf("#define %s 0\n", var);
+    else if (set == 2)
+        printf("#define %s %s\n", var, dat);
 }
 
 struct config_output c_output = {

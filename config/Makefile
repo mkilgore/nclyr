@@ -8,3 +8,5 @@ $(objtree)/config_lex.c: $(srctree)/config_lex.l
 	@$(call mecho," LEX     $@","$(LEX) $(LFLAGS) -o $@ $<")
 	$(Q)$(LEX) $(LFLAGS) -o $@ $<
 
+CLEAN_LIST += $(objtree)/config_lex.c
+
