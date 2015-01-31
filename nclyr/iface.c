@@ -6,11 +6,15 @@
 #include "stringcasecmp.h"
 #include "iface.h"
 #include "tui.h"
+#include "console.h"
 #include "debug.h"
 
 struct nclyr_iface *nclyr_iface_list[] = {
 #if CONFIG_TUI
     &tui_iface,
+#endif
+#if CONFIG_CONSOLE
+    &console_iface,
 #endif
     NULL
 };

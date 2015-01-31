@@ -41,9 +41,9 @@ static struct arg_parser_extra args = {
                         "Command: Optional command to send to player; If supplied, nclyr exits after\n"
                         "         running that command\n",
     },
-    .player = NULL,
+    .player = CONFIG_DEFAULT_PLAYER,
     .command = NULL,
-    .interface = "tui",
+    .interface = CONFIG_DEFAULT_IFACE,
 };
 
 static const char *version_text = "nclyr-" Q(NCLYR_VERSION_N) " Copyright (C) 2015 Matt Kilgore\n";
@@ -146,9 +146,6 @@ int main(int argc, const char **argv)
 
     if (config_load_from_args(&nclyr_config, &args.parser) != 0)
         return 0;
-
-    if (!args.player)
-        args.player = "mpd";
 
     player_set_current(player_find(args.player));
 
