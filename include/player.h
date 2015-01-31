@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "song.h"
+#include "playlist.h"
 
 #include <limits.h>
 
@@ -20,6 +21,7 @@ enum player_notif_type {
     PLAYER_STATE,
     PLAYER_SEEK,
     PLAYER_VOLUME,
+    PLAYER_PLAYLIST,
 };
 
 struct player_notification {
@@ -29,9 +31,21 @@ struct player_notification {
         enum player_state state;
         size_t seek_pos;
         size_t volume;
+        struct playlist playlist;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
+
+/* A struct capable of holding all the information recieved from every type of
+ * player_notification */
+struct player_state_full {
+    int is_up :1;
+    enum player_state state;
+    struct song_info song;
+    size_t volume;
+    size_t seek_pos;
+    struct playlist playlist;
+};
 
 enum player_ctrl_msg_type {
     PLAYER_CTRL_PLAY,
@@ -93,7 +107,10 @@ struct player *player_current(void);
 void player_start_thread(struct player *player, int pipefd);
 void player_stop_thread(struct player *player);
 
-void player_notification_free(struct player_notification *);
+void player_notification_clear(struct player_notification *);
+
+void player_state_full_clear(struct player_state_full *state);
+void player_state_full_update(struct player_state_full *state, struct player_notification *notif);
 
 struct player *player_find(const char *name);
 void player_set_current(struct player *);
@@ -115,5 +132,6 @@ void player_send_no_song(struct player *);
 void player_send_cur_song(struct player *, const struct song_info *);
 void player_send_seek(struct player *, size_t seek_pos);
 void player_send_volume(struct player *, size_t volume);
+void player_send_playlist(struct player *, struct playlist *);
 
 #endif

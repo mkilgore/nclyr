@@ -8,6 +8,7 @@ objs-y += args.o
 objs-y += nclyr_conf.o
 objs-y += iface.o
 objs-y += build.o
+objs-y += playlist.o
 
 objs-$(CONFIG_LIB_GLYR) += lyr_thread.o
 objs-$(NCLYR_DEBUG) += debug.o
