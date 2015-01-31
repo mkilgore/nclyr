@@ -131,7 +131,7 @@ static void handle_player_fd(int playerfd)
 
     tui.status->player_notif(tui.status, &notif);
 
-    player_notification_free(&notif);
+    player_notification_clear(&notif);
     return ;
 }
 
