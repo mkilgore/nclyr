@@ -1,7 +1,8 @@
 #ifndef INCLUDE_CONFIG_H
 #define INCLUDE_CONFIG_H
 
-#include <ncurses.h>
+#include <stdlib.h>
+#include "cons_color.h"
 
 enum config_item_type {
     CONFIG_STRING,
@@ -23,10 +24,7 @@ union config_data {
     int bol;
     int integer;
 
-    struct {
-        int f;
-        int b;
-    } c_pair;
+    struct cons_color_pair c_pair;
 
     struct item_group group;
 };
@@ -70,9 +68,6 @@ struct arg_parser {
 struct config_item *config_item_find(struct root_config *root, const char *id);
 void config_item_clear(struct config_item *item);
 void config_item_data_clear(enum config_item_type type, union config_data *data);
-
-int config_color_get(const char *name);
-const char *config_color_name(int color);
 
 void config_check_for_config(int argc, const char **argv, const char **config);
 

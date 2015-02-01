@@ -74,6 +74,7 @@ static void get_cur_playlist(struct mpd_player *player, struct playlist *playlis
         playlist->song_count++;
         playlist->songs = realloc(playlist->songs, playlist->song_count * sizeof(*playlist->songs));
         mpd_song_to_song_info(msong, playlist->songs + playlist->song_count - 1);
+        mpd_song_free(msong);
     }
 }
 

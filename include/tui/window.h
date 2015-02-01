@@ -9,10 +9,14 @@ struct nclyr_win;
 #include "song.h"
 #include "player.h"
 #include "lyr_thread.h"
+#include "tui.h"
 
 struct nclyr_win {
     /* Name to identify this window */
     const char *win_name;
+
+    /* We store a pointer to the tui_iface in every window so it can access it */
+    struct tui_iface *tui;
 
     /* If there is no input provided to wake-up nclyr from sleeping, then nclyr
      * will sleep for at most 'timeout' milliseconds. Use -1 if nclyr should
@@ -60,7 +64,7 @@ struct nclyr_win {
     /* Called when we recieve a response from the query thread that this window asked for */
     void (*new_song_data) (struct nclyr_win *, const struct lyr_thread_notify *);
 
-    void (*new_player_notif) (struct nclyr_win *, const struct player_notification *);
+    void (*new_player_notif) (struct nclyr_win *, enum player_notif_type, struct player_state_full *);
 };
 
 struct nclyr_keypress {

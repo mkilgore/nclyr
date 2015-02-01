@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "stringcasecmp.h"
+#include "cons_color.h"
 #include "config.h"
 #include "debug.h"
 
@@ -42,7 +43,7 @@ static void config_print_item(struct config_item *item, int indent)
         break;
 
     case CONFIG_COLOR_PAIR:
-        printf("%s: (%s, %s)\n", item->name, config_color_name(item->u.c_pair.f), config_color_name(item->u.c_pair.b));
+        printf("%s: (%s, %s)\n", item->name, cons_color_name(item->u.c_pair.f), cons_color_name(item->u.c_pair.b));
         break;
     }
 }

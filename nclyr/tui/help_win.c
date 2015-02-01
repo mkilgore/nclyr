@@ -9,23 +9,22 @@
 
 #include "a_sprintf.h"
 #include "tui.h"
-#include "tui_internal.h"
 #include "player.h"
 #include "lyr_thread.h"
 #include "tui/window.h"
 #include "char_to_str.h"
 #include "help_win.h"
 
-static int help_count_lines(void)
+static int help_count_lines(struct tui_iface *tui)
 {
     int lines = 2;
     struct nclyr_win **win;
     const struct nclyr_keypress *key;
 
-    for (key = tui.global_keys; key->ch != '\0'; key++)
+    for (key = tui->global_keys; key->ch != '\0'; key++)
         lines++;
 
-    for (win = tui.windows; *win; win++) {
+    for (win = tui->windows; *win; win++) {
         lines += 4;
         for (key = (*win)->keypresses; key->ch != '\0'; key++)
             lines++;
@@ -74,12 +73,12 @@ static int help_create_key_text(char **lines, const char *title, const struct nc
     return l_count;
 }
 
-static void help_create_text(struct line_win *line)
+static void help_create_text(struct tui_iface *tui, struct line_win *line)
 {
     struct nclyr_win **win;
     int next;
-    next = help_create_key_text(line->lines, "Global", tui.global_keys);
-    for (win = tui.windows; *win; win++) {
+    next = help_create_key_text(line->lines, "Global", tui->global_keys);
+    for (win = tui->windows; *win; win++) {
         line->lines[next++] = strdup("");
         line->lines[next++] = strdup("");
         next += help_create_key_text(line->lines + next, (*win)->win_name, (*win)->keypresses);
@@ -89,14 +88,15 @@ static void help_create_text(struct line_win *line)
 static void help_init(struct nclyr_win *win, int y, int x, int rows, int cols)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
+    struct tui_iface *tui = win->tui;
     win->win = newwin(rows, cols, y, x);
 
-    line->line_count = help_count_lines();
+    line->line_count = help_count_lines(tui);
     line->disp_offset = 0;
 
     line->lines = malloc(line->line_count * sizeof(*line->lines));
 
-    help_create_text(line);
+    help_create_text(tui, line);
 }
 
 static void help_resize(struct nclyr_win *win, int y, int x, int rows, int cols)

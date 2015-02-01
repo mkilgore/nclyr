@@ -11,7 +11,7 @@
 
 struct nclyr_iface *nclyr_iface_list[] = {
 #if CONFIG_TUI
-    &tui_iface,
+    &tui_iface.iface,
 #endif
 #if CONFIG_CONSOLE
     &console_iface,

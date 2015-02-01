@@ -1,0 +1,15 @@
+#ifndef NCLYR_CURSES_PLAYLIST_WIN_H
+#define NCLYR_CURSES_PLAYLIST_WIN_H
+
+#include "tui/window.h"
+#include "playlist.h"
+
+struct playlist_win {
+    struct nclyr_win super_win;
+
+    int disp_offset;
+};
+
+extern struct playlist_win playlist_window;
+
+#endif

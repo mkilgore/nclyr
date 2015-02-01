@@ -77,7 +77,7 @@ void line_clear_song_data(struct nclyr_win *win)
     return ;
 }
 
-void line_new_player_notif (struct nclyr_win *win, const struct player_notification *notif)
+void line_new_player_notif (struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
 {
     return ;
 }

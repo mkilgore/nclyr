@@ -12,6 +12,7 @@
 #include "lyr_thread.h"
 #include "player.h"
 #include "tui/window.h"
+#include "tui_color.h"
 #include "clock_win.h"
 
 static char big_num[15][5][3] = {
@@ -210,9 +211,10 @@ static void clock_update (struct nclyr_win *win)
 
     werase(curwin);
 
-    wattron(win->win, COLOR_PAIR(clock->color + 1));
+
+    tui_color_fb_set(win->win, clock->color + 1, CONS_COLOR_DEFAULT);
     write_clock_str(curwin, clock->y, clock->x, clock->last_buf);
-    wattroff(win->win, COLOR_PAIR(clock->color + 1));
+    tui_color_fb_unset(win->win, clock->color + 1, CONS_COLOR_DEFAULT);
 
     wrefresh(curwin);
 }
@@ -251,7 +253,7 @@ static void clock_switch_to (struct nclyr_win *win)
     return ;
 }
 
-static void clock_new_player_notif (struct nclyr_win *win, const struct player_notification *notif)
+static void clock_new_player_notif (struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
 {
     return ;
 }

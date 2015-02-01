@@ -47,14 +47,14 @@ static int parse_long(struct root_config *root, struct arg_parser *parser, int *
             item->u.bol = (stringcasecmp(parser->argv[*arg], "true") == 0);
             break;
         case CONFIG_COLOR_PAIR:
-            if (sscanf(parser->argv[*arg], "(%9[^(,],%9[^,)])", color1, color2) == 0) {
+            if (sscanf(parser->argv[*arg], "(%9[^(,],%9[^,)])", color1, color2) != 2) {
                 printf("%s: Error parsing color pair '%s'\n", parser->argv[0], parser->argv[*arg]);
                 return 1;
             }
             printf("colors: %s, %s\n", color1, color2);
             config_item_data_clear(item->type, &item->u);
-            item->u.c_pair.f = config_color_get(color1);
-            item->u.c_pair.b = config_color_get(color2);
+            item->u.c_pair.f = cons_color_get(color1);
+            item->u.c_pair.b = cons_color_get(color2);
             break;
         default:
             break;

@@ -3,19 +3,21 @@
 
 #include <ncurses.h>
 
+struct statusline;
+
 #include "player.h"
+#include "tui.h"
 
 struct statusline {
     WINDOW *win;
+
+    struct tui_iface *tui;
 
     void (*init) (struct statusline *, int cols);
     void (*clean) (struct statusline *);
     void (*resize) (struct statusline *, int cols);
     void (*update) (struct statusline *);
-    void (*player_notif) (struct statusline *, const struct player_notification *);
-
-    int player_is_running :1;
-    size_t cur_pos;
+    void (*player_notif) (struct statusline *, enum player_notif_type, struct player_state_full *);
 };
 
 extern struct statusline statusline;

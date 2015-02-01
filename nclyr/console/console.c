@@ -35,15 +35,26 @@ static void term_settings(struct termios *old, struct termios *new)
     return ;
 }
 
-static void term_input(struct termios *new, char *buf, size_t bufsize)
+static void term_input(char *buf, size_t bufsize)
 {
-    new->c_lflag |= ECHO;
-    tcsetattr(STDIN_FILENO, TCSANOW, new);
+    int len = 0;
+    int ch;
 
-    fgets(buf, bufsize, stdin);
+    memset(buf, 0, bufsize);
 
-    new->c_lflag &= ~(ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, new);
+    while ((ch = getchar()) != '\n') {
+        int cols = get_term_width();
+
+        if (ch != 127) {
+            if (len < bufsize)
+                buf[len++] = (char)ch;
+        } else {
+            if (len > 0)
+                buf[--len] = '\0';
+        }
+
+        printf("\r" TERM_CLEAR ":%-*s", cols - 1, buf);
+    }
 }
 
 static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
@@ -51,7 +62,7 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
     struct player_state_full play_state;
     char linebuf[200];
     struct termios oldterm, newterm;
-    int cols, i;
+    int cols, i, inp_flag = 0, inp_len = 0;
     int console_exit_flag = 0;
     struct pollfd main_notify[4];
 
@@ -78,12 +89,22 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
         cols = get_term_width();
         char line[cols + 1];
 
-        if (play_state.state != PLAYER_STOPPED)
-            len = sprintf(line, "[%d%%] Song: %s by %s on %s%s", play_state.volume, play_state.song.title, play_state.song.artist, play_state.song.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
-        else
-            len = sprintf(line, "Player stopped");
+        if (!inp_flag) {
+            if (play_state.is_up) {
+                if (play_state.state != PLAYER_STOPPED) {
+                    len = snprintf(line, cols, "[%d%%] Song: %s by %s on %s%s", play_state.volume, play_state.song.title, play_state.song.artist, play_state.song.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
+                    if (len < cols)
+                        snprintf(line + len, cols, "%*s[%02d:%02d]/[%02d:%02d]", cols - len - 15, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song.duration / 60, play_state.song.duration % 60);
+                } else {
+                    snprintf(line, cols, "Player stopped");
+                }
+            } else {
+                snprintf(line, cols, "Player %s is not open.", player_current()->name);
+            }
+        } else {
+            snprintf(line, cols, ":%-*s", cols - 1, linebuf);
+        }
 
-        sprintf(line + len, "%*s[%02d:%02d]/[%02d:%02d]", cols - len - 15, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song.duration / 60, play_state.song.duration % 60);
 
         printf("\r" TERM_CLEAR "%s", line);
 
@@ -113,27 +134,45 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
 
         if (main_notify[3].revents & POLLIN) {
             char ch = getchar();
-            switch (ch) {
-            case 'h':
-                printf("Console help:\nstuff\nstuff\n");
-                break;
-            case 'p':
-                printf("Playlist:\n");
-                for (i = 0; i < play_state.playlist.song_count; i++)
-                    printf("%02d. %s by %s on %s%s\n",
-                            i,
-                            play_state.playlist.songs[i].title,
-                            play_state.playlist.songs[i].artist,
-                            play_state.playlist.songs[i].album,
-                            song_equal(play_state.playlist.songs + i, &play_state.song)? " ***":"");
-                break;
-            case ' ':
-                player_toggle_pause(player_current());
-                break;
-            case ':':
-                printf("\r" TERM_CLEAR ":");
-                term_input(&newterm, linebuf, sizeof(linebuf));
-                break;
+            if (!inp_flag) {
+                switch (ch) {
+                case 'h':
+                    printf("Console help:\nstuff\nstuff\n");
+                    break;
+                case 'p':
+                    printf("Playlist:\n");
+                    for (i = 0; i < play_state.playlist.song_count; i++) {
+                        int eq = song_equal(play_state.playlist.songs + i, &play_state.song);
+                        printf("%02d. %s%s by %s on %s%s\n",
+                                i,
+                                (eq)? TERM_COLOR_BLUE:"",
+                                play_state.playlist.songs[i].title,
+                                play_state.playlist.songs[i].artist,
+                                play_state.playlist.songs[i].album,
+                                (eq)? TERM_COLOR_RESET:"");
+                    }
+                    break;
+                case ' ':
+                    player_toggle_pause(player_current());
+                    break;
+                case ':':
+                    printf("\r" TERM_CLEAR ":");
+                    inp_flag = 1;
+                    inp_len = 0;
+                    memset(linebuf, 0, sizeof(linebuf));
+                    break;
+                }
+            } else {
+                if (ch == '\n') {
+                    printf("Input: %s\n", linebuf);
+                    inp_flag = 0;
+                } else if (ch != 127) {
+                    if (inp_len < sizeof(linebuf))
+                        linebuf[inp_len++] = (char)ch;
+                } else {
+                    if (inp_len > 0)
+                        linebuf[--inp_len] = '\0';
+                }
             }
             continue;
         }

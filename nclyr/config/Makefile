@@ -1,6 +1,5 @@
 
 objs-y += config_lexer.o
-objs-y += config_color.o
 objs-y += config_file.o
 objs-y += config_help.o
 objs-y += config_item.o
