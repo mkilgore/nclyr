@@ -12,22 +12,28 @@
 #include <pthread.h>
 #include <mpd/client.h>
 
+#include "nstrdup.h"
 #include "song.h"
 #include "playlist.h"
 #include "player.h"
 #include "mpd.h"
 #include "debug.h"
 
-static void mpd_song_to_song_info(struct mpd_song *msong, struct song_info *isong)
+static struct song_info *mpd_song_to_song_info(struct mpd_song *msong)
 {
-    isong->artist = strdup(mpd_song_get_tag(msong, MPD_TAG_ARTIST, 0));
-    isong->title = strdup(mpd_song_get_tag(msong, MPD_TAG_TITLE, 0));
-    isong->album = strdup(mpd_song_get_tag(msong, MPD_TAG_ALBUM, 0));
+    struct song_info *isong = malloc(sizeof(*isong));
+    song_init(isong);
+
+    isong->artist = nstrdup(mpd_song_get_tag(msong, MPD_TAG_ARTIST, 0));
+    isong->title = nstrdup(mpd_song_get_tag(msong, MPD_TAG_TITLE, 0));
+    isong->album = nstrdup(mpd_song_get_tag(msong, MPD_TAG_ALBUM, 0));
     isong->duration = mpd_song_get_duration(msong);
+    return isong;
 }
 
-static void get_cur_song(struct mpd_connection *conn, struct song_info *song)
+static struct song_info *get_cur_song(struct mpd_connection *conn)
 {
+    struct song_info *song;
     struct mpd_song *msong;
 
     DEBUG_PRINTF("Asking mpd for current song\n");
@@ -40,25 +46,27 @@ static void get_cur_song(struct mpd_connection *conn, struct song_info *song)
 
     mpd_response_finish(conn);
 
-    mpd_song_to_song_info(msong, song);
+    song = mpd_song_to_song_info(msong);
     mpd_song_free(msong);
+
+    return song;
 }
 
 static void get_and_send_cur_song(struct mpd_player *player)
 {
-    struct song_info song;
+    struct song_info *song;
 
-    get_cur_song(player->conn, &song);
+    song = get_cur_song(player->conn);
 
-    if (song_equal(&song, &player->cur_song)) {
-        song_clear(&song);
+    if (song_equal(song, player->cur_song)) {
+        song_free(song);
         return ;
     }
 
-    song_clear(&player->cur_song);
+    song_free(player->cur_song);
     player->cur_song = song;
 
-    player_send_cur_song(&player->player, &player->cur_song);
+    player_send_cur_song(&player->player, song_copy(player->cur_song));
     return ;
 }
 
@@ -73,7 +81,7 @@ static void get_cur_playlist(struct mpd_player *player, struct playlist *playlis
     while ((msong = mpd_recv_song(player->conn)) != NULL) {
         playlist->song_count++;
         playlist->songs = realloc(playlist->songs, playlist->song_count * sizeof(*playlist->songs));
-        mpd_song_to_song_info(msong, playlist->songs + playlist->song_count - 1);
+        playlist->songs[playlist->song_count - 1] = mpd_song_to_song_info(msong);
         mpd_song_free(msong);
     }
 }
@@ -229,6 +237,8 @@ static void *mpd_thread(void *p)
     } while (!stop_flag);
 
     mpd_connection_free(player->conn);
+    mpd_status_free(player->cur_status);
+    song_free(player->cur_song);
 
     return NULL;
 }

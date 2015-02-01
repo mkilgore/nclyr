@@ -27,7 +27,7 @@ enum player_notif_type {
 struct player_notification {
     enum player_notif_type type;
     union {
-        struct song_info song;
+        struct song_info *song;
         enum player_state state;
         size_t seek_pos;
         size_t volume;
@@ -41,7 +41,7 @@ STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
 struct player_state_full {
     int is_up :1;
     enum player_state state;
-    struct song_info song;
+    struct song_info *song;
     size_t volume;
     size_t seek_pos;
     struct playlist playlist;
@@ -129,7 +129,7 @@ void player_send_is_up(struct player *);
 void player_send_is_down(struct player *);
 void player_send_state(struct player *, enum player_state);
 void player_send_no_song(struct player *);
-void player_send_cur_song(struct player *, const struct song_info *);
+void player_send_cur_song(struct player *, struct song_info *);
 void player_send_seek(struct player *, size_t seek_pos);
 void player_send_volume(struct player *, size_t volume);
 void player_send_playlist(struct player *, struct playlist *);

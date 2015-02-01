@@ -14,7 +14,7 @@
 #include "debug.h"
 
 struct lyr_thread {
-    struct song_info song;
+    struct song_info *song;
     pthread_t thread;
 
     GlyrQuery q;
@@ -60,7 +60,7 @@ static void start_lyr_thread(const struct song_info *song, int thread_fd, const 
 
     lyr_thread_init(song_data);
 
-    song_copy(&song_data->song, song);
+    song_data->song = song_copy(song);
     song_data->pipefd = thread_fd;
 
     /* Note - glyr_opt_* will strdup these strings, so 'song' can be
@@ -222,7 +222,7 @@ void lyr_thread_stop(void)
 
 void lyr_thread_notify_clear(struct lyr_thread_notify *song_notif)
 {
-    song_clear(&song_notif->song);
+    song_free(song_notif->song);
     switch (song_notif->type) {
     case LYR_ARTIST_BIO:
         free(song_notif->u.bio);

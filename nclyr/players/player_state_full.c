@@ -10,7 +10,7 @@
 
 void player_state_full_clear(struct player_state_full *state)
 {
-    song_clear(&state->song);
+    song_free(state->song);
     playlist_clear(&state->playlist);
 }
 
@@ -18,8 +18,9 @@ void player_state_full_update(struct player_state_full *state, struct player_not
 {
     switch (notif->type) {
     case PLAYER_SONG:
-        song_clear(&state->song);
-        song_move(&state->song, &notif->u.song);
+        song_free(state->song);
+        state->song = notif->u.song;
+        notif->u.song = NULL;
         break;
 
     case PLAYER_PLAYLIST:
@@ -32,8 +33,8 @@ void player_state_full_update(struct player_state_full *state, struct player_not
         break;
 
     case PLAYER_NO_SONG:
-        song_clear(&state->song);
-        song_init(&state->song);
+        song_free(state->song);
+        state->song = NULL;
         break;
 
     case PLAYER_IS_DOWN:

@@ -17,7 +17,7 @@ void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
 
     if (!tui->sel_window->already_lookedup) {
         tui->sel_window->already_lookedup = 1;
-        lyr_thread_song_lookup(&tui->state.song, tui->sel_window->lyr_types);
+        lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 }
 

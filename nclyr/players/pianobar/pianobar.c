@@ -18,8 +18,9 @@
 
 const static char *piano_bar_nowplaying = "/home/dsman195276/.config/pianobar/nowplaying";
 
-static void pianobar_get_cur_song(struct song_info *sng)
+static struct song_info *pianobar_get_cur_song(void)
 {
+    struct song_info *sng;
     char buffer[500];
     char *cur, *start;
     const char *title = NULL;
@@ -47,7 +48,9 @@ static void pianobar_get_cur_song(struct song_info *sng)
     album = start;
 
     if (!artist || !title)
-        return ;
+        return NULL;
+
+    sng = malloc(sizeof(*sng));
 
     song_init(sng);
 
@@ -55,7 +58,7 @@ static void pianobar_get_cur_song(struct song_info *sng)
     sng->title = strdup(title);
     sng->album = strdup(album);
 
-    return ;
+    return sng;
 }
 
 static void *pianobar_inotify_thread(void *player)
@@ -64,7 +67,7 @@ static void *pianobar_inotify_thread(void *player)
     char buffer[2048];
     int inotify, exit_flag = 0;
     struct player_notification notif;
-    struct song_info song;
+    struct song_info *song;
     struct pollfd fds[2];
     inotify = inotify_init1(O_NONBLOCK);
 
@@ -90,26 +93,33 @@ static void *pianobar_inotify_thread(void *player)
             while (read(inotify, buffer, sizeof(buffer)) != -1)
                 ;
 
-            memset(&song, 0, sizeof(struct song_info));
-            pianobar_get_cur_song(&song);
+            song = pianobar_get_cur_song();
 
-            if (!song.artist || !song.title || !song.album)
+            if (!song)
                 continue ;
 
-            if (song_equal(&song, &pianobar->current_song)) {
-                song_clear(&song);
+            if (!song->artist || !song->title || !song->album) {
+                song_free(song);
                 continue ;
             }
 
-            DEBUG_PRINTF("New song: %s by %s on %s\n", song.title, song.artist, song.album);
 
-            song_clear(&pianobar->current_song);
+            if (song_equal(song, pianobar->current_song)) {
+                song_free(song);
+                continue ;
+            }
+
+            DEBUG_PRINTF("New song: %s by %s on %s\n", song->title, song->artist, song->album);
+
+            song_free(pianobar->current_song);
             pianobar->current_song = song;
 
-            player_send_cur_song(&pianobar->player, &pianobar->current_song);
+            player_send_cur_song(&pianobar->player, song_copy(pianobar->current_song));
         }
 
     } while (!exit_flag);
+
+    song_free(pianobar->current_song);
 
     close(inotify);
     return NULL;

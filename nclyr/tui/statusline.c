@@ -17,17 +17,17 @@ void statusline_update(struct statusline *status)
         werase(status->win);
 
         mvwprintw(status->win, 0, 0, "Song: %s by %s on %s",
-                tui->state.song.title, tui->state.song.artist, tui->state.song.album);
+                tui->state.song->title, tui->state.song->artist, tui->state.song->album);
 
         cols = getmaxx(status->win);
 
-        bar_len = (int)((float)cols * ((float)tui->state.seek_pos / (float)tui->state.song.duration));
+        bar_len = (int)((float)cols * ((float)tui->state.seek_pos / (float)tui->state.song->duration));
 
         DEBUG_PRINTF("Bar_len: %d\n", bar_len);
 
         mvwprintw(status->win, 0, cols - 13, "[%02d:%02d/%02d:%02d]",
                 tui->state.seek_pos / 60, tui->state.seek_pos % 60,
-                tui->state.song.duration / 60, tui->state.song.duration % 60);
+                tui->state.song->duration / 60, tui->state.song->duration % 60);
 
         mvwprintw(status->win, 1, 0, "%.*s", cols, "");
 

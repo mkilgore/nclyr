@@ -35,28 +35,6 @@ static void term_settings(struct termios *old, struct termios *new)
     return ;
 }
 
-static void term_input(char *buf, size_t bufsize)
-{
-    int len = 0;
-    int ch;
-
-    memset(buf, 0, bufsize);
-
-    while ((ch = getchar()) != '\n') {
-        int cols = get_term_width();
-
-        if (ch != 127) {
-            if (len < bufsize)
-                buf[len++] = (char)ch;
-        } else {
-            if (len > 0)
-                buf[--len] = '\0';
-        }
-
-        printf("\r" TERM_CLEAR ":%-*s", cols - 1, buf);
-    }
-}
-
 static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 {
     struct player_state_full play_state;
@@ -91,10 +69,10 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
 
         if (!inp_flag) {
             if (play_state.is_up) {
-                if (play_state.state != PLAYER_STOPPED) {
-                    len = snprintf(line, cols, "[%d%%] Song: %s by %s on %s%s", play_state.volume, play_state.song.title, play_state.song.artist, play_state.song.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
+                if (play_state.state != PLAYER_STOPPED && play_state.song) {
+                    len = snprintf(line, cols, "[%d%%] Song: %s by %s on %s%s", play_state.volume, play_state.song->title, play_state.song->artist, play_state.song->album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
                     if (len < cols)
-                        snprintf(line + len, cols, "%*s[%02d:%02d]/[%02d:%02d]", cols - len - 15, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song.duration / 60, play_state.song.duration % 60);
+                        snprintf(line + len, cols, "%*s[%02d:%02d]/[%02d:%02d]", cols - len - 15, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song->duration / 60, play_state.song->duration % 60);
                 } else {
                     snprintf(line, cols, "Player stopped");
                 }
@@ -142,13 +120,13 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 case 'p':
                     printf("Playlist:\n");
                     for (i = 0; i < play_state.playlist.song_count; i++) {
-                        int eq = song_equal(play_state.playlist.songs + i, &play_state.song);
+                        int eq = song_equal(play_state.playlist.songs[i], play_state.song);
                         printf("%02d. %s%s by %s on %s%s\n",
                                 i,
                                 (eq)? TERM_COLOR_BLUE:"",
-                                play_state.playlist.songs[i].title,
-                                play_state.playlist.songs[i].artist,
-                                play_state.playlist.songs[i].album,
+                                play_state.playlist.songs[i]->title,
+                                play_state.playlist.songs[i]->artist,
+                                play_state.playlist.songs[i]->album,
                                 (eq)? TERM_COLOR_RESET:"");
                     }
                     break;

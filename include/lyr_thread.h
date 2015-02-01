@@ -17,7 +17,7 @@ enum lyr_data_type {
 };
 
 struct lyr_thread_notify {
-    struct song_info song;
+    struct song_info *song;
     enum lyr_data_type type;
     union {
         char *lyrics;

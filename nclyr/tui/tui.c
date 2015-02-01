@@ -102,7 +102,7 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
         }
 
         tui->sel_window->already_lookedup = 1;
-        lyr_thread_song_lookup(&tui->state.song, tui->sel_window->lyr_types);
+        lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 
     for (win = tui->windows; *win; win++)
@@ -124,7 +124,7 @@ static void handle_notify_fd(struct tui_iface *tui, int notifyfd)
 
     DEBUG_PRINTF("Got Lyr-thread notification: %d\n", song_notif.type);
 
-    if (!song_equal(&song_notif.song, &tui->state.song)) {
+    if (!song_equal(song_notif.song, tui->state.song)) {
         DEBUG_PRINTF("Song didn't match!\n");
         goto clear_song_notify;
     }

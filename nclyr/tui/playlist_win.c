@@ -28,8 +28,8 @@ static void playlist_win_update(struct nclyr_win *win)
     for (i = 0; i < rows; i++) {
         if (tui->state.playlist.song_count > i + play->disp_offset) {
             int eq_flag;
-            struct song_info *song = tui->state.playlist.songs + i;
-            eq_flag = song_equal(&tui->state.song, song);
+            struct song_info *song = tui->state.playlist.songs[i];
+            eq_flag = song_equal(tui->state.song, song);
 
             if (eq_flag) {
                 DEBUG_PRINTF("Found match!\n");

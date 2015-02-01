@@ -33,10 +33,9 @@ void player_send_no_song(struct player *player)
     write(player->notify_fd, &notif, sizeof(notif));
 }
 
-void player_send_cur_song(struct player *player, const struct song_info *song)
+void player_send_cur_song(struct player *player, struct song_info *song)
 {
-    struct player_notification notif = { .type = PLAYER_SONG };
-    song_copy(&notif.u.song, song);
+    struct player_notification notif = { .type = PLAYER_SONG, .u.song = song };
     write(player->notify_fd, &notif, sizeof(notif));
 }
 

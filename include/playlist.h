@@ -7,7 +7,7 @@
 #include "song.h"
 
 struct playlist {
-    struct song_info *songs;
+    struct song_info **songs;
     size_t song_count;
 };
 

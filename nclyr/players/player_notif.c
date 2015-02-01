@@ -13,7 +13,7 @@ void player_notification_clear(struct player_notification *notif)
 {
     switch (notif->type) {
     case PLAYER_SONG:
-        song_clear(&notif->u.song);
+        song_free(notif->u.song);
         break;
 
     case PLAYER_PLAYLIST:

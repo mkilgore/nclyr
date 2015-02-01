@@ -8,7 +8,7 @@
 
 struct pianobar_player {
     struct player player;
-    struct song_info current_song;
+    struct song_info *current_song;
     int stop_pipe[2];
     pthread_t notif_thread;
 };

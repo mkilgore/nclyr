@@ -1,5 +1,6 @@
 
 objs-y += song.o
+objs-y += song_empty.o
 objs-y += nclyr.o
 objs-y += signal_handler.o
 objs-y += a_sprintf.o
