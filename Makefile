@@ -153,7 +153,7 @@ $(objtree)/bin:
 
 $(objtree)/%.o: $(srctree)/%.c
 	@$(call mecho," CC      $@","$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@")
-	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ -gp
+	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 $(objtree)/.%.d: $(srctree)/%.c $(objtree)/include/gen_config.h
 	@$(call mecho," CCDEP   $@","$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@")
