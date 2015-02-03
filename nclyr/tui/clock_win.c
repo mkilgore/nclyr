@@ -211,18 +211,14 @@ static void clock_update (struct nclyr_win *win)
 
     werase(curwin);
 
-
     tui_color_fb_set(win->win, clock->color + 1, CONS_COLOR_DEFAULT);
     write_clock_str(curwin, clock->y, clock->x, clock->last_buf);
     tui_color_fb_unset(win->win, clock->color + 1, CONS_COLOR_DEFAULT);
-
-    wrefresh(curwin);
 }
 
-static void clock_init (struct nclyr_win *win, int y, int x, int rows, int cols)
+static void clock_init (struct nclyr_win *win)
 {
     struct clock_win *clock = container_of(win, struct clock_win, super_win);
-    win->win = newwin(rows, cols, y, x);
 
     clock->last_buf = malloc(1);
     clock->last_buf[0] = '\0';
@@ -233,29 +229,9 @@ static void clock_init (struct nclyr_win *win, int y, int x, int rows, int cols)
 
 static void clock_clean (struct nclyr_win *win)
 {
-    delwin(win->win);
-}
+    struct clock_win *clock = container_of(win, struct clock_win, super_win);
 
-static void clock_resize (struct nclyr_win *win, int y, int x, int rows, int cols)
-{
-    delwin(win->win);
-    win->win = newwin(rows, cols, y, x);
-    touchwin(win->win);
-}
-
-static void clock_clear_song_data (struct nclyr_win *win)
-{
-    return ;
-}
-
-static void clock_switch_to (struct nclyr_win *win)
-{
-    return ;
-}
-
-static void clock_new_player_notif (struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
-{
-    return ;
+    free(clock->last_buf);
 }
 
 struct clock_win clock_window = {
@@ -263,18 +239,19 @@ struct clock_win clock_window = {
         .win_name = "Clock",
         .win = NULL,
         .timeout = 500,
+        .updated = 1,
         .lyr_types = (const enum lyr_data_type[]) { -1 },
         .keypresses = (const struct nclyr_keypress[]) {
             { '\0', NULL, NULL }
         },
         .init = clock_init,
         .clean = clock_clean,
-        .switch_to = clock_switch_to,
+        .switch_to = NULL,
         .update = clock_update,
-        .resize = clock_resize,
-        .clear_song_data = clock_clear_song_data,
+        .resize = NULL,
+        .clear_song_data = NULL,
         .new_song_data = NULL,
-        .new_player_notif = clock_new_player_notif,
+        .new_player_notif = NULL,
     },
 };
 

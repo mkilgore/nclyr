@@ -15,7 +15,7 @@ struct mpd_player {
 
     struct mpd_connection *conn;
 
-    struct song_info *cur_song;
+    struct song_info_mpd *cur_song;
     struct mpd_status *cur_status;
 };
 

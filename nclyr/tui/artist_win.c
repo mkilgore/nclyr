@@ -24,7 +24,6 @@ static void artist_update (struct nclyr_win *win)
     if (line->line_count == 0) {
         werase(win->win);
         win_center_str(win->win, "Artist bio not available");
-        wrefresh(win->win);
     } else {
         line_update(win);
     }
@@ -45,6 +44,8 @@ static void artist_new_song_data (struct nclyr_win *win, const struct lyr_thread
     line->disp_offset = 0;
     line->lines = malloc(line->line_count * sizeof(char *));
     line->lines[0] = strdup(song_notif->u.bio);
+
+    win->updated = 1;
 
     /*
     line_count = 0;
@@ -75,11 +76,7 @@ void artist_clear_song_data (struct nclyr_win *win)
     struct line_win *line = container_of(win, struct line_win, super_win);
 
     line_free_lines(line);
-}
-
-void artist_new_player_notif(struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
-{
-    return ;
+    win->updated = 1;
 }
 
 struct line_win artist_window = {
@@ -92,14 +89,14 @@ struct line_win artist_window = {
             LINE_KEYPRESSES,
             { '\0', NULL, NULL }
         },
-        .init = line_init,
+        .init = NULL,
         .clean = line_clean,
-        .switch_to = line_switch_to,
+        .switch_to = NULL,
         .update = artist_update,
-        .resize = line_resize,
+        .resize = NULL,
         .clear_song_data = artist_clear_song_data,
         .new_song_data = artist_new_song_data,
-        .new_player_notif = artist_new_player_notif,
+        .new_player_notif = NULL,
     },
     .line_count = 0,
     .disp_offset = 0,

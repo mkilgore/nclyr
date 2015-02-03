@@ -26,6 +26,7 @@ void player_notification_clear(struct player_notification *notif)
     case PLAYER_IS_UP:
     case PLAYER_SEEK:
     case PLAYER_VOLUME:
+    case PLAYER_SONG_POS:
         break;
     }
 }

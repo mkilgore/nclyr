@@ -19,10 +19,11 @@ static void lyrics_update (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
+    win->updated = 0;
+
     if (line->line_count == 0) {
         werase(win->win);
         win_center_str(win->win, "Lyrics not available");
-        wrefresh(win->win);
     } else {
         line_update(win);
     }
@@ -36,6 +37,8 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
 
     if (song_notif->type != LYR_LYRICS)
         return ;
+
+    win->updated = 1;
 
     line_free_lines(line);
 
@@ -66,12 +69,8 @@ void lyrics_clear_song_data (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
+    win->updated = 1;
     line_free_lines(line);
-}
-
-void lyrics_new_player_notif(struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
-{
-    return ;
 }
 
 static void lyrics_handle_keypress(struct nclyr_win *win, int ch)
@@ -81,6 +80,7 @@ static void lyrics_handle_keypress(struct nclyr_win *win, int ch)
     switch (ch) {
     case 'c':
         line->center = !line->center;
+        win->updated = 1;
         break;
     }
 }
@@ -96,14 +96,14 @@ struct line_win lyrics_window = {
             { 'c', lyrics_handle_keypress, "Toggle line centering" },
             { '\0', NULL, NULL }
         },
-        .init = line_init,
+        .init = NULL,
         .clean = line_clean,
-        .switch_to = line_switch_to,
+        .switch_to = NULL,
         .update = lyrics_update,
-        .resize = line_resize,
+        .resize = NULL,
         .clear_song_data = lyrics_clear_song_data,
         .new_song_data = lyrics_new_song_data,
-        .new_player_notif = lyrics_new_player_notif,
+        .new_player_notif = NULL,
     },
     .line_count = 0,
     .disp_offset = 0,

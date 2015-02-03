@@ -13,6 +13,8 @@ struct statusline {
 
     struct tui_iface *tui;
 
+    int updated :1;
+
     void (*init) (struct statusline *, int cols);
     void (*clean) (struct statusline *);
     void (*resize) (struct statusline *, int cols);

@@ -11,6 +11,7 @@
 #include <sys/inotify.h>
 #include <pthread.h>
 
+#include "a_sprintf.h"
 #include "player.h"
 #include "song.h"
 #include "pianobar.h"
@@ -54,9 +55,11 @@ static struct song_info *pianobar_get_cur_song(void)
 
     song_init(sng);
 
-    sng->artist = strdup(artist);
-    sng->title = strdup(title);
-    sng->album = strdup(album);
+    sng->tag.artist = strdup(artist);
+    sng->tag.title = strdup(title);
+    sng->tag.album = strdup(album);
+
+    a_sprintf(&sng->name, "%s - %s", sng->tag.artist, sng->tag.title);
 
     return sng;
 }
@@ -98,7 +101,7 @@ static void *pianobar_inotify_thread(void *player)
             if (!song)
                 continue ;
 
-            if (!song->artist || !song->title || !song->album) {
+            if (!song->tag.artist || !song->tag.title || !song->tag.album) {
                 song_free(song);
                 continue ;
             }
@@ -109,14 +112,13 @@ static void *pianobar_inotify_thread(void *player)
                 continue ;
             }
 
-            DEBUG_PRINTF("New song: %s by %s on %s\n", song->title, song->artist, song->album);
+            DEBUG_PRINTF("New song: %s by %s on %s\n", song->tag.title, song->tag.artist, song->tag.album);
 
             song_free(pianobar->current_song);
             pianobar->current_song = song;
 
             player_send_cur_song(&pianobar->player, song_copy(pianobar->current_song));
         }
-
     } while (!exit_flag);
 
     song_free(pianobar->current_song);

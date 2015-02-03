@@ -60,3 +60,9 @@ void player_change_volume (struct player *p, int change)
     p->ctrls.ctrl(p, &msg);
 }
 
+void player_change_song (struct player *p, int song_pos)
+{
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_CHANGE_SONG, .u.song_pos = song_pos };
+    p->ctrls.ctrl(p, &msg);
+}
+

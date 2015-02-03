@@ -69,9 +69,9 @@ static void start_lyr_thread(const struct song_info *song, int thread_fd, const 
      * This is important as if we're going to replace the current song
      * with a new one via lookup, we can delete the old song's info
      * whenever we want. */
-    glyr_opt_title(&song_data->q, song->title);
-    glyr_opt_artist(&song_data->q, song->artist);
-    glyr_opt_album(&song_data->q, song->album);
+    glyr_opt_title(&song_data->q, song->tag.title);
+    glyr_opt_artist(&song_data->q, song->tag.artist);
+    glyr_opt_album(&song_data->q, song->tag.album);
 
     switch (type) {
     case LYR_ARTIST_BIO:
@@ -208,9 +208,13 @@ void lyr_thread_stop(void)
 {
     int tmp = 0;
     write(stop_fd[1], &tmp, sizeof(tmp));
+    DEBUG_PRINTF("Joining lyr thread\n");
     pthread_join(song_queue_thread, NULL);
 
+    DEBUG_PRINTF("Closing glyr thread\n");
     glyr_cleanup();
+
+    DEBUG_PRINTF("glyr closed\n");
 
     close(stop_fd[0]);
     close(stop_fd[1]);

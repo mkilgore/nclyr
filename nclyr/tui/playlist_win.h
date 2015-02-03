@@ -7,6 +7,7 @@
 struct playlist_win {
     struct nclyr_win super_win;
 
+    int selected;
     int disp_offset;
 };
 

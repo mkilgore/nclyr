@@ -29,21 +29,24 @@ struct nclyr_win {
     /* Set when this window should be shown and allowed to be switched too.  If
      * this window should be displayed for whatever reason, this flag should be
      * set */
-    int show_window :1;
+    unsigned int show_window :1;
 
     /* Set when the song data required has already been submitted to the query
      * thread */
-    int already_lookedup :1;
+    unsigned int already_lookedup :1;
 
     /* If true, the cursor will be shown in the same place as on win */
-    int show_cursor :1;
+    unsigned int show_cursor :1;
+
+    /* If true, then 'update' will be called on the window (When nessisary) */
+    unsigned int updated :1;
 
     const enum lyr_data_type *lyr_types; /* This list should be terminated with -1 */
     const struct nclyr_keypress *keypresses; /* This list should be terminated with ch='\0' */
 
     /* Called when nclyr starts - y and x are window cords, rows and cols are
      * window dimensions */
-    void (*init) (struct nclyr_win *, int y, int x, int rows, int cols);
+    void (*init) (struct nclyr_win *);
 
     /* Called when nclyr closes - any memory or window's held by this nclyr_win
      * should be freed */
@@ -56,7 +59,7 @@ struct nclyr_win {
     void (*update) (struct nclyr_win *);
 
     /* Called if a terminal resize happened, and this window now has new dimensions */
-    void (*resize) (struct nclyr_win *, int y, int x, int rows, int cols);
+    void (*resize) (struct nclyr_win *);
 
     /* Called if the song changed and the old song's data should be purged */
     void (*clear_song_data) (struct nclyr_win *);

@@ -15,13 +15,8 @@ struct line_win {
 };
 
 void line_update(struct nclyr_win *);
-void line_init(struct nclyr_win *, int y, int x, int rows, int cols);
 void line_clean(struct nclyr_win *);
-void line_resize(struct nclyr_win *, int y, int x, int rows, int cols);
 void line_handle_keypress(struct nclyr_win *, int ch);
-void line_switch_to(struct nclyr_win *);
-void line_clear_song_data(struct nclyr_win *);
-void line_new_player_notif (struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state);
 
 void line_free_lines(struct line_win *);
 

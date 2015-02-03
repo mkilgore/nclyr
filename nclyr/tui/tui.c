@@ -34,8 +34,6 @@ static struct nclyr_win *nclyr_windows[] = {
     NULL
 };
 
-static int tui_exit_flag = 0;
-
 static void player_keys(struct nclyr_win *win, int ch)
 {
     struct player *player = player_current();
@@ -97,7 +95,8 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
 
     if (notif.type == PLAYER_SONG) {
         for (win = tui->windows; *win; win++) {
-            (*win)->clear_song_data(*win);
+            if ((*win)->clear_song_data)
+                (*win)->clear_song_data(*win);
             (*win)->already_lookedup = 0;
         }
 
@@ -105,8 +104,10 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
         lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 
-    for (win = tui->windows; *win; win++)
-        (*win)->new_player_notif(*win, notif.type, &tui->state);
+    for (win = tui->windows; *win; win++) {
+        if ((*win)->new_player_notif)
+            (*win)->new_player_notif(*win, notif.type, &tui->state);
+    }
 
     tui->status->player_notif(tui->status, notif.type, &tui->state);
 
@@ -149,7 +150,7 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
     read(signalfd, &sig, sizeof(sig));
     switch (sig) {
     case SIGINT:
-        tui_exit_flag = 1;
+        tui->exit_flag = 1;
         break;
     case SIGWINCH:
         /* endwin() and refresh() are called to force ncurses to resize
@@ -157,8 +158,16 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
         endwin();
         refresh();
 
-        for (win = tui->windows; *win; win++)
-            (*win)->resize(*win, rows + 1, 0, LINES - rows - 1, COLS);
+        for (win = tui->windows; *win; win++) {
+            struct nclyr_win *w = *win;
+            delwin(w->win);
+            w->win = newwin(LINES - rows - 1, COLS, rows + 1, 0);
+            touchwin(w->win);
+            w->updated = 1;
+
+            if (w->resize)
+                w->resize(w);
+        }
 
         tui->status->resize(tui->status, COLS);
         break;
@@ -214,8 +223,14 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     rows = getmaxy(tui->status->win);
 
     for (win = tui->windows; *win; win++) {
-        (*win)->tui = tui;
-        (*win)->init(*win, rows + 1, 0, LINES - rows - 1, COLS);
+        struct nclyr_win *w = *win;
+        w->tui = tui;
+        w->win = newwin(LINES - rows - 1, COLS, rows + 1, 0);
+        touchwin(w->win);
+        w->updated = 1;
+
+        if (w->init)
+            w->init(w);
     }
 
     main_notify[0].fd = pipes->player[0];
@@ -232,7 +247,7 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui->sel_window = tui->windows[tui->sel_window_index];
 
-    while (!tui_exit_flag) {
+    while (!tui->exit_flag) {
         curs_set(0);
 
         for (i = 0; i < COLS; i++)
@@ -246,8 +261,17 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
         refresh();
 
-        tui->status->update(tui->status);
-        tui->sel_window->update(tui->sel_window);
+        if (tui->status->updated)
+            tui->status->update(tui->status);
+
+        wrefresh(tui->status->win);
+
+        if (tui->sel_window->updated) {
+            DEBUG_PRINTF("Update win: %s %d\n", tui->sel_window->win_name, tui->sel_window->updated);
+            tui->sel_window->update(tui->sel_window);
+        }
+
+        wrefresh(tui->sel_window->win);
 
         if (tui->sel_window->show_cursor)
             curs_set(1);
@@ -277,8 +301,12 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui->status->clean(tui->status);
 
-    for (win = tui->windows; *win; win++)
-        (*win)->clean(*win);
+    for (win = tui->windows; *win; win++) {
+        struct nclyr_win *w = *win;
+        if (w->clean)
+            w->clean(w);
+        delwin(w->win);
+    }
 
     endwin();
 

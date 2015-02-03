@@ -52,6 +52,10 @@ void player_state_full_update(struct player_state_full *state, struct player_not
     case PLAYER_VOLUME:
         state->volume = notif->u.volume;
         break;
+
+    case PLAYER_SONG_POS:
+        state->song_pos = notif->u.song_pos;
+        break;
     }
 }
 

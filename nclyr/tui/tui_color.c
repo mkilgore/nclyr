@@ -19,6 +19,8 @@ static int color_map_curses[] = {
     -1,
 };
 
+#define CALC_PAIR(f, b, c) ((f) + (b) * (c))
+
 void tui_color_init(void)
 {
     const int colors[] = {
@@ -33,17 +35,28 @@ void tui_color_init(void)
         CONS_COLOR_DEFAULT,
     };
     int i, k;
+    /* If it's 64 or less, then we assume it has standard default colors */
+    int count = (COLOR_PAIRS <= 64)? 8: 9;
 
-    for (i = 0; i < sizeof(colors)/sizeof(*colors); i++)
-        for (k = 0; k < sizeof(colors)/sizeof(*colors); k++)
-            init_pair(colors[i] + colors[k] * 8 + 1, color_map_curses[i], color_map_curses[k]);
+    DEBUG_PRINTF("Color pairs: %d\n", COLOR_PAIRS);
+    for (i = 0; i < count; i++)
+        for (k = 0; k < count; k++)
+            init_pair(CALC_PAIR(colors[i], colors[k], count), color_map_curses[i], color_map_curses[k]);
 }
 
 void tui_color_set(WINDOW *win, struct cons_color_pair colors)
 {
     int rf = CONS_COLOR_UNHIGHLIGHT(colors.f), rb = CONS_COLOR_UNHIGHLIGHT(colors.b);
+    int count = (COLOR_PAIRS <= 64)? 8: 9;
 
-    wattron(win, COLOR_PAIR(rf + rb * 8 + 1));
+    if (COLOR_PAIRS <= 64) {
+        if (rf == CONS_COLOR_DEFAULT)
+            rf = CONS_COLOR_WHITE;
+        if (rb == CONS_COLOR_DEFAULT)
+            rb = CONS_COLOR_BLACK;
+    }
+
+    wattron(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
     if (CONS_COLOR_IS_HIGHLIGHT(colors.f))
         wattron(win, A_BOLD);
 }
@@ -51,8 +64,17 @@ void tui_color_set(WINDOW *win, struct cons_color_pair colors)
 void tui_color_unset(WINDOW *win, struct cons_color_pair colors)
 {
     int rf = CONS_COLOR_UNHIGHLIGHT(colors.f), rb = CONS_COLOR_UNHIGHLIGHT(colors.b);
+    int count = (COLOR_PAIRS <= 64)? 8: 9;
 
-    wattroff(win, COLOR_PAIR(rf + rb * 8 + 1));
+    if (COLOR_PAIRS <= 64) {
+        if (rf == CONS_COLOR_DEFAULT)
+            rf = CONS_COLOR_WHITE;
+        if (rb == CONS_COLOR_DEFAULT)
+            rb = CONS_COLOR_BLACK;
+    }
+
+
+    wattroff(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
     if (CONS_COLOR_IS_HIGHLIGHT(colors.f))
         wattroff(win, A_BOLD);
 }

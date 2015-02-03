@@ -181,11 +181,20 @@ int main(int argc, const char **argv)
 
     iface->main_loop(iface, &pipes);
 
+    DEBUG_PRINTF("Closing current player thread\n");
     player_stop_thread(player_current());
+
+    DEBUG_PRINTF("Closing lyr thread\n");
     lyr_thread_stop();
+
+    DEBUG_PRINTF("Closing signal thread\n");
     signal_stop_handler();
 
+    DEBUG_PRINTF("Clearing nclyr conf\n");
     nclyr_conf_clear();
+
+    DEBUG_PRINTF("Closing nclyr pipes\n");
+    nclyr_pipes_close(&pipes);
 
     DEBUG_PRINTF("nclyr ending!\n");
 

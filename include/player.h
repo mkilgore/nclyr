@@ -22,6 +22,7 @@ enum player_notif_type {
     PLAYER_SEEK,
     PLAYER_VOLUME,
     PLAYER_PLAYLIST,
+    PLAYER_SONG_POS,
 };
 
 struct player_notification {
@@ -32,6 +33,7 @@ struct player_notification {
         size_t seek_pos;
         size_t volume;
         struct playlist playlist;
+        int song_pos;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -45,6 +47,7 @@ struct player_state_full {
     size_t volume;
     size_t seek_pos;
     struct playlist playlist;
+    int song_pos;
 };
 
 enum player_ctrl_msg_type {
@@ -57,6 +60,7 @@ enum player_ctrl_msg_type {
     PLAYER_CTRL_SHUFFLE,
     PLAYER_CTRL_SET_VOLUME,
     PLAYER_CTRL_CHANGE_VOLUME,
+    PLAYER_CTRL_CHANGE_SONG,
 };
 
 struct player_ctrl_msg {
@@ -66,6 +70,7 @@ struct player_ctrl_msg {
         size_t volume;
         int pause;
         int vol_change;
+        int song_pos;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_ctrl_msg) <= PIPE_BUF);
@@ -124,6 +129,7 @@ void player_seek(struct player *, size_t pos);
 void player_shuffle(struct player *);
 void player_set_volume(struct player *, size_t volume);
 void player_change_volume(struct player *, int change);
+void player_change_song(struct player *, int song_pos);
 
 void player_send_is_up(struct player *);
 void player_send_is_down(struct player *);
@@ -133,5 +139,6 @@ void player_send_cur_song(struct player *, struct song_info *);
 void player_send_seek(struct player *, size_t seek_pos);
 void player_send_volume(struct player *, size_t volume);
 void player_send_playlist(struct player *, struct playlist *);
+void player_send_song_pos(struct player *, int song_pos);
 
 #endif

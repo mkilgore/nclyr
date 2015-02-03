@@ -13,7 +13,9 @@
 void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
 {
     tui->sel_window = win;
-    tui->sel_window->switch_to(tui->sel_window);
+    touchwin(tui->sel_window->win);
+    if (tui->sel_window->switch_to)
+        tui->sel_window->switch_to(tui->sel_window);
 
     if (!tui->sel_window->already_lookedup) {
         tui->sel_window->already_lookedup = 1;

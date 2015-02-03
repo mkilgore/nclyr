@@ -85,11 +85,10 @@ static void help_create_text(struct tui_iface *tui, struct line_win *line)
     }
 }
 
-static void help_init(struct nclyr_win *win, int y, int x, int rows, int cols)
+static void help_init(struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
     struct tui_iface *tui = win->tui;
-    win->win = newwin(rows, cols, y, x);
 
     line->line_count = help_count_lines(tui);
     line->disp_offset = 0;
@@ -99,10 +98,9 @@ static void help_init(struct nclyr_win *win, int y, int x, int rows, int cols)
     help_create_text(tui, line);
 }
 
-static void help_resize(struct nclyr_win *win, int y, int x, int rows, int cols)
+static void help_resize(struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
-    line_resize(win, y, x, rows, cols);
 
     help_resize_dashes(line);
 }
@@ -119,12 +117,12 @@ struct line_win help_window = {
         },
         .init = help_init,
         .clean = line_clean,
-        .switch_to = line_switch_to,
+        .switch_to = NULL,
         .update = line_update,
         .resize = help_resize,
-        .clear_song_data = line_clear_song_data,
+        .clear_song_data = NULL,
         .new_song_data = NULL,
-        .new_player_notif = line_new_player_notif,
+        .new_player_notif = NULL,
     }
 };
 

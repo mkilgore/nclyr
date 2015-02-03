@@ -57,3 +57,9 @@ void player_send_playlist(struct player *player, struct playlist *playlist)
     write(player->notify_fd, &notif, sizeof(notif));
 }
 
+void player_send_song_pos(struct player *player, int song_pos)
+{
+    struct player_notification notif = { .type = PLAYER_SONG_POS, .u.song_pos = song_pos };
+    write(player->notify_fd, &notif, sizeof(notif));
+}
+
