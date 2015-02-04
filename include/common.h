@@ -24,6 +24,8 @@
 #define TP2(x, y) x ## y
 #define TP(x, y) TP2(x, y)
 
+#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(*(arr)))
+
 #include "gen_config.h"
 
 #endif

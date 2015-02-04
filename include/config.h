@@ -36,6 +36,8 @@ struct config_item {
     union config_data u;
 };
 
+#define CONFIG_GET(root, idex) ((root)->u.group.items + (idex))
+
 struct root_config {
     struct item_group group;
 };
@@ -77,5 +79,7 @@ int config_load_from_args(struct root_config *, struct arg_parser *);
 
 void config_disp_small_helptext(struct root_config *, struct arg_parser *);
 void config_disp_full_helptext(struct root_config *, struct arg_parser *);
+void config_disp_complete_configtext(struct root_config *root);
+void config_disp_root_help(struct root_config *root);
 
 #endif

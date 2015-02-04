@@ -9,6 +9,7 @@
 void tui_color_init(void);
 void tui_color_set(WINDOW *, struct cons_color_pair colors);
 void tui_color_unset(WINDOW *, struct cons_color_pair colors);
+void tui_color_pair_fb(int pair, struct cons_color_pair *c);
 
 #define tui_color_fb_set(win, fc, bc)   tui_color_set(  (win), (struct cons_color_pair){ .f = (fc), .b = (bc) })
 #define tui_color_fb_unset(win, fc, bc) tui_color_unset((win), (struct cons_color_pair){ .f = (fc), .b = (bc) })

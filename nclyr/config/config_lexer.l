@@ -13,6 +13,8 @@
 
 %option noyywrap
 
+%x qstring
+
 %%
 
 [ \t]+ /* Eat whitespace */
@@ -31,6 +33,19 @@
 [a-zA-Z0-9_\-]+ {
     return TOK_STRING;
 }
+
+"\"" {
+    BEGIN(qstring);
+}
+
+<qstring>[^\"]+ {
+    return TOK_STRING;
+}
+
+<qstring>\" {
+    BEGIN(INITIAL);
+}
+
 
 <<EOF>> {
     return TOK_EOF;

@@ -10,6 +10,7 @@
 #include "song.h"
 #include "player.h"
 #include "cons_color.h"
+#include "tui_printf.h"
 #include "tui_color.h"
 #include "tui/window.h"
 #include "playlist_win.h"
@@ -47,8 +48,16 @@ static void handle_ch(struct nclyr_win *win, int ch)
 
 static void playlist_win_update(struct nclyr_win *win)
 {
+    struct tui_printf_arg args[5] = {
+        { .id = "title", .type = TUI_ARG_STRING },
+        { .id = "artist", .type = TUI_ARG_STRING },
+        { .id = "album", .type = TUI_ARG_STRING },
+        { .id = "duration", .type = TUI_ARG_INT },
+        { .id = "play-num", .type = TUI_ARG_INT },
+    };
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
     struct tui_iface *tui = win->tui;
+    struct config_item *playlist = tui->cfg->u.group.items + TUI_CONFIG_PLAYLIST;
     int rows, cols, i;
     WINDOW *curwin = win->win;
 
@@ -60,30 +69,34 @@ static void playlist_win_update(struct nclyr_win *win)
 
     for (i = 0; i < rows; i++) {
         if (tui->state.playlist.song_count > i + play->disp_offset) {
-            enum cons_color fc = CONS_COLOR_DEFAULT, bc = CONS_COLOR_DEFAULT;
             struct song_info *song = tui->state.playlist.songs[i + play->disp_offset];
-            char *name;
+            int is_sel = 0, is_play = 0;
+            char *s = NULL;
+
+            if (i + play->disp_offset == play->selected)
+                is_sel = 1;
 
             if (i + play->disp_offset == tui->state.song_pos)
-                fc = CONS_COLOR_HIGHLIGHT(CONS_COLOR_YELLOW);
+                is_play = 1;
 
-            if (i + play->disp_offset == play->selected) {
-                bc = CONS_COLOR_CYAN;
-                if (fc == CONS_COLOR_DEFAULT)
-                    fc = CONS_COLOR_BLACK;
-            }
+            wmove(curwin, i, 0);
 
-            tui_color_fb_set(curwin, fc, bc);
+            args[0].u.str_val = song->tag.title;
+            args[1].u.str_val = song->tag.artist;
+            args[2].u.str_val = song->tag.album;
+            args[3].u.int_val = song->duration;
+            args[4].u.int_val = i + play->disp_offset + 1;
 
-            a_sprintf(&name, "%s by %s on %s",
-                    song->tag.title, song->tag.artist, song->tag.album);
+            if (is_play && is_sel)
+                s = playlist->u.group.items[TUI_CONFIG_PLAYLIST_SEL_PLAYING].u.str;
+            else if (is_play)
+                s = playlist->u.group.items[TUI_CONFIG_PLAYLIST_PLAYING].u.str;
+            else if (is_sel)
+                s = playlist->u.group.items[TUI_CONFIG_PLAYLIST_SEL].u.str;
+            else
+                s = playlist->u.group.items[TUI_CONFIG_PLAYLIST_NORMAL].u.str;
 
-            mvwprintw(curwin, i, 0, "%02d. %-*s",
-                    i + play->disp_offset, cols - 4, name);
-
-            free(name);
-
-            tui_color_fb_unset(curwin, fc, bc);
+            tui_printf(curwin, s, ARRAY_SIZE(args), args);
         } else {
             mvwprintw(curwin, i, 0, "%*s", cols, "");
         }

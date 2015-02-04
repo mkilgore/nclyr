@@ -40,22 +40,25 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
 {
     int i;
     struct item_group *group;
-    char *id2 = strchr(id, '-');
-    int len = id2 - id;
-
-    if (id2 == NULL)
-        len = strlen(id);
+    char *id2;
+    int len;
 
     group = &root->group;
 
+    DEBUG_PRINTF("Id: %s\n", id);
+
     do {
         id2 = strchr(id, '-');
+
+        len = id2 - id;
 
         if (id2 == NULL)
             len = strlen(id);
 
         for (i = 0; i < group->item_count; i++) {
             struct config_item *item2 = group->items + i;
+            DEBUG_PRINTF("Item: %p\n", item2);
+            DEBUG_PRINTF("Item Name: %s\n", item2->name);
             if (strncmp(item2->name, id, len) == 0) {
                 if (id2 == NULL) {
                     if (item2->type != CONFIG_GROUP)

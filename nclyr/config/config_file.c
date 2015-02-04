@@ -76,9 +76,12 @@ int config_load_from_file(struct root_config *root, const char *file)
     while ((tok = yylex(&state)) != TOK_EOF) {
         switch (tok) {
         case TOK_STRING:
+            DEBUG_PRINTF("yytext: %s\n", yytext);
             item = config_item_find(root, yytext);
             if (item)
                 DEBUG_PRINTF("Found item: %s\n", item->name);
+            else
+                break;
 
             tok = yylex(&state);
 

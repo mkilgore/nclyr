@@ -19,7 +19,7 @@ static int color_map_curses[] = {
     -1,
 };
 
-#define CALC_PAIR(f, b, c) ((f) + (b) * (c))
+#define CALC_PAIR(f, b, c) ((f) + (b) * (c) + 1)
 
 void tui_color_init(void)
 {
@@ -46,7 +46,7 @@ void tui_color_init(void)
 
 void tui_color_set(WINDOW *win, struct cons_color_pair colors)
 {
-    int rf = CONS_COLOR_UNHIGHLIGHT(colors.f), rb = CONS_COLOR_UNHIGHLIGHT(colors.b);
+    int rf = colors.f, rb = colors.b;
     int count = (COLOR_PAIRS <= 64)? 8: 9;
 
     if (COLOR_PAIRS <= 64) {
@@ -57,13 +57,11 @@ void tui_color_set(WINDOW *win, struct cons_color_pair colors)
     }
 
     wattron(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
-    if (CONS_COLOR_IS_HIGHLIGHT(colors.f))
-        wattron(win, A_BOLD);
 }
 
 void tui_color_unset(WINDOW *win, struct cons_color_pair colors)
 {
-    int rf = CONS_COLOR_UNHIGHLIGHT(colors.f), rb = CONS_COLOR_UNHIGHLIGHT(colors.b);
+    int rf = colors.f, rb = colors.b;
     int count = (COLOR_PAIRS <= 64)? 8: 9;
 
     if (COLOR_PAIRS <= 64) {
@@ -73,9 +71,21 @@ void tui_color_unset(WINDOW *win, struct cons_color_pair colors)
             rb = CONS_COLOR_BLACK;
     }
 
-
     wattroff(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
-    if (CONS_COLOR_IS_HIGHLIGHT(colors.f))
-        wattroff(win, A_BOLD);
+}
+
+void tui_color_pair_fb(int pair, struct cons_color_pair *c)
+{
+    int count = (COLOR_PAIRS <= 64)? 8: 9;
+
+    /* A bit of a hack - We handle returning pair 0 by checking for it and
+     * returning the defaults */
+    if (pair != 0) {
+        c->f = (pair - 1) % count;
+        c->b = (pair - 1) / count;
+    } else {
+        c->f = CONS_COLOR_DEFAULT;
+        c->b = CONS_COLOR_DEFAULT;
+    }
 }
 

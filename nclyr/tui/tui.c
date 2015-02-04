@@ -19,6 +19,7 @@
 #include "help_win.h"
 #include "artist_win.h"
 #include "playlist_win.h"
+#include "config_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -29,6 +30,7 @@ static struct nclyr_win *nclyr_windows[] = {
     &lyrics_window.super_win,
     &artist_window.super_win,
 #endif
+    &config_window.super_win,
     &help_window.super_win,
     &clock_window.super_win,
     NULL
@@ -216,6 +218,8 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     use_default_colors();
 
     tui_color_init();
+
+    tui->cfg = tui_config_get_root();
 
     tui->status->tui = tui;
     tui->status->init(tui->status, COLS);

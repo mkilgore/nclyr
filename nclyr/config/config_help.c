@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "cons_color.h"
 #include "config.h"
 #include "debug.h"
 
@@ -38,9 +39,20 @@ void config_disp_small_helptext(struct root_config *root, struct arg_parser *par
     }
 }
 
+static const char *config_opt_str(enum config_item_type type)
+{
+    const char *type_strs[] = {
+        [CONFIG_STRING] = "String",
+        [CONFIG_BOOL] = "Bool",
+        [CONFIG_INTEGER] = "Integer",
+        [CONFIG_COLOR_PAIR] = "Color Pair",
+    };
+
+    return type_strs[type];
+}
+
 static void config_print_help_item(struct config_item *item, const char *id)
 {
-    const char *str;
     size_t len = ARG_LEN - strlen(item->name) - (id? strlen(id) + 1: 0) - 1;
 
     if (id)
@@ -48,27 +60,38 @@ static void config_print_help_item(struct config_item *item, const char *id)
     else
         printf("      --%s=", item->name);
 
+    printf("%-*s %s\n", len, config_opt_str(item->type), item->description);
+}
+
+static void config_print_help_item_complete(struct config_item *item, const char *id)
+{
+    if (id)
+        printf(" %s-%s\n", id, item->name);
+    else
+        printf(" %s\n", item->name);
+    printf("    Type: %s\n", config_opt_str(item->type));
     switch (item->type) {
     case CONFIG_STRING:
-        str = "String";
+        printf("    Default: \"%s\"\n", item->u.str);
         break;
     case CONFIG_BOOL:
-        str = "Bool";
+        printf("    Default: %s\n", (item->u.bol)?"True":"False");
         break;
     case CONFIG_INTEGER:
-        str = "Integer";
+        printf("    Default: %d\n", item->u.integer);
         break;
     case CONFIG_COLOR_PAIR:
-        str = "Color Pair";
+        printf("    Default: (%s, %s)\n", cons_color_name(item->u.c_pair.f), cons_color_name(item->u.c_pair.b));
         break;
     case CONFIG_GROUP:
         /* Shouldn't happen */
         break;
     }
-    printf("%-*s %s\n", len, str, item->description);
+    printf("    Description: %s\n", item->description);
+    putchar('\n');
 }
 
-static void config_print_group(struct config_item *item, const char *id)
+static void config_print_group(struct config_item *item, const char *id, int comp)
 {
     char name[ARG_LEN + 1];
     struct config_item *item2;
@@ -81,26 +104,53 @@ static void config_print_group(struct config_item *item, const char *id)
 
     for (i = 0; i < item->u.group.item_count; i++) {
         item2 = item->u.group.items + i;
-        if (item2->type != CONFIG_GROUP)
-            config_print_help_item(item2, name);
-        else
-            config_print_group(item2, name);
+        if (item2->type != CONFIG_GROUP) {
+            if (comp)
+                config_print_help_item_complete(item2, name);
+            else
+                config_print_help_item(item2, name);
+        } else {
+            config_print_group(item2, name, comp);
+        }
     }
+}
+
+static void config_disp_full_helptext_comp(struct root_config *root, struct arg_parser *parser, int comp)
+{
+    int i;
+    struct config_item *item;
+    if (parser)
+        config_disp_small_helptext(root, parser);
+
+    for (i = 0; i < root->group.item_count; i++) {
+        item = root->group.items + i;
+        if (item->type != CONFIG_GROUP) {
+            if (comp)
+                config_print_help_item_complete(item, NULL);
+            else
+                config_print_help_item(item, NULL);
+        } else {
+            config_print_group(item, NULL, comp);
+        }
+    }
+
 }
 
 void config_disp_full_helptext(struct root_config *root, struct arg_parser *parser)
 {
+    config_disp_full_helptext_comp(root, parser, 0);
+}
+
+void config_disp_complete_configtext(struct root_config *root)
+{
+    config_disp_full_helptext_comp(root, NULL, 1);
+}
+
+void config_disp_root_help(struct root_config *root)
+{
     int i;
-    struct config_item *item;
-    config_disp_small_helptext(root, parser);
-
-    for (i = 0; i < root->group.item_count; i++) {
-        item = root->group.items + i;
-        if (item->type != CONFIG_GROUP)
-            config_print_help_item(item, NULL);
-        else
-            config_print_group(item, NULL);
-    }
-
+    for (i = 0; i < root->group.item_count; i++)
+        if (root->group.items[i].type != CONFIG_GROUP)
+            config_print_help_item(root->group.items + i, NULL);
 }
 

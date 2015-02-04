@@ -3,7 +3,10 @@
 
 #include <ncurses.h>
 
+#include "a_sprintf.h"
+#include "config.h"
 #include "tui.h"
+#include "tui_printf.h"
 #include "player.h"
 #include "tui/statusline.h"
 #include "debug.h"
@@ -11,6 +14,14 @@
 void statusline_update(struct statusline *status)
 {
     struct tui_iface *tui = status->tui;
+    struct config_item *root = tui->cfg;
+    struct song_info *song = tui->state.song;
+    struct tui_printf_arg args[4] = {
+        { .id = "title", .type = TUI_ARG_STRING },
+        { .id = "artist", .type = TUI_ARG_STRING },
+        { .id = "album", .type = TUI_ARG_STRING },
+        { .id = "duration", .type = TUI_ARG_INT },
+    };
 
     status->updated = 0;
 
@@ -18,11 +29,16 @@ void statusline_update(struct statusline *status)
         int cols, bar_len, x;
         werase(status->win);
 
-        if (tui->state.song)
-            mvwprintw(status->win, 0, 0, "Song: %s by %s on %s",
-                    tui->state.song->tag.title, tui->state.song->tag.artist, tui->state.song->tag.album);
-        else
-            mvwprintw(status->win, 0, 0, "No song playing");
+        wmove(status->win, 0, 0);
+        if (tui->state.song) {
+            args[0].u.str_val = song->tag.title;
+            args[1].u.str_val = song->tag.artist;
+            args[2].u.str_val = song->tag.album;
+            args[3].u.int_val = song->duration;
+            tui_printf(status->win, CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args);
+        } else {
+            wprintw(status->win, "No song playing");
+        }
 
         cols = getmaxx(status->win);
 

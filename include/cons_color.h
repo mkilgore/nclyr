@@ -1,8 +1,6 @@
 #ifndef INCLUDE_CONS_COLORS_H
 #define INCLUDE_CONS_COLORS_H
 
-#define CONS_COLOR_HI_FG (1 << 5)
-
 enum cons_color {
     CONS_COLOR_BLACK,
     CONS_COLOR_RED,
@@ -14,10 +12,6 @@ enum cons_color {
     CONS_COLOR_WHITE,
     CONS_COLOR_DEFAULT,
 };
-
-#define CONS_COLOR_HIGHLIGHT(col) ((col) | CONS_COLOR_HI_FG)
-#define CONS_COLOR_UNHIGHLIGHT(col) ((col) & ~(CONS_COLOR_HI_FG))
-#define CONS_COLOR_IS_HIGHLIGHT(col) ((col) & CONS_COLOR_HI_FG)
 
 struct cons_color_pair {
     enum cons_color f;

@@ -27,23 +27,18 @@ static int arg_handle(struct arg_parser *, int index, const char *arg);
 
 struct arg_parser_extra {
     struct arg_parser parser;
-    const char *player;
     const char *command;
-    const char *interface;
 };
 
 static struct arg_parser_extra args = {
     .parser = {
         .args = nclyr_args,
         .arg_callback = arg_handle,
-        .arg_str = "[Flags] [Player] [Command]",
-        .arg_desc_str = "Player: The name of the player to attempt to connect too.\n"
-                        "Command: Optional command to send to player; If supplied, nclyr exits after\n"
+        .arg_str = "[Flags] [Command]",
+        .arg_desc_str = "Command: Optional command to send to player; If supplied, nclyr exits after\n"
                         "         running that command\n",
     },
-    .player = CONFIG_DEFAULT_PLAYER,
     .command = NULL,
-    .interface = CONFIG_DEFAULT_IFACE,
 };
 
 static const char *version_text = "nclyr-" Q(NCLYR_VERSION_N) " Copyright (C) 2015 Matt Kilgore\n";
@@ -61,6 +56,7 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
     switch (index) {
     case ARG_help:
         config_disp_small_helptext(&nclyr_config, parser);
+        config_disp_root_help(&nclyr_config);
         return 1;
     case ARG_help_all:
         config_disp_full_helptext(&nclyr_config, parser);
@@ -85,15 +81,15 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
             printf("  - %s: %s\n", (*iface)->name, (*iface)->description);
         return 1;
 
-    case ARG_interface:
-        extra->interface = arg;
-        break;
+    case ARG_help_config:
+        nclyr_conf_clear();
+        nclyr_conf_init();
+        config_disp_complete_configtext(&nclyr_config);
+        return 1;
 
     case ARG_EXTRA:
         DEBUG_PRINTF("Extra argument: %s\n", arg);
-        if (extra->player == NULL)
-            extra->player = arg;
-        else
+        if (extra->command == NULL)
             extra->command = arg;
         break;
 
@@ -135,7 +131,7 @@ int main(int argc, const char **argv)
     config_check_for_config(argc, argv, &config);
 
     if (!config)
-        config = "./test_config";
+        config = "/home/dsman195276/.nclyrrc";
 
     DEBUG_PRINTF("Config file: %s\n", argv[0], config);
 
@@ -147,16 +143,16 @@ int main(int argc, const char **argv)
     if (config_load_from_args(&nclyr_config, &args.parser) != 0)
         return 0;
 
-    player_set_current(player_find(args.player));
+    player_set_current(player_find(ROOT_CONFIG(NCLYR_CONFIG_PLAYER)->u.str));
 
     if (player_current() == NULL) {
         printf("%s: Error, no music player selected.\n", argv[0]);
         return 0;
     }
 
-    iface = nclyr_iface_find(args.interface);
+    iface = nclyr_iface_find(ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str);
     if (!iface) {
-        printf("%s: Error, interface '%s' does not exist.\n", argv[0], args.interface);
+        printf("%s: Error, interface '%s' does not exist.\n", argv[0], ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str);
         return 1;
     }
 
