@@ -31,18 +31,6 @@ ifdef silent
 	quiet := silent
 endif
 
-ifeq ($(NCLYR_DEBUG),y)
-	CPPFLAGS += -DNCLYR_DEBUG
-	CFLAGS += -g
-	ASFLAGS += -g
-	LDFLAGS += -g
-endif
-
-ifeq ($(NCLYR_PROF),y)
-	CFLAGS += -pg
-	LDFLAGS += -pg
-endif
-
 _echo_cmd = echo $(2)
 quiet_echo_cmd = echo $(1)
 slient_echo_cmd = true
@@ -119,6 +107,18 @@ endef
 $(eval $(call proj_inc,config))
 
 -include $(objtree)/gen_config.mk
+
+ifeq ($(NCLYR_DEBUG),y)
+	CPPFLAGS += -DNCLYR_DEBUG
+	CFLAGS += -g
+	ASFLAGS += -g
+	LDFLAGS += -g
+endif
+
+ifeq ($(NCLYR_PROF),y)
+	CFLAGS += -pg
+	LDFLAGS += -pg
+endif
 
 $(eval $(call proj_inc,nclyr))
 CLEAN_LIST += $(objtree)/bin

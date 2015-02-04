@@ -19,9 +19,3 @@ DOCDIR  := $(PREFIX)/share/doc/$(EXE)
 # Show all commands executed by the Makefile
 V ?= n
 
-# Turn on debugging
-NCLYR_DEBUG ?= n
-
-# Turn on profiling
-NCLYR_PROF ?= n
-
