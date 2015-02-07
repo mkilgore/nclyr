@@ -1,0 +1,12 @@
+language: c
+
+compiler:
+  - clang
+  - gcc
+
+install:
+  - sudo apt-get install valgrind
+
+script:
+  - make && make check
+
