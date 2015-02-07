@@ -38,7 +38,7 @@ void player_prev (struct player *p)
 
 void player_seek (struct player *p, size_t pos)
 {
-    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_PREV, .u.seek_pos = pos };
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_SEEK, .u.seek_pos = pos };
     p->ctrls.ctrl(p, &msg);
 }
 
@@ -50,7 +50,7 @@ void player_shuffle (struct player *p)
 
 void player_set_volume (struct player *p, size_t volume)
 {
-    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_PREV, .u.volume = volume };
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_SET_VOLUME, .u.volume = volume };
     p->ctrls.ctrl(p, &msg);
 }
 
