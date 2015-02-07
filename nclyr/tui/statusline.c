@@ -6,23 +6,23 @@
 #include "a_sprintf.h"
 #include "config.h"
 #include "tui.h"
-#include "tui_printf.h"
+#include "tui/printf.h"
 #include "player.h"
 #include "tui/statusline.h"
 #include "debug.h"
 
+static struct tui_printf_arg args[4] = {
+    { .id = "title", .type = TUI_ARG_STRING },
+    { .id = "artist", .type = TUI_ARG_STRING },
+    { .id = "album", .type = TUI_ARG_STRING },
+    { .id = "duration", .type = TUI_ARG_INT },
+};
+
 void statusline_update(struct statusline *status)
 {
     struct tui_iface *tui = status->tui;
-    struct config_item *root = tui->cfg;
+    /* struct config_item *root = tui->cfg; */
     struct song_info *song = tui->state.song;
-    struct tui_printf_arg args[4] = {
-        { .id = "title", .type = TUI_ARG_STRING },
-        { .id = "artist", .type = TUI_ARG_STRING },
-        { .id = "album", .type = TUI_ARG_STRING },
-        { .id = "duration", .type = TUI_ARG_INT },
-    };
-
     status->updated = 0;
 
     if (tui->state.is_up) {
@@ -35,7 +35,8 @@ void statusline_update(struct statusline *status)
             args[1].u.str_val = song->tag.artist;
             args[2].u.str_val = song->tag.album;
             args[3].u.int_val = song->duration;
-            tui_printf(status->win, CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args);
+            tui_printf_comp(status->win, status->song_name, ARRAY_SIZE(args), args);
+            /* tui_printf(status->win, CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args); */
         } else {
             wprintw(status->win, "No song playing");
         }
@@ -67,12 +68,17 @@ void statusline_update(struct statusline *status)
 
 void statusline_init(struct statusline *status, int cols)
 {
+    struct tui_iface *tui = status->tui;
+    struct config_item *root = tui->cfg;
     status->win = newwin(2, cols, 0, 0);
     status->updated = 1;
+
+    status->song_name = tui_printf_compile(CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args);
 }
 
 void statusline_clean(struct statusline *status)
 {
+    tui_printf_compile_free(status->song_name);
     delwin(status->win);
 }
 

@@ -3,6 +3,9 @@ include ./config.mk
 srctree := .
 objtree := .
 
+real_srctree := $(srctree)
+real_objtree := $(objtree)
+
 # This is our default target - The default is the first target in the file so
 # we need to define this fairly high-up.
 all: real-all
@@ -49,12 +52,14 @@ $(1): $(2)
 endef
 
 define create_cc_rule
-ifneq ($(3),)
 ifneq ($$(wildcard $(2)),)
 $(1): $(2)
 	@$$(call mecho," CC      $$@","$$(CC) $$(CFLAGS) $$(CPPFLAGS) $(3) -c $$< -o $$@")
 	$$(Q)$$(CC) $$(CFLAGS) $$(CPPFLAGS) $(3) -c $$< -o $$@
-endif
+
+$(dir $(1)).$(basename $(notdir $(1))).d: $(2) $$(real_objtree)/include/gen_config.h
+	@$$(call mecho," CCDEP   $$@","$$(CC) -MM -MP -MF $$@ $$(CPPFLAGS) $$(CFLAGS) $(3) $$< -MT $$(objtree)/$$*.o -MT $$@")
+	$$(Q)$$(CC) -MM -MP -MF $$@ $$(CPPFLAGS) $$(CFLAGS) $(3) $$< -MT $$(objtree)/$$*.o -MT $$@
 endif
 endef
 
@@ -62,6 +67,8 @@ endef
 define subdir_inc
 objtree := $$(objtree)/$(1)
 srctree := $$(srctree)/$(1)
+
+cflags-sav := $$(cflags-y)
 
 subdir-y :=
 objs-y :=
@@ -75,12 +82,13 @@ DEPS += $$(patsubst %,$$(objtree)/%,$$(objs-y))
 
 objs := $$(patsubst %,$$(objtree)/%,$$(objs-y)) $$(patsubst %,$$(objtree)/%.o,$$(subdir-y))
 
-$$(foreach obj,$$(patsubst %,$$(objtree)/%,$$(objs-y)),$$(eval $$(call create_cc_rule,$$(obj),$$(obj:.o=.c),$$($$(PROJ)_CFLAGS))))
+$$(foreach obj,$$(patsubst %,$$(objtree)/%,$$(objs-y)),$$(eval $$(call create_cc_rule,$$(obj),$$(obj:.o=.c),$$($$(PROJ)_CFLAGS) $$(cflags-y))))
 
 $$(eval $$(call create_link_rule,$$(objtree).o,$$(objs)))
 
 $$(foreach subdir,$$(subdir-y),$$(eval $$(call subdir_inc,$$(subdir))))
 
+cflags-y := $$(cflags-sav)
 srctree := $$(patsubst %/$(1),%,$$(srctree))
 objtree := $$(patsubst %/$(1),%,$$(objtree))
 endef
@@ -125,6 +133,11 @@ CLEAN_LIST += $(objtree)/bin
 
 EXES := $(objtree)/bin/nclyr
 
+# Include tests
+ifneq (,$(filter $(MAKECMDGOALS),check clean))
+include ./test/Makefile
+endif
+
 
 # Actual entry
 real-all: configure $(EXES)
@@ -162,6 +175,8 @@ $(objtree)/.%.d: $(srctree)/%.c $(objtree)/include/gen_config.h
 
 DEP_LIST := $(foreach dep,$(DEPS),$(dir $(dep)).$(notdir $(dep)))
 DEP_LIST := $(DEP_LIST:.o=.d)
+
+real-all: $(DEP_LIST)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEP_LIST)

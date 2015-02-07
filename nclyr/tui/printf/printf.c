@@ -6,7 +6,7 @@
 
 #include "cons_color.h"
 #include "tui_color.h"
-#include "tui_printf.h"
+#include "tui/printf.h"
 #include "debug.h"
 
 struct attr_flag {

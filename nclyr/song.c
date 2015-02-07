@@ -53,8 +53,6 @@ int song_equal(const struct song_info *src1, const struct song_info *src2)
 {
     if (!src1 || !src2)
         return 0;
-    if (!src1->name || !src2->name || !!strcmp(src1->name, src2->name))
-        return 0;
     if (!src1->tag.title || !src2->tag.title || !!strcmp(src1->tag.title, src2->tag.title))
         return 0;
     if (!src1->tag.artist || !src2->tag.artist || !!strcmp(src1->tag.artist, src2->tag.artist))

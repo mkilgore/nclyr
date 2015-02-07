@@ -2,6 +2,7 @@
 #define NCLYR_CURSES_PLAYLIST_WIN_H
 
 #include "tui/window.h"
+#include "tui/printf.h"
 #include "playlist.h"
 
 struct playlist_win {
@@ -9,6 +10,8 @@ struct playlist_win {
 
     int selected;
     int disp_offset;
+
+    tui_printf_compiled *normal, *sel, *playing, *sel_playing;
 };
 
 extern struct playlist_win playlist_window;
