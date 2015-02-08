@@ -26,6 +26,14 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(*(arr)))
 
+struct rd_string {
+    char *str;
+    int was_malloced :1;
+};
+
+void rd_string_free(struct rd_string *);
+void rd_string_dup(struct rd_string *, const char *s);
+
 #include "gen_config.h"
 
 #endif
