@@ -175,7 +175,7 @@ static void *mpd_thread(void *p)
     do {
         int handle_idle = 0;
 
-        if (player->conn);
+        if (player->conn)
             update_status(player);
 
         mpd_send_idle(player->conn);
