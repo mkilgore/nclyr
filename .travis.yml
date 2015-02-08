@@ -8,6 +8,8 @@ install:
   - sudo apt-get install valgrind
   - sudo apt-get install mpd
   - wget http://security.ubuntu.com/ubuntu/pool/universe/g/glyr/libglyr-dev_1.0.5-1_amd64.deb
+  - wget http://security.ubuntu.com/ubuntu/pool/universe/g/glyr/libglyr1_1.0.5-1_amd64.deb
+  - sudo dpkg -i libglyr1_1.0.5-1_amd64.deb
   - sudo dpkg -i libglyr-dev_1.0.5-1_amd64.deb
 
 script:
