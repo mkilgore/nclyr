@@ -13,6 +13,8 @@
 struct printf_opt_color {
     struct printf_opt opt;
     struct cons_color_pair new_col;
+    unsigned int have_f :1;
+    unsigned int have_b :1;
 };
 
 static void print_color(struct printf_opt *opt, struct tui_printf_compiled *comp, WINDOW *win, size_t arg_count, const struct tui_printf_arg *args)
@@ -20,10 +22,10 @@ static void print_color(struct printf_opt *opt, struct tui_printf_compiled *comp
     struct printf_opt_color *color = container_of(opt, struct printf_opt_color, opt);
     tui_color_unset(win, comp->cur_color);
 
-    if (color->new_col.f != -1)
+    if (color->have_f)
         comp->cur_color.f = color->new_col.f;
 
-    if (color->new_col.b != -1)
+    if (color->have_b)
         comp->cur_color.b = color->new_col.b;
 
     tui_color_set(win, comp->cur_color);
@@ -41,12 +43,16 @@ struct printf_opt *print_color_get(const char *id, char *params, size_t arg_coun
     memset(color, 0, sizeof(*color));
     color->opt.print = print_color;
     color->opt.clear = print_free;
-    color->new_col = (struct cons_color_pair){ -1, -1 };
+    color->new_col = (struct cons_color_pair){ CONS_COLOR_DEFAULT, CONS_COLOR_DEFAULT };
     while ((params = printf_get_next_param(params, &i, &val)) != NULL) {
-        if (strcmp(i, "f") == 0 || strcmp(i, "foreground") == 0)
+        if (strcmp(i, "f") == 0 || strcmp(i, "foreground") == 0) {
             color->new_col.f = cons_color_get(val);
-        if (strcmp(i, "b") == 0 || strcmp(i, "background") == 0)
+            color->have_f = 1;
+        }
+        if (strcmp(i, "b") == 0 || strcmp(i, "background") == 0) {
             color->new_col.b = cons_color_get(val);
+            color->have_b = 1;
+        }
     }
     return &color->opt;
 }
