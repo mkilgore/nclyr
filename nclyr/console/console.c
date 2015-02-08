@@ -72,7 +72,7 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 if (play_state.state != PLAYER_STOPPED && play_state.song) {
                     char *endline;
                     int len_print;
-                    len = snprintf(line, cols, "[%d%%] %s by %s on %s%s", play_state.volume, play_state.song->tag.title, play_state.song->tag.artist, play_state.song->tag.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
+                    len = snprintf(line, cols, "[%zu%%] %s by %s on %s%s", play_state.volume, play_state.song->tag.title, play_state.song->tag.artist, play_state.song->tag.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
                     if (len < cols - 15) {
                         endline = line + len;
                         len_print = cols - len - 15;
