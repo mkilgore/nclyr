@@ -133,7 +133,7 @@ static void handle_notify_fd(struct tui_iface *tui, int notifyfd)
     }
 
     for (win = tui->windows; *win; win++)
-        for (song_data = (*win)->lyr_types; *song_data != -1; song_data++)
+        for (song_data = (*win)->lyr_types; *song_data != LYR_DATA_TYPE_COUNT; song_data++)
             if (*song_data == song_notif.type)
                 (*win)->new_song_data(*win, &song_notif);
 
