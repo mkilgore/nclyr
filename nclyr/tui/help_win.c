@@ -110,7 +110,7 @@ struct line_win help_window = {
         .win_name = "Help",
         .win = NULL,
         .timeout = -1,
-        .lyr_types = (const enum lyr_data_type[]) { -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES,
             { '\0', NULL, NULL }

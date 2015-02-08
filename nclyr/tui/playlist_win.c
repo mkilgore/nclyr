@@ -142,7 +142,7 @@ struct playlist_win playlist_window = {
         .win_name = "Playlist",
         .win = NULL,
         .timeout = 400,
-        .lyr_types = (const enum lyr_data_type[]) { -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             { 'j', handle_ch, "Select song above" },
             { 'k', handle_ch, "Select song below" },

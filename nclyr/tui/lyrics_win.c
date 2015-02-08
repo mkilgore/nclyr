@@ -90,7 +90,7 @@ struct line_win lyrics_window = {
         .win_name = "Lyrics",
         .win = NULL,
         .timeout = -1,
-        .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES,
             { 'c', lyrics_handle_keypress, "Toggle line centering" },

@@ -100,7 +100,7 @@ static void start_lyr_thread(const struct song_info *song, int thread_fd, const 
 static void start_lyr_thread_together(const struct song_info *song, const enum lyr_data_type *type)
 {
     const enum lyr_data_type *t;
-    for (t = type; *t != -1; t++)
+    for (t = type; *t != LYR_DATA_TYPE_COUNT; t++)
         start_lyr_thread(song, thread_exit[1], *t);
 }
 
@@ -135,7 +135,7 @@ static void *lyr_thread(void *nothing)
             memset(&song_notify, 0, sizeof(song_notify));
             song_notify.song = song_thr->song;
             for (cur = song_thr->head; cur != NULL; cur = cur->next) {
-                song_notify.type = -1;
+                song_notify.type = LYR_DATA_TYPE_COUNT;
 
                 switch (cur->type) {
                 case GLYR_TYPE_ARTIST_BIO:
@@ -170,7 +170,7 @@ static void *lyr_thread(void *nothing)
                     break;
                 }
 
-                if (song_notify.type != -1)
+                if (song_notify.type != LYR_DATA_TYPE_COUNT)
                     write(song_notify_fd, &song_notify, sizeof(song_notify));
             }
 

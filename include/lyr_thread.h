@@ -39,7 +39,7 @@ void lyr_thread_stop(void);
 
 void lyr_thread_notify_clear(struct lyr_thread_notify *);
 
-/* list should be terminated with '-1' */
+/* list should be terminated with LYR_DATA_TYPE_COUNT */
 void lyr_thread_song_lookup(const struct song_info *song, const enum lyr_data_type *list);
 #else
 static inline void lyr_thread_start(int notify_fd) { return ; }

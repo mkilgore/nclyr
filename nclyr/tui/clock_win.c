@@ -240,7 +240,7 @@ struct clock_win clock_window = {
         .win = NULL,
         .timeout = 500,
         .updated = 1,
-        .lyr_types = (const enum lyr_data_type[]) { -1 },
+        .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             { '\0', NULL, NULL }
         },
