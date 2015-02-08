@@ -114,7 +114,7 @@ static void update_status(struct mpd_player *player)
     if (mpd_status_get_volume(player->cur_status)
             != mpd_status_get_volume(status)) {
         player_send_volume(&player->player, mpd_status_get_volume(status));
-        DEBUG_PRINTF("Volume: %d\n", mpd_status_get_elapsed_time(status));
+        DEBUG_PRINTF("Volume: %d\n", mpd_status_get_volume(status));
     }
 
     if (mpd_status_get_state(player->cur_status)
@@ -233,7 +233,7 @@ static void *mpd_thread(void *p)
                 break;
 
             case PLAYER_CTRL_CHANGE_VOLUME:
-                mpd_run_change_volume(player->conn, msg.u.vol_change);
+                mpd_run_set_volume(player->conn, mpd_status_get_volume(player->cur_status) + msg.u.vol_change);
                 break;
 
             case PLAYER_CTRL_CHANGE_SONG:
