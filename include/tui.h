@@ -40,6 +40,7 @@ struct config_item *tui_config_get_root(void);
 enum tui_config {
     TUI_CONFIG_PLAYLIST,
     TUI_CONFIG_STATUSLINE,
+    TUI_CONFIG_TOTAL
 };
 
 enum tui_config_playlist {
@@ -47,10 +48,14 @@ enum tui_config_playlist {
     TUI_CONFIG_PLAYLIST_PLAYING,
     TUI_CONFIG_PLAYLIST_SEL,
     TUI_CONFIG_PLAYLIST_NORMAL,
+    TUI_CONFIG_PLAYLIST_TOTAL
 };
 
 enum tui_config_statusline {
     TUI_CONFIG_STATUSLINE_SONG,
+    TUI_CONFIG_STATUSLINE_TOTAL
 };
+
+extern struct config_item tui_conf[];
 
 #endif

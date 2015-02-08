@@ -31,7 +31,7 @@ static void config_print_item(struct config_item *item, int indent)
         break;
 
     case CONFIG_STRING:
-        printf("%s: %s\n", item->name, item->u.str);
+        printf("%s: %s\n", item->name, item->u.str.str);
         break;
 
     case CONFIG_INTEGER:

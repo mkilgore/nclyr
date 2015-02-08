@@ -1,6 +1,8 @@
 #ifndef INCLUDE_CONFIG_H
 #define INCLUDE_CONFIG_H
 
+#include "common.h"
+
 #include <stdlib.h>
 #include "cons_color.h"
 
@@ -20,7 +22,7 @@ struct item_group {
 };
 
 union config_data {
-    char *str;
+    struct rd_string str;
     int bol;
     int integer;
 

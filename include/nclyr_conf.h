@@ -3,7 +3,6 @@
 
 #include "config.h"
 
-void nclyr_conf_init(void);
 void nclyr_conf_clear(void);
 
 struct config_item *nclyr_global_conf(void);
@@ -16,6 +15,12 @@ extern struct root_config nclyr_config;
 enum {
     NCLYR_CONFIG_PLAYER,
     NCLYR_CONFIG_INTERFACE,
+#if CONFIG_TUI
+    NCLYR_CONFIG_TUI,
+#endif
+#if CONFIG_CONSOLE
+    NCLYR_CONFIG_CONSOLE,
+#endif
 };
 
 #endif

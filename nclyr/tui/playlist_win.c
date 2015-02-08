@@ -109,10 +109,10 @@ static void playlist_win_init(struct nclyr_win *win)
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
     struct tui_iface *tui = win->tui;
     struct config_item *playlist = tui->cfg->u.group.items + TUI_CONFIG_PLAYLIST;
-    play->normal      = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_NORMAL)->u.str, ARRAY_SIZE(args), args);
-    play->playing     = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_PLAYING)->u.str, ARRAY_SIZE(args), args);
-    play->sel         = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_SEL)->u.str, ARRAY_SIZE(args), args);
-    play->sel_playing = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_SEL_PLAYING)->u.str, ARRAY_SIZE(args), args);
+    play->normal      = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_NORMAL)->u.str.str, ARRAY_SIZE(args), args);
+    play->playing     = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_PLAYING)->u.str.str, ARRAY_SIZE(args), args);
+    play->sel         = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_SEL)->u.str.str, ARRAY_SIZE(args), args);
+    play->sel_playing = tui_printf_compile(CONFIG_GET(playlist, TUI_CONFIG_PLAYLIST_SEL_PLAYING)->u.str.str, ARRAY_SIZE(args), args);
 }
 
 static void playlist_win_clear(struct nclyr_win *win)

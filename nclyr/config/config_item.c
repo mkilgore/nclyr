@@ -15,13 +15,12 @@ void config_item_data_clear(enum config_item_type type, union config_data *data)
     int i;
     switch (type) {
     case CONFIG_STRING:
-        free(data->str);
+        rd_string_free(&data->str);
         break;
 
     case CONFIG_GROUP:
         for (i = 0; i < data->group.item_count; i++)
             config_item_clear(data->group.items + i);
-        free(data->group.items);
         break;
 
     case CONFIG_COLOR_PAIR:

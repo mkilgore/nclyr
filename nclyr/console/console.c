@@ -40,7 +40,7 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
     struct player_state_full play_state;
     char linebuf[200];
     struct termios oldterm, newterm;
-    int cols, i, inp_flag = 0, inp_len = 0;
+    int cols, i, inp_flag = 0, inp_len = 0, song_change = 0;
     int console_exit_flag = 0;
     struct pollfd main_notify[4];
 
@@ -141,6 +141,27 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 case ' ':
                     player_toggle_pause(player_current());
                     break;
+                case '>':
+                    player_next(player_current());
+                    break;
+                case '<':
+                    player_prev(player_current());
+                    break;
+                case 'P':
+                    player_play(player_current());
+                    break;
+                case '+':
+                    player_change_volume(player_current(), 1);
+                    break;
+                case '-':
+                    player_change_volume(player_current(), -1);
+                    break;
+                case 's':
+                    song_change = 1;
+                    inp_flag = 1;
+                    inp_len = 0;
+                    memset(linebuf, 0, sizeof(linebuf));
+                    break;
                 case ':':
                     printf("\r" TERM_CLEAR ":");
                     inp_flag = 1;
@@ -152,6 +173,11 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 if (ch == '\n') {
                     printf("Input: %s\n", linebuf);
                     inp_flag = 0;
+                    if (song_change) {
+                        int song = strtol(linebuf, NULL, 0);
+                        player_change_song(player_current(), song);
+                        song_change = 0;
+                    }
                 } else if (ch != 127) {
                     if (inp_len < sizeof(linebuf))
                         linebuf[inp_len++] = (char)ch;

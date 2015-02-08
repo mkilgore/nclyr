@@ -82,8 +82,6 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
         return 1;
 
     case ARG_help_config:
-        nclyr_conf_clear();
-        nclyr_conf_init();
         config_disp_complete_configtext(&nclyr_config);
         return 1;
 
@@ -100,6 +98,10 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
          * file. Because of this, there is nothing to do here. */
         break;
 
+    case ARG_no_config:
+        /* Handled in the earlier parsing for config */
+        break;
+
     case ARG_ERR:
         return 1;
 
@@ -114,7 +116,7 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
 
 int main(int argc, const char **argv)
 {
-    const char *config = NULL;
+    const char *config = "/home/dsman195276/.nclyrrc";
     struct nclyr_pipes pipes;
     struct nclyr_iface *iface;
     sigset_t set;
@@ -126,16 +128,11 @@ int main(int argc, const char **argv)
     args.parser.argc = argc;
     args.parser.argv = argv;
 
-    nclyr_conf_init();
-
     config_check_for_config(argc, argv, &config);
-
-    if (!config)
-        config = "/home/dsman195276/.nclyrrc";
 
     DEBUG_PRINTF("Config file: %s\n", argv[0], config);
 
-    if (config_load_from_file(&nclyr_config, config) != 0) {
+    if (config && config_load_from_file(&nclyr_config, config) != 0) {
         printf("%s: Error reading config file '%s'\n", argv[0], config);
         return 1;
     }
@@ -143,16 +140,16 @@ int main(int argc, const char **argv)
     if (config_load_from_args(&nclyr_config, &args.parser) != 0)
         return 0;
 
-    player_set_current(player_find(ROOT_CONFIG(NCLYR_CONFIG_PLAYER)->u.str));
+    player_set_current(player_find(ROOT_CONFIG(NCLYR_CONFIG_PLAYER)->u.str.str));
 
     if (player_current() == NULL) {
         printf("%s: Error, no music player selected.\n", argv[0]);
         return 0;
     }
 
-    iface = nclyr_iface_find(ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str);
+    iface = nclyr_iface_find(ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str.str);
     if (!iface) {
-        printf("%s: Error, interface '%s' does not exist.\n", argv[0], ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str);
+        printf("%s: Error, interface '%s' does not exist.\n", argv[0], ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str.str);
         return 1;
     }
 

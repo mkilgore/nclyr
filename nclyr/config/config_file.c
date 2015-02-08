@@ -23,7 +23,7 @@ static int parse_item(const char *file, struct config_lexer *state, struct confi
         }
 
         config_item_data_clear(item->type, &item->u);
-        item->u.str = strdup(yytext);
+        rd_string_dup(&item->u.str, yytext);
         break;
 
     case CONFIG_BOOL:

@@ -36,7 +36,7 @@ static int parse_long(struct root_config *root, struct arg_parser *parser, int *
         case CONFIG_STRING:
             printf("Found argument for arg '%s' -> '%s'\n", item->name, parser->argv[*arg]);
             config_item_data_clear(item->type, &item->u);
-            item->u.str = strdup(parser->argv[*arg]);
+            rd_string_dup(&item->u.str, parser->argv[*arg]);
             break;
         case CONFIG_INTEGER:
             config_item_data_clear(item->type, &item->u);

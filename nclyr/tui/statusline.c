@@ -73,7 +73,7 @@ void statusline_init(struct statusline *status, int cols)
     status->win = newwin(2, cols, 0, 0);
     status->updated = 1;
 
-    status->song_name = tui_printf_compile(CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args);
+    status->song_name = tui_printf_compile(CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str.str, ARRAY_SIZE(args), args);
 }
 
 void statusline_clean(struct statusline *status)

@@ -70,18 +70,19 @@ static void config_print_help_item_complete(struct config_item *item, const char
     else
         printf(" %s\n", item->name);
     printf("    Type: %s\n", config_opt_str(item->type));
+    printf("    Value: ");
     switch (item->type) {
     case CONFIG_STRING:
-        printf("    Default: \"%s\"\n", item->u.str);
+        printf("\"%s\"\n", item->u.str.str);
         break;
     case CONFIG_BOOL:
-        printf("    Default: %s\n", (item->u.bol)?"True":"False");
+        printf("%s\n", (item->u.bol)?"True":"False");
         break;
     case CONFIG_INTEGER:
-        printf("    Default: %d\n", item->u.integer);
+        printf("%d\n", item->u.integer);
         break;
     case CONFIG_COLOR_PAIR:
-        printf("    Default: (%s, %s)\n", cons_color_name(item->u.c_pair.f), cons_color_name(item->u.c_pair.b));
+        printf("(%s, %s)\n", cons_color_name(item->u.c_pair.f), cons_color_name(item->u.c_pair.b));
         break;
     case CONFIG_GROUP:
         /* Shouldn't happen */

@@ -39,7 +39,7 @@ static void config_add_group(struct line_win *line, struct item_group *group, in
             break;
 
         case CONFIG_STRING:
-            snprintf(line_buf, sizeof(line_buf), "%*s   Value: %s", ident * 4, "", item->u.str);
+            snprintf(line_buf, sizeof(line_buf), "%*s   Value: %s", ident * 4, "", item->u.str.str);
             break;
 
         case CONFIG_INTEGER:

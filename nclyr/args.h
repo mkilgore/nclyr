@@ -10,6 +10,7 @@
     X(version, "version", 'v', 0, NULL, "Display version information"), \
     X(list_players, "list-players", '\0', 0, NULL, "List available players"), \
     X(list_interfaces, "list-interfaces", '\0', 0, NULL, "List available interfaces"), \
+    X(no_config, "no-config", 'n', 0, NULL, "Don't load configuration file"), \
     X(config, "config", 'c', 1, "Filename", "Configuration file to use, default is ~/nclyrrc")
 
 enum arg_index {
