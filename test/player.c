@@ -51,12 +51,12 @@ int test_ctrls(void)
 
     player_set_volume(p, 120);
     ret += test_assert_with_name("set volume", player_fake.got_ctrl[PLAYER_CTRL_SET_VOLUME] == 1);
-    ret += test_assert_with_name("set volume", player_fake.notif.u.vol_change == 120);
+    ret += test_assert_with_name("set volume", player_fake.notif.u.volume == 120);
     memset(player_fake.got_ctrl, 0, sizeof(player_fake.got_ctrl));
 
     player_change_volume(p, 80);
     ret += test_assert_with_name("change volume", player_fake.got_ctrl[PLAYER_CTRL_CHANGE_VOLUME] == 1);
-    ret += test_assert_with_name("change volume", player_fake.notif.u.volume == 80);
+    ret += test_assert_with_name("change volume", player_fake.notif.u.vol_change == 80);
     memset(player_fake.got_ctrl, 0, sizeof(player_fake.got_ctrl));
 
     player_change_song(p, 2);
