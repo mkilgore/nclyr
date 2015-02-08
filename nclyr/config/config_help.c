@@ -29,7 +29,7 @@ void config_disp_small_helptext(struct root_config *root, struct arg_parser *par
         if (a->lng && !a->has_arg) {
             printf("--%-" Q(ARG_LEN) "s ", a->lng);
         } else if (a->lng) {
-            size_t len = ARG_LEN - strlen(a->lng) - 1;
+            int len = ARG_LEN - strlen(a->lng) - 1;
             printf("--%s=%-*s ", a->lng, len, a->arg_txt);
         } else {
             printf("  %" Q(ARG_LEN) "s ", "");
@@ -53,7 +53,7 @@ static const char *config_opt_str(enum config_item_type type)
 
 static void config_print_help_item(struct config_item *item, const char *id)
 {
-    size_t len = ARG_LEN - strlen(item->name) - (id? strlen(id) + 1: 0) - 1;
+    int len = ARG_LEN - strlen(item->name) - (id? strlen(id) + 1: 0) - 1;
 
     if (id)
         printf("      --%s-%s=", id, item->name);

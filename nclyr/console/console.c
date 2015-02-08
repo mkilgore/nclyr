@@ -80,7 +80,7 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                         endline = line + cols - 15;
                         len_print = 0;
                     }
-                    snprintf(endline, cols, "%*s[%02d:%02d]/[%02d:%02d]", len_print, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song->duration / 60, play_state.song->duration % 60);
+                    snprintf(endline, cols, "%*s[%02zu:%02zu]/[%02zu:%02zu]", len_print, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song->duration / 60, play_state.song->duration % 60);
                 } else {
                     snprintf(line, cols, "Player stopped");
                 }
