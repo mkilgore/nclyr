@@ -10,6 +10,8 @@
 
 %option noyywrap
 
+%x inc
+
 %%
 
 [ \t]+ /* Eat whitespace */
@@ -20,6 +22,20 @@
 
 "=" { return TOK_EQUAL; }
 
+"include" {
+    BEGIN(inc);
+}
+
+<inc>[ \t]* /* Whitespace */
+<inc>[^ \t\n]+ {
+    yyin = fopen(yytext, "r");
+    if (!yyin)
+        return TOK_ERR;
+
+    yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE));
+    BEGIN(INITIAL);
+}
+
 [a-zA-Z0-9_\-]+ {
     return TOK_STRING;
 }
@@ -29,7 +45,9 @@
 }
 
 <<EOF>> {
-    return TOK_EOF;
+    yypop_buffer_state();
+    if (!YY_CURRENT_BUFFER)
+        return TOK_EOF;
 }
 
 . {

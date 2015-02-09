@@ -7,6 +7,7 @@ enum config_token {
     TOK_STRING,
     TOK_EQUAL,
     TOK_EOF,
+    TOK_ERR,
     TOK_UNKNOWN
 };
 

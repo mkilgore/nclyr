@@ -13,6 +13,7 @@
 
 int main(int argc, char **argv)
 {
+    int ret = 0;
     enum config_token tok;
     struct config_output *out;
     struct config_lexer state;
@@ -55,11 +56,15 @@ int main(int argc, char **argv)
                 out->write_var(token_str, 2, yytext);
 
             free(token_str);
+        } else if (tok == TOK_ERR) {
+            fprintf(stderr, "Error parsing token on line %d: %s\n", state.line, yytext);
+            ret = 1;
+            break;
         }
     }
 
     out->end();
 
-    return 0;
+    return ret;
 }
 

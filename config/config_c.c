@@ -17,11 +17,11 @@ void c_end(void)
 void c_write_var(const char *var, int set, const char *dat)
 {
     if (set == 1)
-        printf("#define %s 1\n", var);
+        printf("#define CONFIG_%s 1\n", var);
     else if (set == 0)
-        printf("#define %s 0\n", var);
+        printf("#define CONFIG_%s 0\n", var);
     else if (set == 2)
-        printf("#define %s %s\n", var, dat);
+        printf("#define CONFIG_%s %s\n", var, dat);
 }
 
 struct config_output c_output = {
