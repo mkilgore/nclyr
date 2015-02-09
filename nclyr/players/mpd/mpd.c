@@ -148,7 +148,9 @@ static void *mpd_thread(void *p)
     enum mpd_idle idle;
 
     DEBUG_PRINTF("Connecting to mpd...\n");
-    player->conn = mpd_connection_new("127.0.0.1", 6600, 0);
+    player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
+                                      mpd_config[PLAYER_CONFIG_MPD_PORT].u.integer,
+                                      0);
 
     if (mpd_connection_get_error(player->conn) != MPD_ERROR_SUCCESS) {
         mpd_connection_free(player->conn);
