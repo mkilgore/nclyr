@@ -12,7 +12,7 @@ static FILE *debugfile;
 
 void debug_init(void)
 {
-    debugfile = fopen(DEBUG_FILE, "w");
+    debugfile = fopen(CONFIG_DEBUG_FILE, "w");
     setvbuf(debugfile, NULL, _IONBF, 0);
 }
 

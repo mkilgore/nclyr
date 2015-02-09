@@ -9,7 +9,7 @@ void debug_printf(const char *file, const char *func, const char *line, const ch
 
 #define DEBUG_FILE "/tmp/nclyr_debug.txt"
 
-#if NCLYR_DEBUG
+#if CONFIG_DEBUG
 
 #define DEBUG_INIT() debug_init()
 #define DEBUG_CLOSE() debug_close()

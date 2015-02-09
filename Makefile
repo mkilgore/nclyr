@@ -116,14 +116,14 @@ $(eval $(call proj_inc,config))
 
 -include $(objtree)/gen_config.mk
 
-ifeq ($(NCLYR_DEBUG),y)
+ifeq ($(CONFIG_DEBUG),y)
 	CPPFLAGS += -DNCLYR_DEBUG
 	CFLAGS += -g
 	ASFLAGS += -g
 	LDFLAGS += -g
 endif
 
-ifeq ($(NCLYR_PROF),y)
+ifeq ($(CONFIG_PROF),y)
 	CFLAGS += -pg
 	LDFLAGS += -pg
 endif

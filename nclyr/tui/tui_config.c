@@ -8,7 +8,7 @@
 static struct config_item tui_statusline[] = {
     [TUI_CONFIG_STATUSLINE_SONG] = { .name = "song", .type = CONFIG_STRING,
         .u.str = {
-            .str = " ${color;f:cyan;b:default}${title}${color;f:default;b:default} | ${color;f:red;b:default}${artist}${color;f:default;b:default} | ${color;f:green;b:default}${album}"
+            .str = CONFIG_TUI_DEFAULT_STATUSLINE
         },
     },
 };
@@ -16,22 +16,22 @@ static struct config_item tui_statusline[] = {
 static struct config_item tui_playlist[] = {
     [TUI_CONFIG_PLAYLIST_SEL_PLAYING] = { .name = "selplaying", .type = CONFIG_STRING,
         .u.str = {
-             .str = "${bold}${play-num;w:2}. ${reverse}${color;f:cyan}${title}${color;f:default} | ${color;f:red}${artist}${color;f:default} | ${color;f:green}${album}"
+             .str = CONFIG_TUI_DEFAULT_PLAYLIST_SEL_PLAYING
         },
     },
     [TUI_CONFIG_PLAYLIST_PLAYING] = { .name = "playing", .type = CONFIG_STRING,
         .u.str = {
-            .str = "${bold}${play-num;w:2}. ${color;f:cyan}${title}${color;f:default} | ${color;f:red}${artist}${color;f:default} | ${color;f:green}${album}"
+            .str = CONFIG_TUI_DEFAULT_PLAYLIST_PLAYING
         },
     },
     [TUI_CONFIG_PLAYLIST_SEL] = { .name = "sel", .type = CONFIG_STRING,
         .u.str = {
-            .str = "${play-num;w:2}. ${reverse}${color;f:cyan}${title}${color;f:default} | ${color;f:red}${artist}${color;f:default} | ${color;f:green}${album}"
+            .str = CONFIG_TUI_DEFAULT_PLAYLIST_SEL
         },
     },
     [TUI_CONFIG_PLAYLIST_NORMAL] = { .name = "normal", .type = CONFIG_STRING,
         .u.str = {
-            .str = "${play-num;w:2}. ${color;f:cyan}${title}${color;f:default} | ${color;f:red}${artist}${color;f:default} | ${color;f:green}${album}"
+            .str = CONFIG_TUI_DEFAULT_PLAYLIST_NORMAL
         },
     }
 };

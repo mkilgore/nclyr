@@ -34,7 +34,7 @@ player.OBJ := ./nclyr/player.o \
 
 TEST_OBJS := $(foreach test,$(TESTS),$(filter ./test/%,$($(test).OBJ)))
 
-ifeq ($(NCLYR_DEBUG),y)
+ifeq ($(CONFIG_DEBUG),y)
 	DEBUG_OBJ := ./nclyr/debug.o
 else
 	DEBUG_OBJ :=
