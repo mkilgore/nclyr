@@ -40,7 +40,7 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
     int i;
     struct item_group *group;
     char *id2;
-    int len;
+    int len, found_flag;
 
     group = &root->group;
 
@@ -54,11 +54,13 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
         if (id2 == NULL)
             len = strlen(id);
 
+        found_flag = 0;
         for (i = 0; i < group->item_count; i++) {
             struct config_item *item2 = group->items + i;
             DEBUG_PRINTF("Item: %p\n", item2);
             DEBUG_PRINTF("Item Name: %s\n", item2->name);
             if (strncmp(item2->name, id, len) == 0) {
+                found_flag = 1;
                 if (id2 == NULL) {
                     if (item2->type != CONFIG_GROUP)
                         return item2;
@@ -74,7 +76,7 @@ struct config_item *config_item_find(struct root_config *root, const char *id)
         }
 
         id = id2 + 1;
-    } while (id2 != NULL);
+    } while (id2 != NULL && found_flag);
     return NULL;
 }
 

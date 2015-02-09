@@ -13,8 +13,10 @@ extern struct root_config nclyr_config;
 #define ROOT_CONFIG(id) (nclyr_config.group.items + (id))
 
 enum {
+    NCLYR_CONFIG_CONFIG,
     NCLYR_CONFIG_PLAYER,
     NCLYR_CONFIG_INTERFACE,
+    NCLYR_CONFIG_PLAYERS,
 #if CONFIG_TUI
     NCLYR_CONFIG_TUI,
 #endif

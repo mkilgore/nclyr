@@ -63,6 +63,7 @@ static int parse_long(struct root_config *root, struct arg_parser *parser, int *
     } else {
         for (i = 0; args[i].lng != NULL || args[i].shrt; i++) {
             if (strcmp(args[i].lng, opt) == 0) {
+                DEBUG_PRINTF("Found long: %s, has_arg: %d\n", args[i].lng, args[i].has_arg);
                 if (args[i].has_arg) {
                     if (parser->argc == *arg + 1) {
                         printf("%s: Not enough arguments to '--%s'\n", parser->argv[0], opt);
@@ -148,6 +149,23 @@ int config_load_from_args(struct root_config *root, struct arg_parser *parser)
 
 void config_check_for_config(int argc, const char **argv, const char **file)
 {
+    int current_arg = 0;
 
+    while ((++current_arg) != argc) {
+        const char *cur = argv[current_arg];
+        if (strcmp(cur, "--config") == 0) {
+            current_arg++;
+            if (current_arg != argc)
+                *file = argv[current_arg];
+            return ;
+        } else if (strcmp(cur, "--no-config") == 0) {
+            *file = NULL;
+            return ;
+        } else if (strcmp(cur, "--") == 0) {
+            return ;
+        }
+    }
+
+    return ;
 }
 

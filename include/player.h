@@ -2,6 +2,7 @@
 #define INCLUDE_PLAYER_H
 
 #include "common.h"
+#include "config.h"
 #include "song.h"
 #include "playlist.h"
 
@@ -140,5 +141,17 @@ void player_send_seek(struct player *, size_t seek_pos);
 void player_send_volume(struct player *, size_t volume);
 void player_send_playlist(struct player *, struct playlist *);
 void player_send_song_pos(struct player *, int song_pos);
+
+enum {
+#if CONFIG_PLAYER_MPD
+    PLAYER_CONFIG_MPD,
+#endif
+#if CONFIG_PLAYER_PIANOBAR
+    PLAYER_CONFIG_PIANOBAR,
+#endif
+    PLAYER_CONFIG_TOTAL
+};
+
+extern struct config_item players_config[];
 
 #endif

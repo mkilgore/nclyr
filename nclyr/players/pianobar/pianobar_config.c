@@ -3,22 +3,21 @@
 
 #include "config.h"
 #include "pianobar.h"
-#include "players/pianobar.h"
 #include "debug.h"
 
 struct config_item pianobar_config[] = {
-    [PLAYER_PIANOBAR_CONFIG_NOWPLAYING] = {
+    [PLAYER_CONFIG_PIANOBAR_NOWPLAYING] = {
         .name = "nowplaying",
         .type = CONFIG_STRING,
         .u.str = {
-            .str = "~/.config/pianobar/nowplaying"
+            .str = CONFIG_PLAYER_PIANOBAR_NOWPLAYING_DEFAULT
         },
     },
-    [PLAYER_PIANOBAR_CONFIG_FIFO] = {
+    [PLAYER_CONFIG_PIANOBAR_FIFO] = {
         .name = "fifo",
         .type = CONFIG_STRING,
         .u.str = {
-            .str = "~/.config/pianobar/ctl"
+            .str = CONFIG_PLAYER_PIANOBAR_FIFO_DEFAULT
         },
     },
 };

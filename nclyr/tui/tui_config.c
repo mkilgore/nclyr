@@ -8,7 +8,7 @@
 static struct config_item tui_statusline[] = {
     [TUI_CONFIG_STATUSLINE_SONG] = { .name = "song", .type = CONFIG_STRING,
         .u.str = {
-            .str = CONFIG_TUI_DEFAULT_STATUSLINE
+            .str = CONFIG_TUI_STATUSLINE_DEFAULT
         },
     },
 };
@@ -16,22 +16,22 @@ static struct config_item tui_statusline[] = {
 static struct config_item tui_playlist[] = {
     [TUI_CONFIG_PLAYLIST_SEL_PLAYING] = { .name = "selplaying", .type = CONFIG_STRING,
         .u.str = {
-             .str = CONFIG_TUI_DEFAULT_PLAYLIST_SEL_PLAYING
+             .str = CONFIG_TUI_PLAYLIST_SEL_PLAYING_DEFAULT
         },
     },
     [TUI_CONFIG_PLAYLIST_PLAYING] = { .name = "playing", .type = CONFIG_STRING,
         .u.str = {
-            .str = CONFIG_TUI_DEFAULT_PLAYLIST_PLAYING
+            .str = CONFIG_TUI_PLAYLIST_PLAYING_DEFAULT
         },
     },
     [TUI_CONFIG_PLAYLIST_SEL] = { .name = "sel", .type = CONFIG_STRING,
         .u.str = {
-            .str = CONFIG_TUI_DEFAULT_PLAYLIST_SEL
+            .str = CONFIG_TUI_PLAYLIST_SEL_DEFAULT
         },
     },
     [TUI_CONFIG_PLAYLIST_NORMAL] = { .name = "normal", .type = CONFIG_STRING,
         .u.str = {
-            .str = CONFIG_TUI_DEFAULT_PLAYLIST_NORMAL
+            .str = CONFIG_TUI_PLAYLIST_NORMAL_DEFAULT
         },
     }
 };

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "stringcasecmp.h"
+#include "filename.h"
 #include "config_lexer.h"
 #include "config.h"
 #include "debug.h"
@@ -14,6 +15,7 @@
 static int parse_item(const char *file, struct config_lexer *state, struct config_item *item)
 {
     enum config_token tok;
+
     switch (item->type) {
     case CONFIG_STRING:
         tok = yylex(state);
@@ -54,14 +56,16 @@ static int parse_item(const char *file, struct config_lexer *state, struct confi
     case CONFIG_GROUP:
         break;
     }
+
     return 0;
 }
 
-int config_load_from_file(struct root_config *root, const char *file)
+int config_load_from_file(struct root_config *root, const char *unexp_file)
 {
     struct config_item *item;
     struct config_lexer state;
     enum config_token tok;
+    char *file = filename_get(unexp_file);
     FILE *fin;
     int ret = 0;
 
@@ -111,6 +115,7 @@ int config_load_from_file(struct root_config *root, const char *file)
         }
     }
 
+    free(file);
     fclose(fin);
     return ret;
 }

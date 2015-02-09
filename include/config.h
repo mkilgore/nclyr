@@ -85,14 +85,13 @@ struct config_item *config_item_find(struct root_config *root, const char *id);
 void config_item_clear(struct config_item *item);
 void config_item_data_clear(enum config_item_type type, union config_data *data);
 
-void config_check_for_config(int argc, const char **argv, const char **config);
+void config_check_for_config(int argc, const char **argv, const char **file);
 
 void config_print(struct root_config *);
 int config_load_from_file(struct root_config *, const char *file);
 int config_load_from_args(struct root_config *, struct arg_parser *);
 
 void config_disp_small_helptext(struct root_config *, struct arg_parser *);
-void config_disp_full_helptext(struct root_config *, struct arg_parser *);
 void config_disp_complete_configtext(struct root_config *root);
 void config_disp_root_help(struct root_config *root);
 

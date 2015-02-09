@@ -73,7 +73,10 @@ static void config_print_help_item_complete(struct config_item *item, const char
     printf("    Value: ");
     switch (item->type) {
     case CONFIG_STRING:
-        printf("\"%s\"\n", item->u.str.str);
+        if (item->u.str.str)
+            printf("\"%s\"\n", item->u.str.str);
+        else
+            printf("Empty\n");
         break;
     case CONFIG_BOOL:
         printf("%s\n", (item->u.bol)?"True":"False");
@@ -92,7 +95,7 @@ static void config_print_help_item_complete(struct config_item *item, const char
     putchar('\n');
 }
 
-static void config_print_group(struct config_item *item, const char *id, int comp)
+static void config_print_group(struct config_item *item, const char *id)
 {
     char name[ARG_LEN + 1];
     struct config_item *item2;
@@ -106,45 +109,26 @@ static void config_print_group(struct config_item *item, const char *id, int com
     for (i = 0; i < item->u.group.item_count; i++) {
         item2 = item->u.group.items + i;
         if (item2->type != CONFIG_GROUP) {
-            if (comp)
-                config_print_help_item_complete(item2, name);
-            else
-                config_print_help_item(item2, name);
+            config_print_help_item_complete(item2, name);
         } else {
-            config_print_group(item2, name, comp);
+            config_print_group(item2, name);
         }
     }
-}
-
-static void config_disp_full_helptext_comp(struct root_config *root, struct arg_parser *parser, int comp)
-{
-    int i;
-    struct config_item *item;
-    if (parser)
-        config_disp_small_helptext(root, parser);
-
-    for (i = 0; i < root->group.item_count; i++) {
-        item = root->group.items + i;
-        if (item->type != CONFIG_GROUP) {
-            if (comp)
-                config_print_help_item_complete(item, NULL);
-            else
-                config_print_help_item(item, NULL);
-        } else {
-            config_print_group(item, NULL, comp);
-        }
-    }
-
-}
-
-void config_disp_full_helptext(struct root_config *root, struct arg_parser *parser)
-{
-    config_disp_full_helptext_comp(root, parser, 0);
 }
 
 void config_disp_complete_configtext(struct root_config *root)
 {
-    config_disp_full_helptext_comp(root, NULL, 1);
+    int i;
+    struct config_item *item;
+
+    for (i = 0; i < root->group.item_count; i++) {
+        item = root->group.items + i;
+        if (item->type != CONFIG_GROUP) {
+            config_print_help_item_complete(item, NULL);
+        } else {
+            config_print_group(item, NULL);
+        }
+    }
 }
 
 void config_disp_root_help(struct root_config *root)

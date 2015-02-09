@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <mpd/client.h>
 
+#include "config.h"
 #include "player.h"
 #include "song.h"
 
@@ -20,5 +21,13 @@ struct mpd_player {
 };
 
 extern struct mpd_player mpd_player;
+
+enum {
+    PLAYER_CONFIG_MPD_SERVER,
+    PLAYER_CONFIG_MPD_PORT,
+    PLAYER_CONFIG_MPD_TOTAL
+};
+
+extern struct config_item mpd_config[];
 
 #endif

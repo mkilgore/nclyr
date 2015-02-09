@@ -58,9 +58,6 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
         config_disp_small_helptext(&nclyr_config, parser);
         config_disp_root_help(&nclyr_config);
         return 1;
-    case ARG_help_all:
-        config_disp_full_helptext(&nclyr_config, parser);
-        return 1;
     case ARG_version:
         printf("%s", version_text);
         build_settings_print(stdout);
@@ -91,13 +88,6 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
             extra->command = arg;
         break;
 
-    case ARG_config:
-        /* We parse to handle ARG_config earlier so we can load the config
-         * file before actually parsing the arguments.  This is so the
-         * arguments supplied can override whatever is in the configuration
-         * file. Because of this, there is nothing to do here. */
-        break;
-
     case ARG_no_config:
         /* Handled in the earlier parsing for config */
         break;
@@ -116,7 +106,7 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
 
 int main(int argc, const char **argv)
 {
-    const char *config = "/home/dsman195276/.nclyrrc";
+    const char *config = CONFIG_CONFIG_DEFAULT;
     struct nclyr_pipes pipes;
     struct nclyr_iface *iface;
     sigset_t set;
@@ -130,10 +120,12 @@ int main(int argc, const char **argv)
 
     config_check_for_config(argc, argv, &config);
 
-    DEBUG_PRINTF("Config file: %s\n", argv[0], config);
+    ROOT_CONFIG(NCLYR_CONFIG_CONFIG)->u.str.str = (char *)config;
 
-    if (config && config_load_from_file(&nclyr_config, config) != 0) {
-        printf("%s: Error reading config file '%s'\n", argv[0], config);
+    DEBUG_PRINTF("Config file: %s\n", argv[0], ROOT_CONFIG(NCLYR_CONFIG_CONFIG)->u.str.str);
+
+    if (ROOT_CONFIG(NCLYR_CONFIG_CONFIG)->u.str.str && config_load_from_file(&nclyr_config, ROOT_CONFIG(NCLYR_CONFIG_CONFIG)->u.str.str) != 0) {
+        printf("%s: Error reading config file '%s'\n", argv[0], ROOT_CONFIG(NCLYR_CONFIG_CONFIG)->u.str.str);
         return 1;
     }
 

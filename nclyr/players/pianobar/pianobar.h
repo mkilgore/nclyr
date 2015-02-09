@@ -15,4 +15,12 @@ struct pianobar_player {
 
 extern struct pianobar_player pianobar_player;
 
+enum {
+    PLAYER_CONFIG_PIANOBAR_NOWPLAYING,
+    PLAYER_CONFIG_PIANOBAR_FIFO,
+    PLAYER_CONFIG_PIANOBAR_TOTAL
+};
+
+extern struct config_item pianobar_config[];
+
 #endif

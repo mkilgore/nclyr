@@ -9,20 +9,33 @@
 #include "nclyr_conf.h"
 #include "tui.h"
 #include "console.h"
+#include "player.h"
 #include "debug.h"
 
 static struct config_item global_conf[] = {
+    [NCLYR_CONFIG_CONFIG] = {
+        .name = "config",
+        .type = CONFIG_STRING,
+        .description = "Configuration file to use",
+        .u.str = { .str = CONFIG_CONFIG_DEFAULT },
+    },
     [NCLYR_CONFIG_PLAYER] = {
         .name = "player",
         .type = CONFIG_STRING,
         .description = "Player to connect too",
-        .u.str = { .str = CONFIG_DEFAULT_PLAYER },
+        .u.str = { .str = CONFIG_PLAYER_DEFAULT },
     },
     [NCLYR_CONFIG_INTERFACE] = {
         .name = "interface",
         .type = CONFIG_STRING,
         .description = "Interface to use",
-        .u.str = { .str = CONFIG_DEFAULT_IFACE },
+        .u.str = { .str = CONFIG_IFACE_DEFAULT },
+    },
+    [NCLYR_CONFIG_PLAYERS] = {
+        .name = "players",
+        .type = CONFIG_GROUP,
+        .u.group.items = players_config,
+        .u.group.item_count = PLAYER_CONFIG_TOTAL,
     },
 #if CONFIG_TUI
     [NCLYR_CONFIG_TUI] = {

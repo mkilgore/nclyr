@@ -14,11 +14,8 @@
 #include "a_sprintf.h"
 #include "player.h"
 #include "song.h"
-#include "players/pianobar.h"
 #include "pianobar.h"
 #include "debug.h"
-
-const static char *piano_bar_nowplaying = "/home/dsman195276/.config/pianobar/nowplaying";
 
 static struct song_info *pianobar_get_cur_song(void)
 {
@@ -30,7 +27,7 @@ static struct song_info *pianobar_get_cur_song(void)
     const char *album = NULL;
     int fd;
 
-    fd = open(pianobar_config[PLAYER_PIANOBAR_CONFIG_NOWPLAYING].u.str.str, O_RDONLY | O_NONBLOCK);
+    fd = open(pianobar_config[PLAYER_CONFIG_PIANOBAR_NOWPLAYING].u.str.str, O_RDONLY | O_NONBLOCK);
 
     memset(buffer, 0, sizeof(buffer));
     read(fd, buffer, sizeof(buffer));
@@ -75,7 +72,7 @@ static void *pianobar_inotify_thread(void *player)
     struct pollfd fds[2];
     inotify = inotify_init1(O_NONBLOCK);
 
-    inotify_add_watch(inotify, piano_bar_nowplaying, IN_MODIFY);
+    inotify_add_watch(inotify, pianobar_config[PLAYER_CONFIG_PIANOBAR_NOWPLAYING].u.str.str, IN_MODIFY);
 
     memset(&notif, 0, sizeof(struct player_notification));
     notif.type = PLAYER_NO_SONG;

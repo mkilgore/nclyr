@@ -4,14 +4,12 @@
 #include "config.h"
 
 #define NCLYR_DEFAULT_ARGS \
-    X(help, "help", 'h', 0, NULL, "Display help"), \
-    X(help_all, "help-all", 'H', 0, NULL, "Display complete help information"), \
     X(help_config, "help-config", '\0', 0, NULL, "Display complete configuration information"), \
     X(version, "version", 'v', 0, NULL, "Display version information"), \
     X(list_players, "list-players", '\0', 0, NULL, "List available players"), \
     X(list_interfaces, "list-interfaces", '\0', 0, NULL, "List available interfaces"), \
-    X(no_config, "no-config", 'n', 0, NULL, "Don't load configuration file"), \
-    X(config, "config", 'c', 1, "Filename", "Configuration file to use, default is ~/nclyrrc")
+    X(no_config, "no-config", '\0', 0, NULL, "Don't load configuration file"), \
+    X(help, "help", 'h', 0, NULL, "Display help")
 
 enum arg_index {
     ARG_EXTRA = ARG_PARSER_EXTRA,
