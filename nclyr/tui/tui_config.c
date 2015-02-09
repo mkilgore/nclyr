@@ -1,7 +1,7 @@
 
 #include "common.h"
 
-#include "config.h"
+#include "config.h"
 #include "tui.h"
 #include "debug.h"
 
