@@ -21,7 +21,6 @@ static struct tui_printf_arg args[4] = {
 void statusline_update(struct statusline *status)
 {
     struct tui_iface *tui = status->tui;
-    /* struct config_item *root = tui->cfg; */
     struct song_info *song = tui->state.song;
     status->updated = 0;
 
@@ -36,7 +35,6 @@ void statusline_update(struct statusline *status)
             args[2].u.str_val = song->tag.album;
             args[3].u.int_val = song->duration;
             tui_printf_comp(status->win, status->song_name, ARRAY_SIZE(args), args);
-            /* tui_printf(status->win, CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str, ARRAY_SIZE(args), args); */
         } else {
             wprintw(status->win, "No song playing");
         }
@@ -69,11 +67,10 @@ void statusline_update(struct statusline *status)
 void statusline_init(struct statusline *status, int cols)
 {
     struct tui_iface *tui = status->tui;
-    struct config_item *root = tui->cfg;
     status->win = newwin(2, cols, 0, 0);
     status->updated = 1;
 
-    status->song_name = tui_printf_compile(CONFIG_GET(CONFIG_GET(root, TUI_CONFIG_STATUSLINE), TUI_CONFIG_STATUSLINE_SONG)->u.str.str, ARRAY_SIZE(args), args);
+    status->song_name = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG)->u.str.str, ARRAY_SIZE(args), args);
 }
 
 void statusline_clean(struct statusline *status)
