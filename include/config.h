@@ -38,7 +38,19 @@ struct config_item {
     union config_data u;
 };
 
-#define CONFIG_GET(root, idex) ((root)->u.group.items + (idex))
+#define CONFIG_HAS_ARGS_2(_1, _2, _3, _4, _5, _6, _7, N, ...) N
+#define CONFIG_ARG_COUNT(...) CONFIG_HAS_ARGS_2(__VA_ARGS__, 7, 6, 5, 4, 3, 2, 1)
+
+#define CONFIG_GET_ONE(root, idex) ((root + idex))
+
+#define CONFIG_GET_1(conf, idex)             CONFIG_GET_ONE(conf, idex)
+#define CONFIG_GET_2(conf, idex, idex2)      CONFIG_GET_1(CONFIG_GET_ONE(conf, idex)->u.group.items, TP(TP(idex, _), idex2))
+#define CONFIG_GET_3(conf, idex, idex2, ...) CONFIG_GET_2(CONFIG_GET_ONE(conf, idex)->u.group.items, TP(TP(idex, _), idex2), __VA_ARGS__)
+#define CONFIG_GET_4(conf, idex, idex2, ...) CONFIG_GET_3(CONFIG_GET_ONE(conf, idex)->u.group.items, TP(TP(idex, _), idex2), __VA_ARGS__)
+#define CONFIG_GET_5(conf, idex, idex2, ...) CONFIG_GET_4(CONFIG_GET_ONE(conf, idex)->u.group.items, TP(TP(idex, _), idex2), __VA_ARGS__)
+#define CONFIG_GET_6(conf, idex, idex2, ...) CONFIG_GET_5(CONFIG_GET_ONE(conf, idex)->u.group.items, TP(TP(idex, _), idex2), __VA_ARGS__)
+
+#define CONFIG_GET(root, ...) TP(CONFIG_GET_, CONFIG_ARG_COUNT(__VA_ARGS__))(root, __VA_ARGS__)
 
 struct root_config {
     struct item_group group;
