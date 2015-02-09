@@ -59,7 +59,7 @@ $(1): $(2)
 
 $(dir $(1)).$(basename $(notdir $(1))).d: $(2) $$(real_objtree)/include/gen_config.h
 	@$$(call mecho," CCDEP   $$@","$$(CC) -MM -MP -MF $$@ $$(CPPFLAGS) $$(CFLAGS) $(3) $$< -MT $$(objtree)/$$*.o -MT $$@")
-	$$(Q)$$(CC) -MM -MP -MF $$@ $$(CPPFLAGS) $$(CFLAGS) $(3) $$< -MT $$(objtree)/$$*.o -MT $$@
+	$$(Q)$$(CC) -MM -MP -MF $$@ $$(CPPFLAGS) $$(CFLAGS) $(3) $$< -MT $(1) -MT $$@
 endif
 endef
 
