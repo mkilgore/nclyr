@@ -14,6 +14,7 @@
 #include "a_sprintf.h"
 #include "player.h"
 #include "song.h"
+#include "players/pianobar.h"
 #include "pianobar.h"
 #include "debug.h"
 
@@ -29,7 +30,7 @@ static struct song_info *pianobar_get_cur_song(void)
     const char *album = NULL;
     int fd;
 
-    fd = open(piano_bar_nowplaying, O_RDONLY | O_NONBLOCK);
+    fd = open(pianobar_config[PLAYER_PIANOBAR_CONFIG_NOWPLAYING].u.str.str, O_RDONLY | O_NONBLOCK);
 
     memset(buffer, 0, sizeof(buffer));
     read(fd, buffer, sizeof(buffer));
