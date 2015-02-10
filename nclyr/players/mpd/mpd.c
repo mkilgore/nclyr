@@ -35,6 +35,13 @@ static struct song_info_mpd *mpd_song_to_song_info(struct mpd_song *msong)
     return isong;
 }
 
+static enum player_state mpd_state_to_player_state(enum mpd_state mpd_state)
+{
+    return (mpd_state == MPD_STATE_PLAY)?  PLAYER_PLAYING:
+           (mpd_state == MPD_STATE_PAUSE)? PLAYER_PAUSED:
+                                           PLAYER_STOPPED;
+}
+
 static struct song_info_mpd *get_cur_song(struct mpd_connection *conn)
 {
     struct song_info_mpd *song;
@@ -62,15 +69,15 @@ static void get_and_send_cur_song(struct mpd_player *player)
 
     song = get_cur_song(player->conn);
 
-    if (song_equal(&song->song, &player->cur_song->song)) {
+    if (song_equal(&song->song, player->state.song)) {
         song_free(&song->song);
         return ;
     }
 
-    song_free(&player->cur_song->song);
-    player->cur_song = song;
+    song_free(player->state.song);
+    player->state.song = &song->song;
 
-    player_send_cur_song(&player->player, song_copy(&player->cur_song->song));
+    player_send_cur_song(&player->player, song_copy(player->state.song));
     return ;
 }
 
@@ -105,44 +112,57 @@ static void update_status(struct mpd_player *player)
 
     status = mpd_run_status(player->conn);
 
-    if (mpd_status_get_elapsed_time(player->cur_status)
+    if (player->state.seek_pos
             != mpd_status_get_elapsed_time(status)) {
-        player_send_seek(&player->player, mpd_status_get_elapsed_time(status));
+        player->state.seek_pos = mpd_status_get_elapsed_time(status);
+        player->seek_offset = player->state.seek_pos;
+        player->playing_started = time(NULL);
+
+        player_send_seek(&player->player, player->state.seek_pos);
         DEBUG_PRINTF("Seek: %d\n", mpd_status_get_elapsed_time(status));
     }
 
-    if (mpd_status_get_volume(player->cur_status)
+    if (player->state.volume
             != mpd_status_get_volume(status)) {
         player_send_volume(&player->player, mpd_status_get_volume(status));
         DEBUG_PRINTF("Volume: %d\n", mpd_status_get_volume(status));
     }
 
-    if (mpd_status_get_state(player->cur_status)
-            != mpd_status_get_state(status)) {
-        enum mpd_state mpd_state;
-        enum player_state state;
-
-        mpd_state = mpd_status_get_state(status);
-        state = (mpd_state == MPD_STATE_PLAY)? PLAYER_PLAYING:
-                (mpd_state == MPD_STATE_PAUSE)? PLAYER_PAUSED:
-                (mpd_state == MPD_STATE_STOP)? PLAYER_STOPPED:
-                PLAYER_STOPPED;
-
-        player_send_state(&player->player, state);
+    if (player->state.state
+            != mpd_state_to_player_state(mpd_status_get_state(status))) {
+        player->state.state = mpd_state_to_player_state(mpd_status_get_state(status));
+        if (player->state.state != PLAYER_PLAYING) {
+            player->seek_offset = player->state.seek_pos;
+            player->playing_started = time(NULL);
+        }
+        player_send_state(&player->player, player->state.state);
     }
 
-    if (mpd_status_get_song_pos(player->cur_status)
+    if (player->state.song_pos
             != mpd_status_get_song_pos(status)) {
         player_send_song_pos(&player->player, mpd_status_get_song_pos(status));
     }
 
-    mpd_status_free(player->cur_status);
-    player->cur_status = status;
+    mpd_status_free(status);
+}
+
+static void update_elapsed_time(struct mpd_player *player)
+{
+    int new_seek_pos;
+    if (player->state.state != PLAYER_PLAYING)
+        return ;
+
+    new_seek_pos = player->seek_offset + (int)difftime(time(NULL), player->playing_started);
+    if (new_seek_pos != player->state.seek_pos) {
+        player->state.seek_pos = new_seek_pos;
+        DEBUG_PRINTF("Seek: %d\n", new_seek_pos);
+        player_send_seek(&player->player, new_seek_pos);
+    }
 }
 
 static void *mpd_thread(void *p)
 {
-    int stop_flag = 0;
+    int stop_flag = 0, idle_flag = 0;
     struct mpd_player *player = p;
     struct pollfd fds[3] = { { 0 } };
     enum mpd_idle idle;
@@ -161,9 +181,12 @@ static void *mpd_thread(void *p)
 
     player_send_is_up(&player->player);
 
+    player->state.state = PLAYER_STOPPED;
+    player_send_state(&player->player, player->state.state);
+
     get_and_send_cur_song(player);
     get_and_send_playlist(player);
-    player->cur_status = mpd_status_begin();
+    update_status(player);
 
     fds[0].fd = mpd_connection_get_fd(player->conn);
     fds[0].events = POLLIN;
@@ -177,18 +200,32 @@ static void *mpd_thread(void *p)
     do {
         int handle_idle = 0;
 
-        if (player->conn)
-            update_status(player);
+        if (player->state.state == PLAYER_PLAYING)
+            update_elapsed_time(player);
 
-        mpd_send_idle(player->conn);
-        poll(fds, sizeof(fds)/sizeof(*fds), (mpd_status_get_state(player->cur_status) == MPD_STATE_PLAY)? 900: -1);
+        if (!idle_flag) {
+            mpd_send_idle(player->conn);
+            idle_flag = 1;
+        }
+
+        /* When we're playing, we wake up this thread every half second so we
+         * can check and update the elapsed time. Doing it every half second
+         * means we get a pretty good elapsed time measurement - Less jumpy
+         * then a full second would be. */
+        poll(fds, sizeof(fds)/sizeof(*fds), ((player->state.state) == PLAYER_PLAYING)? 500: -1);
 
         if (fds[2].revents & POLLIN) {
             stop_flag = 1;
             continue;
         }
 
-        if (!(fds[0].revents & POLLIN)) {
+        /* Basically, we can't send any new messages until we get an idle
+         * message, or cancel the current idle using 'noidle'. We want to avoid
+         * that if we only need to update the elapsed time though, since we can
+         * do that *without* having to exit idle mode. So this checks if we're
+         * going to need to do something that requires exiting idle mode first,
+         * and if so sets a flag so we do. */
+        if (!(fds[0].revents & POLLIN) && (fds[1].revents & POLLIN)) {
             mpd_send_noidle(player->conn);
             handle_idle = 1;
         }
@@ -196,12 +233,18 @@ static void *mpd_thread(void *p)
         if (fds[0].revents & POLLIN || handle_idle) {
             DEBUG_PRINTF("Recieved idle info from mpd!\n");
             idle = mpd_recv_idle(player->conn, false);
-            if (idle & MPD_IDLE_PLAYER)
+            idle_flag = 0;
+
+            if ((idle & MPD_IDLE_PLAYER) || (idle & MPD_IDLE_MIXER)) {
                 get_and_send_cur_song(player);
+                update_status(player);
+            }
 
             if (idle & MPD_IDLE_QUEUE)
                 get_and_send_playlist(player);
+
         }
+
 
         if (fds[1].revents & POLLIN) {
             struct player_ctrl_msg msg;
@@ -235,7 +278,7 @@ static void *mpd_thread(void *p)
                 break;
 
             case PLAYER_CTRL_CHANGE_VOLUME:
-                mpd_run_set_volume(player->conn, mpd_status_get_volume(player->cur_status) + msg.u.vol_change);
+                mpd_run_set_volume(player->conn, player->state.volume + msg.u.vol_change);
                 break;
 
             case PLAYER_CTRL_CHANGE_SONG:
@@ -251,9 +294,9 @@ static void *mpd_thread(void *p)
 
     } while (!stop_flag);
 
+
     mpd_connection_free(player->conn);
-    mpd_status_free(player->cur_status);
-    song_free(&player->cur_song->song);
+    player_state_full_clear(&player->state);
 
     return NULL;
 }

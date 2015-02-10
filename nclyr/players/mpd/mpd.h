@@ -16,8 +16,17 @@ struct mpd_player {
 
     struct mpd_connection *conn;
 
+    /*
     struct song_info_mpd *cur_song;
     struct mpd_status *cur_status;
+    */
+
+    struct player_state_full state;
+
+    /* seek_offset represents the amount of time that we had already played
+     * before 'playing_started' */
+    int    seek_offset;
+    time_t playing_started;
 };
 
 extern struct mpd_player mpd_player;
