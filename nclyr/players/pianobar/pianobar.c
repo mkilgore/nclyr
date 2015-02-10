@@ -12,12 +12,13 @@
 #include <pthread.h>
 
 #include "a_sprintf.h"
+#include "filename.h"
 #include "player.h"
 #include "song.h"
 #include "pianobar.h"
 #include "debug.h"
 
-static struct song_info *pianobar_get_cur_song(void)
+static struct song_info *pianobar_get_cur_song(const char *nowplaying)
 {
     struct song_info *sng;
     char buffer[500];
@@ -27,7 +28,7 @@ static struct song_info *pianobar_get_cur_song(void)
     const char *album = NULL;
     int fd;
 
-    fd = open(pianobar_config[PLAYER_CONFIG_PIANOBAR_NOWPLAYING].u.str.str, O_RDONLY | O_NONBLOCK);
+    fd = open(nowplaying, O_RDONLY | O_NONBLOCK);
 
     memset(buffer, 0, sizeof(buffer));
     read(fd, buffer, sizeof(buffer));
@@ -41,6 +42,8 @@ static struct song_info *pianobar_get_cur_song(void)
                 title = start;
             }
             start = cur + 1;
+        } else if (*cur == '\n') {
+            *cur = '\0';
         }
     }
 
@@ -67,16 +70,28 @@ static void *pianobar_inotify_thread(void *player)
     struct pianobar_player *pianobar = player;
     char buffer[2048];
     int inotify, exit_flag = 0;
-    struct player_notification notif;
     struct song_info *song;
     struct pollfd fds[2];
+    char *nowplaying;
     inotify = inotify_init1(O_NONBLOCK);
 
-    inotify_add_watch(inotify, pianobar_config[PLAYER_CONFIG_PIANOBAR_NOWPLAYING].u.str.str, IN_MODIFY);
+    nowplaying = filename_get(pianobar_config[PLAYER_CONFIG_PIANOBAR_NOWPLAYING].u.str.str);
 
-    memset(&notif, 0, sizeof(struct player_notification));
-    notif.type = PLAYER_NO_SONG;
-    write(pianobar->player.notify_fd, &notif, sizeof(notif));
+    DEBUG_PRINTF("Nowplaying: %s\n", nowplaying);
+
+    inotify_add_watch(inotify, nowplaying, IN_MODIFY);
+
+    player_send_is_up(&pianobar->player);
+
+    song = pianobar_get_cur_song(nowplaying);
+
+    if (song) {
+        player_send_state(&pianobar->player, PLAYER_PLAYING);
+        pianobar->current_song = song;
+        player_send_cur_song(&pianobar->player, song_copy(song));
+    } else {
+        player_send_no_song(&pianobar->player);
+    }
 
     fds[0].fd = inotify;
     fds[0].events = POLLIN;
@@ -94,7 +109,7 @@ static void *pianobar_inotify_thread(void *player)
             while (read(inotify, buffer, sizeof(buffer)) != -1)
                 ;
 
-            song = pianobar_get_cur_song();
+            song = pianobar_get_cur_song(nowplaying);
 
             if (!song)
                 continue ;
@@ -115,6 +130,7 @@ static void *pianobar_inotify_thread(void *player)
             song_free(pianobar->current_song);
             pianobar->current_song = song;
 
+            player_send_state(&pianobar->player, PLAYER_PLAYING);
             player_send_cur_song(&pianobar->player, song_copy(pianobar->current_song));
         }
     } while (!exit_flag);
@@ -122,6 +138,7 @@ static void *pianobar_inotify_thread(void *player)
     song_free(pianobar->current_song);
 
     close(inotify);
+    free(nowplaying);
     return NULL;
 }
 
