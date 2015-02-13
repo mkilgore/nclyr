@@ -5,7 +5,7 @@
 
 struct statusline;
 
-#include "tui/printf.h"
+#include "tui_printf.h"
 #include "player.h"
 #include "tui.h"
 

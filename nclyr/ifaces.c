@@ -11,10 +11,10 @@
 
 struct nclyr_iface *nclyr_iface_list[] = {
 #if CONFIG_TUI
-    &tui_iface.iface,
+    (struct nclyr_iface *)&tui_iface,
 #endif
 #if CONFIG_CONSOLE
-    &console_iface,
+    (struct nclyr_iface *)&console_iface,
 #endif
     NULL
 };

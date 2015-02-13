@@ -3,8 +3,10 @@
 
 #include <string.h>
 
-#include "tui/printf.h"
-#include "compiled.h"
+#include "tui_color.h"
+#include "tui_printf.h"
+#include "tui_chstr.h"
+#include "compiler.h"
 #include "debug.h"
 
 struct printf_opt_str {
@@ -12,10 +14,10 @@ struct printf_opt_str {
     char *s;
 };
 
-static void print_string_print(struct printf_opt *opt, struct tui_printf_compiled *comp, WINDOW *win, size_t arg_count, const struct tui_printf_arg *args)
+static void print_string_print(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
 {
     struct printf_opt_str *str = container_of(opt, struct printf_opt_str, opt);
-    wprintw(win, "%s", str->s);
+    chstr_addstr(chstr, str->s, comp->attributes | COLOR_PAIR(tui_color_pair_get(&comp->colors)));
 }
 
 static void print_string_clear(struct printf_opt *opt)

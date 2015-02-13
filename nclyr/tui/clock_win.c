@@ -11,7 +11,8 @@
 #include "song.h"
 #include "lyr_thread.h"
 #include "player.h"
-#include "tui/window.h"
+#include "tui_internal.h"
+#include "tui_window.h"
 #include "tui_color.h"
 #include "clock_win.h"
 

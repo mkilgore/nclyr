@@ -7,22 +7,25 @@
 
 #include "a_sprintf.h"
 #include "config.h"
-#include "tui.h"
 #include "song.h"
 #include "player.h"
 #include "cons_color.h"
-#include "tui/printf.h"
+#include "tui_internal.h"
+#include "tui_chstr.h"
+#include "tui_printf.h"
 #include "tui_color.h"
-#include "tui/window.h"
+#include "tui_window.h"
 #include "playlist_win.h"
 #include "debug.h"
 
-static struct tui_printf_arg args[5] = {
+static struct tui_printf_arg args[] = {
     { .id = "title", .type = TUI_ARG_STRING },
     { .id = "artist", .type = TUI_ARG_STRING },
     { .id = "album", .type = TUI_ARG_STRING },
     { .id = "duration", .type = TUI_ARG_INT },
     { .id = "play-num", .type = TUI_ARG_INT },
+    { .id = "playing", .type = TUI_ARG_BOOL },
+    { .id = "selected", .type = TUI_ARG_BOOL },
 };
 
 static void handle_ch(struct nclyr_win *win, int ch)
@@ -59,7 +62,7 @@ static void playlist_win_update(struct nclyr_win *win)
 {
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
     struct tui_iface *tui = win->tui;
-    tui_printf_compiled *format;
+    struct chstr chstr;
     int rows, cols, i;
     WINDOW *curwin = win->win;
 
@@ -87,17 +90,13 @@ static void playlist_win_update(struct nclyr_win *win)
             args[2].u.str_val = song->tag.album;
             args[3].u.int_val = song->duration;
             args[4].u.int_val = i + play->disp_offset + 1;
+            args[5].u.bool_val = is_play;
+            args[6].u.bool_val = is_sel;
 
-            if (is_play && is_sel)
-                format = play->sel_playing;
-            else if (is_play)
-                format = play->playing;
-            else if (is_sel)
-                format = play->sel;
-            else
-                format = play->normal;
-
-            tui_printf_comp(curwin, format, ARRAY_SIZE(args), args);
+            chstr_init(&chstr);
+            tui_printf(&chstr, tui_get_chtype_from_window(curwin), 0, play->printline, ARRAY_SIZE(args), args);
+            waddchstr(curwin, chstr.chstr);
+            chstr_clear(&chstr);
         } else {
             mvwprintw(curwin, i, 0, "%*s", cols, "");
         }
@@ -108,20 +107,14 @@ static void playlist_win_init(struct nclyr_win *win)
 {
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
     struct tui_iface *tui = win->tui;
-    play->normal      = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_PLAYLIST, NORMAL)->u.str.str, ARRAY_SIZE(args), args);
-    play->playing     = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_PLAYLIST, PLAYING)->u.str.str, ARRAY_SIZE(args), args);
-    play->sel         = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_PLAYLIST, SEL)->u.str.str, ARRAY_SIZE(args), args);
-    play->sel_playing = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_PLAYLIST, SEL_PLAYING)->u.str.str, ARRAY_SIZE(args), args);
+    play->printline = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_PLAYLIST, PRINTLINE)->u.str.str, ARRAY_SIZE(args), args);
 }
 
 static void playlist_win_clear(struct nclyr_win *win)
 {
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
 
-    tui_printf_compile_free(play->normal);
-    tui_printf_compile_free(play->playing);
-    tui_printf_compile_free(play->sel);
-    tui_printf_compile_free(play->sel_playing);
+    tui_printf_compile_free(play->printline);
 }
 
 static void playlist_win_new_player_notif(struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)

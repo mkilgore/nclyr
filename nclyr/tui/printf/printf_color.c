@@ -6,7 +6,7 @@
 
 #include "cons_color.h"
 #include "tui_color.h"
-#include "compiled.h"
+#include "compiler.h"
 #include "printf_color.h"
 #include "debug.h"
 
@@ -17,18 +17,18 @@ struct printf_opt_color {
     unsigned int have_b :1;
 };
 
-static void print_color(struct printf_opt *opt, struct tui_printf_compiled *comp, WINDOW *win, size_t arg_count, const struct tui_printf_arg *args)
+static void print_color(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
 {
     struct printf_opt_color *color = container_of(opt, struct printf_opt_color, opt);
-    tui_color_unset(win, comp->cur_color);
+    /*tui_color_unset(win, comp->cur_color); */
 
     if (color->have_f)
-        comp->cur_color.f = color->new_col.f;
+        comp->colors.f = color->new_col.f;
 
     if (color->have_b)
-        comp->cur_color.b = color->new_col.b;
+        comp->colors.b = color->new_col.b;
 
-    tui_color_set(win, comp->cur_color);
+    /* tui_color_set(win, comp->cur_color); */
 }
 
 static void print_free(struct printf_opt *opt)
@@ -36,7 +36,7 @@ static void print_free(struct printf_opt *opt)
     free(opt);
 }
 
-struct printf_opt *print_color_get(const char *id, char *params, size_t arg_count, const struct tui_printf_arg *args)
+struct printf_opt *print_color_get(const char *id, char **c, char *params, size_t arg_count, const struct tui_printf_arg *args)
 {
     struct printf_opt_color *color = malloc(sizeof(*color));
     char *val, *i;

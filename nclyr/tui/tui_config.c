@@ -2,7 +2,7 @@
 #include "common.h"
 
 #include "config.h"
-#include "tui.h"
+#include "tui_internal.h"
 #include "debug.h"
 
 static struct config_item tui_statusline[] = {
@@ -14,24 +14,9 @@ static struct config_item tui_statusline[] = {
 };
 
 static struct config_item tui_playlist[] = {
-    [TUI_CONFIG_PLAYLIST_SEL_PLAYING] = { .name = "selplaying", .type = CONFIG_STRING,
+    [TUI_CONFIG_PLAYLIST_PRINTLINE] = { .name = "printline", .type = CONFIG_STRING,
         .u.str = {
-             .str = CONFIG_TUI_PLAYLIST_SEL_PLAYING_DEFAULT
-        },
-    },
-    [TUI_CONFIG_PLAYLIST_PLAYING] = { .name = "playing", .type = CONFIG_STRING,
-        .u.str = {
-            .str = CONFIG_TUI_PLAYLIST_PLAYING_DEFAULT
-        },
-    },
-    [TUI_CONFIG_PLAYLIST_SEL] = { .name = "sel", .type = CONFIG_STRING,
-        .u.str = {
-            .str = CONFIG_TUI_PLAYLIST_SEL_DEFAULT
-        },
-    },
-    [TUI_CONFIG_PLAYLIST_NORMAL] = { .name = "normal", .type = CONFIG_STRING,
-        .u.str = {
-            .str = CONFIG_TUI_PLAYLIST_NORMAL_DEFAULT
+            .str = CONFIG_TUI_PLAYLIST_PRINTLINE_DEFAULT
         },
     }
 };

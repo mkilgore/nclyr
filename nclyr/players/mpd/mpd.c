@@ -112,6 +112,9 @@ static void update_status(struct mpd_player *player)
 
     status = mpd_run_status(player->conn);
 
+    if (!status)
+        return ;
+
     if (player->state.seek_pos
             != mpd_status_get_elapsed_time(status)) {
         player->state.seek_pos = mpd_status_get_elapsed_time(status);
@@ -124,8 +127,9 @@ static void update_status(struct mpd_player *player)
 
     if (player->state.volume
             != mpd_status_get_volume(status)) {
-        player_send_volume(&player->player, mpd_status_get_volume(status));
-        DEBUG_PRINTF("Volume: %d\n", mpd_status_get_volume(status));
+        player->state.volume = mpd_status_get_volume(status);
+        player_send_volume(&player->player, player->state.volume);
+        DEBUG_PRINTF("Volume: %d\n", player->state.volume);
     }
 
     if (player->state.state
@@ -160,6 +164,23 @@ static void update_elapsed_time(struct mpd_player *player)
     }
 }
 
+static void wait_for_mpd_up(struct mpd_player *player)
+{
+    do {
+        DEBUG_PRINTF("Connecting to mpd...\n");
+        player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
+                                          mpd_config[PLAYER_CONFIG_MPD_PORT].u.integer,
+                                          0);
+
+        if (mpd_connection_get_error(player->conn) != MPD_ERROR_SUCCESS) {
+            mpd_connection_free(player->conn);
+            player->conn = NULL;
+            sleep(2);
+        }
+    }
+    while (!player->conn);
+}
+
 static void *mpd_thread(void *p)
 {
     int stop_flag = 0, idle_flag = 0;
@@ -167,15 +188,7 @@ static void *mpd_thread(void *p)
     struct pollfd fds[3] = { { 0 } };
     enum mpd_idle idle;
 
-    DEBUG_PRINTF("Connecting to mpd...\n");
-    player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
-                                      mpd_config[PLAYER_CONFIG_MPD_PORT].u.integer,
-                                      0);
-
-    if (mpd_connection_get_error(player->conn) != MPD_ERROR_SUCCESS) {
-        mpd_connection_free(player->conn);
-        return NULL;
-    }
+    wait_for_mpd_up(player);
 
     DEBUG_PRINTF("Connection sucessfull\n");
 
@@ -250,7 +263,7 @@ static void *mpd_thread(void *p)
             struct player_ctrl_msg msg;
             DEBUG_PRINTF("Got control message\n");
             read(fds[1].fd, &msg, sizeof(msg));
-            DEBUG_PRINTF("Read control message\n");
+            DEBUG_PRINTF("Read control message: %d\n", msg.type);
 
             switch (msg.type) {
             case PLAYER_CTRL_PLAY:
@@ -278,6 +291,7 @@ static void *mpd_thread(void *p)
                 break;
 
             case PLAYER_CTRL_CHANGE_VOLUME:
+                DEBUG_PRINTF("Volume change: %d + %d\n", player->state.volume, msg.u.vol_change);
                 mpd_run_set_volume(player->conn, player->state.volume + msg.u.vol_change);
                 break;
 
@@ -290,6 +304,8 @@ static void *mpd_thread(void *p)
                 break;
 
             }
+
+            update_status(player);
         }
 
     } while (!stop_flag);

@@ -3,21 +3,25 @@
 
 #include <ncurses.h>
 
+#include "tui_chstr.h"
+
 enum tui_arg_type {
     TUI_ARG_INT,
     TUI_ARG_STRING,
+    TUI_ARG_BOOL,
+};
+
+union tui_printf_data {
+    int int_val;
+    const char *str_val;
+    int bool_val;
 };
 
 struct tui_printf_arg {
     const char *id;
     enum tui_arg_type type;
-    union {
-        int int_val;
-        const char *str_val;
-    } u;
+    union tui_printf_data u;
 };
-
-void tui_printf(WINDOW *win, const char *format, size_t arg_count, const struct tui_printf_arg *args);
 
 struct tui_printf_compiled;
 
@@ -29,9 +33,11 @@ typedef struct tui_printf_compiled tui_printf_compiled;
  * compiled printing may depend on using indexes into it. */
 tui_printf_compiled *tui_printf_compile(const char *format, size_t arg_count, const struct tui_printf_arg *args);
 
-void tui_printf_comp(WINDOW *, tui_printf_compiled *, size_t arg_count, const struct tui_printf_arg *args);
+void tui_printf(struct chstr *, chtype attrs, int max_width, tui_printf_compiled *, size_t arg_count, const struct tui_printf_arg *args);
 
 void tui_printf_compile_free(tui_printf_compiled *);
+
+chtype tui_get_chtype_from_window(WINDOW *);
 
 
 #endif

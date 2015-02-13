@@ -8,7 +8,8 @@
 
 #include "song.h"
 #include "lyr_thread.h"
-#include "tui.h"
+#include "tui_window.h"
+#include "tui_internal.h"
 
 void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
 {

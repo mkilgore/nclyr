@@ -9,7 +9,7 @@ struct nclyr_win;
 #include "song.h"
 #include "player.h"
 #include "lyr_thread.h"
-#include "tui.h"
+#include "tui_internal.h"
 
 struct nclyr_win {
     /* Name to identify this window */

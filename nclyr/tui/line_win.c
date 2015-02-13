@@ -5,7 +5,8 @@
 
 #include "song.h"
 #include "player.h"
-#include "tui/window.h"
+#include "tui_internal.h"
+#include "tui_window.h"
 #include "line_win.h"
 
 void line_update (struct nclyr_win *win)

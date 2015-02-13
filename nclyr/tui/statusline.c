@@ -5,10 +5,11 @@
 
 #include "a_sprintf.h"
 #include "config.h"
-#include "tui.h"
-#include "tui/printf.h"
+#include "tui_internal.h"
+#include "tui_chstr.h"
+#include "tui_printf.h"
 #include "player.h"
-#include "tui/statusline.h"
+#include "statusline.h"
 #include "debug.h"
 
 static struct tui_printf_arg args[4] = {
@@ -22,6 +23,7 @@ void statusline_update(struct statusline *status)
 {
     struct tui_iface *tui = status->tui;
     struct song_info *song = tui->state.song;
+    struct chstr chstr;
     status->updated = 0;
 
     if (tui->state.is_up) {
@@ -34,7 +36,10 @@ void statusline_update(struct statusline *status)
             args[1].u.str_val = song->tag.artist;
             args[2].u.str_val = song->tag.album;
             args[3].u.int_val = song->duration;
-            tui_printf_comp(status->win, status->song_name, ARRAY_SIZE(args), args);
+            chstr_init(&chstr);
+            tui_printf(&chstr, tui_get_chtype_from_window(status->win), 0, status->song_name, ARRAY_SIZE(args), args);
+            waddchstr(status->win, chstr.chstr);
+            chstr_clear(&chstr);
         } else {
             wprintw(status->win, "No song playing");
         }

@@ -4,8 +4,9 @@
 #include <string.h>
 #include <ncurses.h>
 
-#include "tui/printf.h"
-#include "compiled.h"
+#include "tui_internal.h"
+#include "tui_printf.h"
+#include "compiler.h"
 #include "args/arg_int.h"
 #include "args/arg_string.h"
 #include "printf_arg.h"

@@ -5,6 +5,7 @@ objs-y += tui.o
 objs-y += tui_state.o
 objs-y += tui_color.o
 objs-y += tui_config.o
+objs-y += tui_chstr.o
 objs-y += clock_win.o
 objs-y += help_win.o
 objs-y += statusline.o

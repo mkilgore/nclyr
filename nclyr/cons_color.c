@@ -5,7 +5,7 @@
 #include "cons_color.h"
 #include "debug.h"
 
-static const char *color_names[] = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default" };
+static const char *color_names[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" };
 
 enum cons_color cons_color_get(const char *name)
 {

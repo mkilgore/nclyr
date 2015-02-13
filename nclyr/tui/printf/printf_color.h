@@ -1,8 +1,8 @@
 #ifndef NCLYR_TUI_PRINTF_PRINTF_COLOR_H
 #define NCLYR_TUI_PRINTF_PRINTF_COLOR_H
 
-#include "compiled.h"
+#include "compiler.h"
 
-struct printf_opt *print_color_get(const char *id, char *params, size_t arg_count, const struct tui_printf_arg *args);
+struct printf_opt *print_color_get(const char *id, char **c, char *params, size_t arg_count, const struct tui_printf_arg *args);
 
 #endif

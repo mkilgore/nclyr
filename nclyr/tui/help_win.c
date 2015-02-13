@@ -8,10 +8,10 @@
 #include <ncurses.h>
 
 #include "a_sprintf.h"
-#include "tui.h"
+#include "tui_internal.h"
 #include "player.h"
 #include "lyr_thread.h"
-#include "tui/window.h"
+#include "tui_window.h"
 #include "char_to_str.h"
 #include "help_win.h"
 
