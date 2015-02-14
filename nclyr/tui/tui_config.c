@@ -8,7 +8,7 @@
 static struct config_item tui_statusline[] = {
     [TUI_CONFIG_STATUSLINE_SONG] = { .name = "song", .type = CONFIG_STRING,
         .u.str = {
-            .str = CONFIG_TUI_STATUSLINE_DEFAULT
+            .str = CONFIG_TUI_STATUSLINE_SONG_DEFAULT
         },
     },
 };

@@ -5,6 +5,7 @@
 #include <ncurses.h>
 
 #include "cons_color.h"
+#include "tui_color.h"
 #include "tui_printf.h"
 #include "tui_chstr.h"
 
@@ -25,5 +26,7 @@ tui_printf_compiled *tui_printf_compile_internal(char **c, size_t arg_count, con
 
 void printf_opt_free(struct printf_opt *);
 char *printf_get_next_param(char *params, char **id, char **val);
+
+#define TUI_PRINTF_COMP_ATTRS(comp) ((comp)->attributes | COLOR_PAIR(tui_color_pair_get(&(comp)->colors)))
 
 #endif

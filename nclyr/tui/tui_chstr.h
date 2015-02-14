@@ -9,6 +9,8 @@ struct chstr {
     chtype *chstr;
 };
 
+void chstr_addchstr_at(struct chstr *, const struct chstr *str, int at);
+
 void chstr_addchstr(struct chstr *dest, const struct chstr *src);
 void chstr_addstr(struct chstr *, const char *str, chtype attrs);
 void chstr_addch(struct chstr *, int ch, chtype attrs);

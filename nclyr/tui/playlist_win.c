@@ -94,7 +94,7 @@ static void playlist_win_update(struct nclyr_win *win)
             args[6].u.bool_val = is_sel;
 
             chstr_init(&chstr);
-            tui_printf(&chstr, tui_get_chtype_from_window(curwin), 0, play->printline, ARRAY_SIZE(args), args);
+            tui_printf(&chstr, tui_get_chtype_from_window(curwin), cols, play->printline, ARRAY_SIZE(args), args);
             waddchstr(curwin, chstr.chstr);
             chstr_clear(&chstr);
         } else {

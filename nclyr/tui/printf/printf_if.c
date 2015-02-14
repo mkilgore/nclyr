@@ -30,18 +30,30 @@ struct printf_opt_if {
 static void print_if(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
 {
     struct printf_opt_if *if_stmt = container_of(opt, struct printf_opt_if, opt);
+    int print = 0;
 
     switch (if_stmt->check.type) {
     case TUI_ARG_BOOL:
-        if (args[if_stmt->check.arg].u.bool_val == if_stmt->check.data.bool_val) {
-            struct chstr new_chstr;
-            tui_printf(&new_chstr, comp->attributes | COLOR_PAIR(tui_color_pair_get(&comp->colors)), chstr->max_width, if_stmt->print, arg_count, args);
-            chstr_addchstr(chstr, &new_chstr);
-            comp->attributes = if_stmt->print->attributes;
-            comp->colors = if_stmt->print->colors;
-            chstr_clear(&new_chstr);
-        }
+        if (args[if_stmt->check.arg].u.bool_val == if_stmt->check.data.bool_val)
+            print = 1;
         break;
+    case TUI_ARG_INT:
+        if (args[if_stmt->check.arg].u.int_val == if_stmt->check.data.int_val)
+            print = 1;
+        break;
+    case TUI_ARG_STRING:
+        if (strcmp(args[if_stmt->check.arg].u.str_val, if_stmt->check.data.str_val) == 0)
+            print = 1;
+        break;
+    }
+
+    if (print) {
+        struct chstr new_chstr;
+        tui_printf(&new_chstr, TUI_PRINTF_COMP_ATTRS(comp), chstr->max_width, if_stmt->print, arg_count, args);
+        chstr_addchstr(chstr, &new_chstr);
+        comp->attributes = if_stmt->print->attributes;
+        comp->colors = if_stmt->print->colors;
+        chstr_clear(&new_chstr);
     }
 }
 

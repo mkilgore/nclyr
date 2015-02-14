@@ -30,6 +30,8 @@ void statusline_update(struct statusline *status)
         int cols, bar_len, x;
         werase(status->win);
 
+        cols = getmaxx(status->win);
+
         wmove(status->win, 0, 0);
         if (tui->state.song) {
             args[0].u.str_val = song->tag.title;
@@ -37,22 +39,21 @@ void statusline_update(struct statusline *status)
             args[2].u.str_val = song->tag.album;
             args[3].u.int_val = song->duration;
             chstr_init(&chstr);
-            tui_printf(&chstr, tui_get_chtype_from_window(status->win), 0, status->song_name, ARRAY_SIZE(args), args);
+            tui_printf(&chstr, tui_get_chtype_from_window(status->win), cols, status->song_name, ARRAY_SIZE(args), args);
             waddchstr(status->win, chstr.chstr);
             chstr_clear(&chstr);
         } else {
             wprintw(status->win, "No song playing");
         }
 
-        cols = getmaxx(status->win);
-
         if (tui->state.song) {
             bar_len = (int)((float)cols * ((float)tui->state.seek_pos / (float)tui->state.song->duration));
 
             DEBUG_PRINTF("Bar_len: %d\n", bar_len);
+            /*
             mvwprintw(status->win, 0, cols - 13, "[%02d:%02d/%02d:%02d]",
                     tui->state.seek_pos / 60, tui->state.seek_pos % 60,
-                    tui->state.song->duration / 60, tui->state.song->duration % 60);
+                    tui->state.song->duration / 60, tui->state.song->duration % 60); */
 
             mvwprintw(status->win, 1, 0, "%.*s", cols, "");
 

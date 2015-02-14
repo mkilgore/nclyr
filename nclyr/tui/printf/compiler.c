@@ -15,6 +15,7 @@
 #include "printf_arg.h"
 #include "printf_color.h"
 #include "printf_if.h"
+#include "printf_right_align.h"
 #include "compiler.h"
 #include "debug.h"
 
@@ -38,6 +39,8 @@ static struct printf_cmd cmds[] = {
         .get = print_color_get },
     { .id = "if",
         .get = print_if_get },
+    { .id = "right_align",
+        .get = print_right_align_get },
 };
 
 char *printf_get_next_param(char *params, char **id, char **val)
@@ -139,6 +142,14 @@ tui_printf_compiled *tui_printf_compile_internal(char **c, size_t arg_count, con
 
             handle_id(&opt_next, id, c, arg_count, args);
         }
+    }
+
+    if (*c) {
+        struct printf_opt *opt;
+        opt = print_string_get(*c);
+        *opt_next = opt;
+        opt_next = &opt->next;
+        *c += strlen(*c);
     }
 
 cleanup:

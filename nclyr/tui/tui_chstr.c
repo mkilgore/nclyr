@@ -91,6 +91,24 @@ void chstr_addstr(struct chstr *chstr, const char *str, chtype attrs)
     chstr->length += len;
 }
 
+void chstr_addchstr_at(struct chstr *dest, const struct chstr *src, int at)
+{
+    if (dest->length > at) {
+        dest->length = at - 1;
+        dest->chstr[dest->length] = '\0';
+    } else if (dest->length < at) {
+        chtype attr = dest->chstr[dest->length - 1] & A_ATTRIBUTES;
+        chstr_resize(dest, at);
+
+        for (; dest->length < at; dest->length++)
+            dest->chstr[dest->length] = ' ' | attr;
+
+        dest->chstr[dest->length] = '\0';
+    }
+
+    chstr_addchstr(dest, src);
+}
+
 void chstr_addch(struct chstr *chstr, int ch, chtype attrs)
 {
     chstr_resize(chstr, chstr->length + 1);
