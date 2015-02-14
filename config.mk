@@ -5,6 +5,8 @@ CFLAGS  += -Wall -O2 -std=c99 \
 LDFLAGS ?=
 LEX     ?= flex
 LFLAGS  ?=
+YACC    ?= bison
+YFLAGS  ?=
 LD      ?= ld
 PERL    ?= perl -w
 MKDIR   ?= mkdir

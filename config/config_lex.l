@@ -2,10 +2,13 @@
 %{
 #include <string.h>
 
-#include "config_lex.h"
+#include "config.h"
+#include "config_parser.tab.h"
+
+extern YYLTYPE yylloc;
+#define YY_USER_INIT yylloc.first_line = 1;
 
 #define YY_NO_INPUT
-#define YY_DECL enum config_token yylex (struct config_lexer *state)
 %}
 
 %option noyywrap
@@ -16,11 +19,11 @@
 
 [ \t]+ /* Eat whitespace */
 
-\n     state->line++;
+\n     yylloc.first_line++;
 
 ("#"|"//")[^\n]*    /* One line comment */
 
-"=" { return TOK_EQUAL; }
+"=" { return '='; }
 
 "include" {
     BEGIN(inc);
@@ -36,11 +39,26 @@
     BEGIN(INITIAL);
 }
 
+y {
+    return 'y';
+}
+
+n {
+    return 'n';
+}
+
+[0-9]+ {
+    yylval.str = strdup(yytext);
+    return TOK_INTEGER;
+}
+
 [a-zA-Z0-9_\-]+ {
-    return TOK_STRING;
+    yylval.str = strdup(yytext);
+    return TOK_IDENT;
 }
 
 \".*\" {
+    yylval.str = strdup(yytext);
     return TOK_STRING;
 }
 
@@ -51,7 +69,7 @@
 }
 
 . {
-    return TOK_UNKNOWN;
+    ;
 }
 
 
