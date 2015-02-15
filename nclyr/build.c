@@ -6,6 +6,7 @@
 #include "debug.h"
 
 struct build_option build_options[] = {
+    { .name = "debug", .build = CONFIG_DEBUG },
     { .name = "glyr", .build = CONFIG_LIB_GLYR },
     { .name = "tui", .build = CONFIG_TUI },
     { .name = "console", .build = CONFIG_CONSOLE },
