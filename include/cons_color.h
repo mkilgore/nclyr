@@ -2,7 +2,6 @@
 #define INCLUDE_CONS_COLORS_H
 
 enum cons_color {
-    CONS_COLOR_DEFAULT,
     CONS_COLOR_BLACK,
     CONS_COLOR_RED,
     CONS_COLOR_GREEN,
@@ -11,6 +10,7 @@ enum cons_color {
     CONS_COLOR_MAGENTA,
     CONS_COLOR_CYAN,
     CONS_COLOR_WHITE,
+    CONS_COLOR_DEFAULT,
 };
 
 struct cons_color_pair {

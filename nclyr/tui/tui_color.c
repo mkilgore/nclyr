@@ -8,7 +8,6 @@
 #include "debug.h"
 
 static int color_map_curses[] = {
-    -1,
     COLOR_BLACK,
     COLOR_RED,
     COLOR_GREEN,
@@ -17,14 +16,14 @@ static int color_map_curses[] = {
     COLOR_MAGENTA,
     COLOR_CYAN,
     COLOR_WHITE,
+    -1,
 };
 
-#define CALC_PAIR(f, b, c) ((f) + (b) * (c))
+#define CALC_PAIR(f, b, c) ((f) + (b) * (c) + 1)
 
 void tui_color_init(void)
 {
     const int colors[] = {
-        CONS_COLOR_DEFAULT,
         CONS_COLOR_BLACK,
         CONS_COLOR_RED,
         CONS_COLOR_GREEN,
@@ -33,6 +32,7 @@ void tui_color_init(void)
         CONS_COLOR_MAGENTA,
         CONS_COLOR_CYAN,
         CONS_COLOR_WHITE,
+        CONS_COLOR_DEFAULT,
     };
     int i, k;
     /* If it's 64 or less, then we assume it has standard default colors */
@@ -40,7 +40,7 @@ void tui_color_init(void)
 
     DEBUG_PRINTF("Color pairs: %d\n", COLOR_PAIRS);
     for (i = 0; i < count; i++)
-        for (k = (i == 0)?1:0; k < count; k++)
+        for (k = 0; k < count; k++)
             init_pair(CALC_PAIR(colors[i], colors[k], count), color_map_curses[i], color_map_curses[k]);
 }
 
@@ -56,8 +56,7 @@ void tui_color_set(WINDOW *win, struct cons_color_pair colors)
             rb = CONS_COLOR_BLACK;
     }
 
-    if (rf != CONS_COLOR_DEFAULT || rb != CONS_COLOR_DEFAULT)
-        wattron(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
+    wattron(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
 }
 
 void tui_color_unset(WINDOW *win, struct cons_color_pair colors)
@@ -72,23 +71,28 @@ void tui_color_unset(WINDOW *win, struct cons_color_pair colors)
             rb = CONS_COLOR_BLACK;
     }
 
-    if (rf != CONS_COLOR_DEFAULT || rb != CONS_COLOR_DEFAULT)
-        wattroff(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
+    wattroff(win, COLOR_PAIR(CALC_PAIR(rf, rb, count)));
 }
 
 void tui_color_pair_fb(int pair, struct cons_color_pair *c)
 {
     int count = (COLOR_PAIRS <= 64)? 8: 9;
 
-    /* A bit of a hack - We handle returning pair 0 by checking for it and
-     * returning the defaults */
-        c->f = (pair) % count;
-        c->b = (pair) / count;
+    if (pair != 0) {
+        c->f = (pair - 1) % count;
+        c->b = (pair - 1) / count;
+    } else {
+        c->f = CONS_COLOR_DEFAULT;
+        c->b = CONS_COLOR_DEFAULT;
+    }
 }
 
 int tui_color_pair_get(struct cons_color_pair *c)
 {
     int count = (COLOR_PAIRS <= 64)? 8: 9;
-    return CALC_PAIR(c->f, c->b, count);
+    if (c->f != CONS_COLOR_DEFAULT || c->b != CONS_COLOR_DEFAULT)
+        return CALC_PAIR(c->f, c->b, count);
+    else
+        return 0;
 }
 
