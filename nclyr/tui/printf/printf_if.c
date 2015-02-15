@@ -49,7 +49,7 @@ static void print_if(struct printf_opt *opt, struct tui_printf_compiled *comp, s
 
     if (print) {
         struct chstr new_chstr;
-        tui_printf(&new_chstr, TUI_PRINTF_COMP_ATTRS(comp), chstr->max_width, if_stmt->print, arg_count, args);
+        tui_printf(if_stmt->print, &new_chstr, chstr->max_width, TUI_PRINTF_COMP_ATTRS(comp), args, arg_count);
         chstr_addchstr(chstr, &new_chstr);
         comp->attributes = if_stmt->print->attributes;
         comp->colors = if_stmt->print->colors;

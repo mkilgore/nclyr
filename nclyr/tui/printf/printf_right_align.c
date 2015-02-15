@@ -20,7 +20,7 @@ static void print_right_align(struct printf_opt *opt, struct tui_printf_compiled
     struct printf_opt_right_align *ra = container_of(opt, struct printf_opt_right_align, opt);
     struct chstr new_chstr;
 
-    tui_printf(&new_chstr, TUI_PRINTF_COMP_ATTRS(comp), chstr->max_width, ra->print, arg_count, args);
+    tui_printf(ra->print, &new_chstr, chstr->max_width, TUI_PRINTF_COMP_ATTRS(comp), args, arg_count);
 
     if (chstr->max_width)
         chstr_addchstr_at(chstr, &new_chstr, chstr->max_width - new_chstr.length);

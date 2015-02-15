@@ -33,7 +33,7 @@ typedef struct tui_printf_compiled tui_printf_compiled;
  * compiled printing may depend on using indexes into it. */
 tui_printf_compiled *tui_printf_compile(const char *format, size_t arg_count, const struct tui_printf_arg *args);
 
-void tui_printf(struct chstr *, chtype attrs, int max_width, tui_printf_compiled *, size_t arg_count, const struct tui_printf_arg *args);
+void tui_printf(tui_printf_compiled *, struct chstr *, int max_width, chtype attrs, const struct tui_printf_arg *args, size_t arg_count);
 
 void tui_printf_compile_free(tui_printf_compiled *);
 

@@ -185,7 +185,7 @@ static chtype attr_t_to_chtype(attr_t attrs)
 }
 
 /* The WINDOW * is used to get the current attributes */
-void tui_printf(struct chstr *chstr, chtype attrs, int max_width, tui_printf_compiled *print, size_t arg_count, const struct tui_printf_arg *args)
+void tui_printf(tui_printf_compiled *print, struct chstr *chstr, int max_width, chtype attrs, const struct tui_printf_arg *args, size_t arg_count)
 {
     struct tui_printf_compiled *comp = print;
     struct printf_opt *cur;
