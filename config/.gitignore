@@ -1,1 +1,3 @@
 config_lex.c
+config_parser.tab.c
+config_parser.tab.h

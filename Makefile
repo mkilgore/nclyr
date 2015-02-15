@@ -114,14 +114,6 @@ endef
 
 $(eval $(call proj_inc,config))
 
-ifneq ($(MAKECMDGOALS),clean)
--include $(DEP_LIST)
-endif
-CLEAN_LIST += $(DEP_LIST)
-real-all: $(DEP_LIST)
-
-DEP_LIST :=
-
 -include $(objtree)/gen_config.mk
 
 ifeq ($(CONFIG_DEBUG),y)
