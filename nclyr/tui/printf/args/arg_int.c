@@ -47,7 +47,7 @@ struct printf_opt *printf_arg_parse_int(int index, char *params, size_t arg_coun
         if (strcmp(i, "w") == 0 || strcmp(i, "width") == 0)
             arg->width = strtol(val, NULL, 0);
         if (strcmp(i, "z") == 0 || strcmp(i, "zero-pad") == 0)
-            arg->zero_pad = stringcasecmp(val, "true")? 1 : 0;
+            arg->zero_pad = !stringcasecmp(val, "true");
     }
     return &arg->opt;
 }
