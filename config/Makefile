@@ -9,7 +9,7 @@ $(srctree)/config.o: $(srctree)/config_parser.tab.h
 $(srctree)/config_lex.o: $(srctree)/config_parser.tab.h
 
 $(srctree)/%.tab.c $(srctree)/%.tab.h: $(srctree)/%.y
-	@$(call mecho," YACC    $@","$(YACC) $(YFLAGS) -dtv $<")
+	@$(call mecho," YACC    $(dir $@)$*.tab.c $(dir $@)$*.tab.h","$(YACC) $(YFLAGS) -dtv $<")
 	$(Q)$(YACC) $(YFLAGS) -d -b $(dir $<)/$* $<
 
 $(srctree)/config_lex.c: $(srctree)/config_lex.l

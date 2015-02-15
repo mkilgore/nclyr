@@ -5,15 +5,21 @@
 
 #include "config.h"
 #include "config_lex.h"
+#include "config_parser.h"
 
-void yyerror(struct config_output *out, const char *str);
+void yyerror(struct config_parser_state *state, const char *str);
+
+static void prefix_add(struct config_parser_state *state, char *prefix);
+static void prefix_remove(struct config_parser_state *state);
+
+#define YYERROR_VERBOSE
 %}
 
 %union {
     char *str;
 }
 
-%parse-param { struct config_output *out }
+%parse-param { struct config_parser_state *state }
 
 %token <str> TOK_STRING
 %token <str> TOK_IDENT
@@ -25,42 +31,63 @@ void yyerror(struct config_output *out, const char *str);
 
 %%
 
-config: assignment
+config:
+      assignment
       | config TOK_EOF  {
-          YYABORT;
+          YYACCEPT;
       }
       | config TOK_ERR {
-          fprintf(stderr, "Line %d\n", @1.first_line);
+          /* We have to use @1 somewhere in the parser to make yyac create the
+           * yylloc variable. We need the yylloc variable for yyerror, but yyac
+           * doesn't see usages of the yyloc variable outside of the parser, so
+           * we stick a 'fake' usage here so yyac creates tye yylloc variable.
+           */
+          (void)@1.first_line; 
+          YYABORT;
       }
+      | config block
       | config assignment
       ;
 
-assignment: identifier '=' string {
-              out->write_var($1, 2, $3);
+block:
+     identifier '{' {
+        prefix_add(state, $1);
+        free($1);
+     }
+     | '}' {
+        prefix_remove(state);
+     }
+     ;
+
+assignment:
+          identifier '=' string {
+              state->out->write_var(OUTPUT_QUOTE_STRING, state->prefix, $1, $3);
               free($1);
               free($3);
           }
           | identifier '=' TOK_INTEGER {
-              out->write_var($1, 2, $3);
+              state->out->write_var(OUTPUT_NOQUOTE_STRING, state->prefix, $1, $3);
               free($1);
               free($3);
           }
           | identifier '=' 'y' {
-              out->write_var($1, 1, NULL);
+              state->out->write_var(OUTPUT_YES, state->prefix, $1, NULL);
               free($1);
           }
           | identifier '=' 'n' {
-              out->write_var($1, 0, NULL);
+              state->out->write_var(OUTPUT_NO, state->prefix, $1, NULL);
               free($1);
           }
           ;
 
-identifier: TOK_IDENT {
+identifier:
+          TOK_IDENT {
               $$ = $1; 
           }
           ;
 
-string: TOK_STRING {
+string:
+      TOK_STRING {
           $$ = $1;
       }
       | string TOK_STRING {
@@ -73,8 +100,34 @@ string: TOK_STRING {
 
 %%
 
-void yyerror(struct config_output *out, const char *str)
+static void prefix_add(struct config_parser_state *state, char *prefix)
 {
-    fprintf(stderr, "Parser error: %s\n", str);
+    size_t len;
+    if (state->prefix)
+        len = strlen(state->prefix);
+    else
+        len = 0;
+
+    state->prefix = realloc(state->prefix, len + strlen(prefix) + 2);
+    state->prefix[len] = '\0';
+    strcat(state->prefix, prefix);
+    strcat(state->prefix, "_");
+}
+
+static void prefix_remove(struct config_parser_state *state)
+{
+    char *c = state->prefix + strlen(state->prefix) - 2;
+    for (; c > state->prefix; c--) {
+        if (*c == '_') {
+            *(c + 1) = '\0';
+            return ;
+        }
+    }
+    state->prefix[0] = '\0';
+}
+
+void yyerror(struct config_parser_state *state, const char *str)
+{
+    fprintf(stderr, "Parser error: %d: %s\n", yylloc.first_line, str);
 }
 

@@ -3,27 +3,33 @@
 #include <string.h>
 
 #include "config.h"
+#include "config_parser.h"
 #include "config_parser.tab.h"
 
 extern YYLTYPE yylloc;
 #define YY_USER_INIT yylloc.first_line = 1;
 
 #define YY_NO_INPUT
+
+#define YY_USER_ACTION { \
+        yylloc.first_line = yylineno; \
+    }
 %}
 
 %option noyywrap
+%option yylineno
 
 %x inc
 
 %%
 
-[ \t]+ /* Eat whitespace */
-
-\n     yylloc.first_line++;
+[ \t\n]+ /* Eat whitespace */
 
 ("#"|"//")[^\n]*    /* One line comment */
 
 "=" { return '='; }
+"{" { return '{'; }
+"}" { return '}'; }
 
 "include" {
     BEGIN(inc);
@@ -32,8 +38,10 @@ extern YYLTYPE yylloc;
 <inc>[ \t]* /* Whitespace */
 <inc>[^ \t\n]+ {
     yyin = fopen(yytext, "r");
-    if (!yyin)
+    if (!yyin) {
+        fprintf(stderr, "Lexer: %d: include file '%s' not found\n", yylloc.first_line, yytext);
         return TOK_ERR;
+    }
 
     yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE));
     BEGIN(INITIAL);
@@ -58,7 +66,7 @@ n {
 }
 
 \".*\" {
-    yylval.str = strdup(yytext);
+    yylval.str = strndup(yytext + 1, yyleng - 2);
     return TOK_STRING;
 }
 
