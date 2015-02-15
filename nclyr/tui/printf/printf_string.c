@@ -17,7 +17,7 @@ struct printf_opt_str {
 static void print_string_print(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
 {
     struct printf_opt_str *str = container_of(opt, struct printf_opt_str, opt);
-    chstr_addstr(chstr, str->s, comp->attributes | COLOR_PAIR(tui_color_pair_get(&comp->colors)));
+    chstr_addstr(chstr, str->s, TUI_PRINTF_COMP_ATTRS(comp));
 }
 
 static void print_string_clear(struct printf_opt *opt)

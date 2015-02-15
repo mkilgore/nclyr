@@ -16,11 +16,9 @@ static struct tui_printf_arg args[] = {
     { .id = "title", .type = TUI_ARG_STRING },
     { .id = "artist", .type = TUI_ARG_STRING },
     { .id = "album", .type = TUI_ARG_STRING },
-    { .id = "duration", .type = TUI_ARG_INT },
-    { .id = "song_length_seconds", .type = TUI_ARG_INT },
-    { .id = "song_length_minutes", .type = TUI_ARG_INT },
-    { .id = "position_seconds", .type = TUI_ARG_INT },
-    { .id = "position_minutes", .type = TUI_ARG_INT },
+    { .id = "duration", .type = TUI_ARG_TIME },
+    { .id = "position", .type = TUI_ARG_TIME },
+    { .id = "paused", .type = TUI_ARG_BOOL },
 };
 
 void statusline_update(struct statusline *status)
@@ -41,11 +39,9 @@ void statusline_update(struct statusline *status)
             args[0].u.str_val = song->tag.title;
             args[1].u.str_val = song->tag.artist;
             args[2].u.str_val = song->tag.album;
-            args[3].u.int_val = song->duration;
-            args[4].u.int_val = tui->state.song->duration % 60;
-            args[5].u.int_val = tui->state.song->duration / 60;
-            args[6].u.int_val = tui->state.seek_pos % 60;
-            args[7].u.int_val = tui->state.seek_pos / 60;
+            args[3].u.time_val = song->duration;
+            args[4].u.time_val = tui->state.seek_pos;
+            args[5].u.bool_val = tui->state.state == PLAYER_PAUSED;
             chstr_init(&chstr);
             tui_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
             waddchstr(status->win, chstr.chstr);
@@ -105,7 +101,8 @@ void statusline_player_notif(struct statusline *status, enum player_notif_type n
             || notif == PLAYER_SONG
             || notif == PLAYER_NO_SONG
             || notif == PLAYER_IS_DOWN
-            || notif == PLAYER_IS_UP)
+            || notif == PLAYER_IS_UP
+            || notif == PLAYER_STATE)
         status->updated = 1;
 }
 

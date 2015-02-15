@@ -114,7 +114,7 @@ void chstr_addch(struct chstr *chstr, int ch, chtype attrs)
     chstr_resize(chstr, chstr->length + 1);
     chstr->length++;
 
-    chstr->chstr[chstr->length - 2] = ch | attrs;
-    chstr->chstr[chstr->length - 1] = '\0';
+    chstr->chstr[chstr->length - 1] = ch | attrs;
+    chstr->chstr[chstr->length] = '\0';
 }
 

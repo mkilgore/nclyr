@@ -17,6 +17,7 @@ struct arg_check {
         int int_val;
         char *str_val;
         int bool_val;
+        int time_val;
     } data;
 };
 
@@ -43,6 +44,10 @@ static void print_if(struct printf_opt *opt, struct tui_printf_compiled *comp, s
         break;
     case TUI_ARG_STRING:
         if (strcmp(args[if_stmt->check.arg].u.str_val, if_stmt->check.data.str_val) == 0)
+            print = 1;
+        break;
+    case TUI_ARG_TIME:
+        if (args[if_stmt->check.arg].u.time_val == if_stmt->check.data.time_val)
             print = 1;
         break;
     }
@@ -91,6 +96,9 @@ struct printf_opt *print_if_get(const char *id, char **c, char *params, size_t a
                     break;
                 case TUI_ARG_BOOL:
                     if_stmt->check.data.bool_val = (stringcasecmp(val, "true") == 0);
+                    break;
+                case TUI_ARG_TIME:
+                    if_stmt->check.data.time_val = strtol(val, NULL, 0);
                     break;
                 }
             }

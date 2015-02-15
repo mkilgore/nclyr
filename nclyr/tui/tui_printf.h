@@ -9,12 +9,14 @@ enum tui_arg_type {
     TUI_ARG_INT,
     TUI_ARG_STRING,
     TUI_ARG_BOOL,
+    TUI_ARG_TIME,
 };
 
 union tui_printf_data {
     int int_val;
     const char *str_val;
     int bool_val;
+    int time_val;
 };
 
 struct tui_printf_arg {

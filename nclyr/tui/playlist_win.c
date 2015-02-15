@@ -22,7 +22,7 @@ static struct tui_printf_arg args[] = {
     { .id = "title", .type = TUI_ARG_STRING },
     { .id = "artist", .type = TUI_ARG_STRING },
     { .id = "album", .type = TUI_ARG_STRING },
-    { .id = "duration", .type = TUI_ARG_INT },
+    { .id = "duration", .type = TUI_ARG_TIME },
     { .id = "play-num", .type = TUI_ARG_INT },
     { .id = "playing", .type = TUI_ARG_BOOL },
     { .id = "selected", .type = TUI_ARG_BOOL },

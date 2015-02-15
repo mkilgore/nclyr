@@ -32,7 +32,7 @@ static void print_arg_int(struct printf_opt *opt, struct tui_printf_compiled *co
         for (; len <  arg->width; len++)
             *--c = (arg->zero_pad)? '0': ' ';
 
-    chstr_addstr(chstr, c, comp->attributes | COLOR_PAIR(tui_color_pair_get(&comp->colors)));
+    chstr_addstr(chstr, c, TUI_PRINTF_COMP_ATTRS(comp));
 }
 
 struct printf_opt *printf_arg_parse_int(int index, char *params, size_t arg_count, const struct tui_printf_arg *args)
