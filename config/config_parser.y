@@ -33,6 +33,7 @@ static void prefix_remove(struct config_parser_state *state);
 
 config:
       assignment
+      | block
       | config TOK_EOF  {
           YYACCEPT;
       }
@@ -50,14 +51,21 @@ config:
       ;
 
 block:
-     identifier '{' {
+     prefix_start config prefix_end
+     ;
+
+prefix_start:
+    identifier '{' {
         prefix_add(state, $1);
         free($1);
-     }
-     | '}' {
+    }
+    ;
+
+prefix_end:
+    '}' {
         prefix_remove(state);
-     }
-     ;
+    }
+    ;
 
 assignment:
           identifier '=' string {
