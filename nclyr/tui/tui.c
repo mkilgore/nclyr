@@ -219,23 +219,6 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui_color_init();
 
-    erase();
-    int k;
-    struct cons_color_pair pair;
-    move(0, 0);
-    for (i = 0; i < 9; i++) {
-        for (k = 0; k < 9; k++) {
-            pair.f = i;
-            pair.b = k;
-            attron(COLOR_PAIR(tui_color_pair_get(&pair)));
-            printw("Test ");
-            attroff(COLOR_PAIR(tui_color_pair_get(&pair)));
-        }
-    }
-    refresh();
-    while (getch() != 'q')
-        ;
-
     tui->cfg = tui_config_get_root();
 
     tui->status->tui = tui;
