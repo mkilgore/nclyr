@@ -19,6 +19,7 @@ static struct tui_printf_arg args[] = {
     { .id = "duration", .type = TUI_ARG_TIME },
     { .id = "position", .type = TUI_ARG_TIME },
     { .id = "paused", .type = TUI_ARG_BOOL },
+    { .id = "volume", .type = TUI_ARG_INT },
 };
 
 void statusline_update(struct statusline *status)
@@ -42,6 +43,7 @@ void statusline_update(struct statusline *status)
             args[3].u.time_val = song->duration;
             args[4].u.time_val = tui->state.seek_pos;
             args[5].u.bool_val = tui->state.state == PLAYER_PAUSED;
+            args[6].u.int_val = tui->state.volume;
             chstr_init(&chstr);
             tui_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
             waddchstr(status->win, chstr.chstr);
