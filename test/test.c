@@ -35,9 +35,9 @@ int run_tests(const char *mod_name, struct unit_test *tests, int test_count, int
 
         printf("== Result: ");
         if (errs != 0)
-            printf(COLOR_RED "FAIL -> %d" COLOR_RESET, errs);
+            printf(TEST_COLOR_RED "FAIL -> %d" TEST_COLOR_RESET, errs);
         else
-            printf(COLOR_GREEN "PASS" COLOR_RESET);
+            printf(TEST_COLOR_GREEN "PASS" TEST_COLOR_RESET);
 
         printf(" ==\n");
 
@@ -47,9 +47,9 @@ int run_tests(const char *mod_name, struct unit_test *tests, int test_count, int
     printf("==== Finished tests for %s ====\n", mod_name);
     printf("==== Result: ");
     if (error_count == 0)
-        printf(COLOR_GREEN "PASS " COLOR_RESET);
+        printf(TEST_COLOR_GREEN "PASS " TEST_COLOR_RESET);
     else
-        printf(COLOR_RED "FAIL -> %d " COLOR_RESET, error_count);
+        printf(TEST_COLOR_RED "FAIL -> %d " TEST_COLOR_RESET, error_count);
 
     printf("====\n");
 
@@ -61,9 +61,9 @@ int assert_true(const char *arg, const char *func, int cond)
     cur_test_count++;
     printf(" [%02d:%02d:%03d] %s: %s: ", global_test_number, total_test_count, cur_test_count, func, arg);
     if (cond)
-        printf(COLOR_GREEN "PASS" COLOR_RESET);
+        printf(TEST_COLOR_GREEN "PASS" TEST_COLOR_RESET);
     else
-        printf(COLOR_RED "FAIL" COLOR_RESET);
+        printf(TEST_COLOR_RED "FAIL" TEST_COLOR_RESET);
 
     printf("\n");
 
