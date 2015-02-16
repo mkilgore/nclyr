@@ -195,7 +195,15 @@ void tui_printf(tui_printf_compiled *print, struct chstr *chstr, int max_width, 
     if (max_width)
         chstr_setwidth(chstr, max_width);
 
-    comp->attributes = attrs & A_ATTRIBUTES;
+    /*
+     * The color pair information A_COLOR is counted as an 'attribute', thus
+     * A_ATTRIBUTES include A_COLOR (Even though the documentation of ncurses
+     * doesn't indicate this information). Thus, to get the *actual* attribute
+     * information that doesn't include the color pair, we have to remove the
+     * A_COLOR bits from our bitmask. Not doing this creates a subtle bug
+     * which makes the colors display wrong.
+     */
+    comp->attributes = attrs & (A_ATTRIBUTES & ~A_COLOR);
     tui_color_pair_fb(PAIR_NUMBER(attrs), &comp->colors);
 
     for (cur = comp->head; cur; cur = cur->next)
