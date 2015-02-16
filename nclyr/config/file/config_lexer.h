@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+/*
 enum config_token {
     TOK_STRING,
     TOK_EQUAL,
@@ -19,10 +20,11 @@ struct config_lexer {
     int line;
 };
 
-enum config_token yylex(struct config_lexer *);
+enum config_token yylex(struct config_lexer *); */
+
+extern int yylex(void);
 
 extern FILE *yyin;
-extern char *yytext;
 extern int yylex_destroy(void);
 
 #endif

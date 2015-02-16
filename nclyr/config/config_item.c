@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #include "stringcasecmp.h"
-#include "config_lexer.h"
 #include "config.h"
 #include "debug.h"
 
