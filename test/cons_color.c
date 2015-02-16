@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "cons_color.h"
+#include "tui/tui_color.h"
 #include "test/test.h"
 
 static const char *color_names[] = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default" };
@@ -42,11 +43,44 @@ int test_cols (void)
     return ret;
 }
 
+int tui_cols (void)
+{
+    int ret = 0;
+    char buf[10];
+    int i, k, n;
+    struct cons_color_pair pair, pair2;
+
+    for (i = 0; i < 8; i++) {
+        for (k = 0; k < 8; k++) {
+            pair.f = i;
+            pair.b = k;
+
+            n = tui_color_pair_get(&pair);
+            tui_color_pair_fb(n, &pair2);
+
+            sprintf(buf, "%d - %d,%d", n, i, k);
+
+            if (test_assert_with_name(buf, pair2.f == pair.f)) {
+                ret++;
+                printf("  pair2.f: %d, pair.f: %d\n", pair2.f, pair.f);
+            }
+
+            if (test_assert_with_name(buf, pair2.b == pair.b)) {
+                ret++;
+                printf("  pair2.b: %d, pair.b: %d\n", pair2.b, pair.b);
+            }
+        }
+    }
+
+    return ret;
+}
+
 int main(int argc, char **argv)
 {
     int ret;
     struct unit_test tests[] = {
         { test_cols, "Color test" },
+        { tui_cols,  "Tui color test" },
     };
 
     ret = run_tests("Test Console Colors", tests, sizeof(tests) / sizeof(tests[0]), argc, argv);

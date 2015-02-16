@@ -1,7 +1,7 @@
 
 TESTS :=
 
-CFLAGS += -I'./test'
+CFLAGS += -I'./test' -I'./nclyr'
 
 # This defines the names of all the tests we should run
 TESTS += cons_color
@@ -21,6 +21,7 @@ TESTS += player
 # more the one test program per ./src file.
 cons_color.OBJ := ./nclyr/cons_color.o \
 					./nclyr/common.o \
+					./nclyr/tui/tui_color.o \
 					./test/cons_color.o
 song.OBJ := ./nclyr/song.o \
 				./nclyr/common.o \
