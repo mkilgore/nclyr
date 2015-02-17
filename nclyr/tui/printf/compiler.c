@@ -144,7 +144,7 @@ tui_printf_compiled *tui_printf_compile_internal(char **c, size_t arg_count, con
         }
     }
 
-    if (*c) {
+    if (**c) {
         struct printf_opt *opt;
         opt = print_string_get(*c);
         *opt_next = opt;
