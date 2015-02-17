@@ -50,6 +50,11 @@ void line_clean (struct nclyr_win *win)
 void line_handle_keypress(struct nclyr_win *win, int ch)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
+    WINDOW *curwin = win->win;
+    int rows;
+
+    rows = getmaxy(curwin);
+
     switch (ch) {
     case 'j':
         if (line->disp_offset < line->line_count - 1) {
@@ -60,6 +65,26 @@ void line_handle_keypress(struct nclyr_win *win, int ch)
     case 'k':
         if (line->disp_offset > 0) {
             line->disp_offset--;
+            win->updated = 1;
+        }
+        break;
+    case 'J':
+    case KEY_NPAGE:
+        if (line->disp_offset < line->line_count - 1) {
+            if (rows < ((line->line_count - 1) - line->disp_offset))
+                line->disp_offset += rows;
+            else
+                line->disp_offset = line->line_count - 1;
+            win->updated = 1;
+        }
+        break;
+    case 'K':
+    case KEY_PPAGE:
+        if (line->disp_offset > 0) {
+            if (rows < line->disp_offset)
+                line->disp_offset -= rows;
+            else
+                line->disp_offset = 0;
             win->updated = 1;
         }
         break;

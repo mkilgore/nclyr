@@ -21,7 +21,11 @@ void line_handle_keypress(struct nclyr_win *, int ch);
 void line_free_lines(struct line_win *);
 
 #define LINE_KEYPRESSES \
-    { 'j', line_handle_keypress, "Scroll page down" }, \
-    { 'k', line_handle_keypress, "Scroll page up" }
+    { 'j', line_handle_keypress, "Scroll down" }, \
+    { 'k', line_handle_keypress, "Scroll up" }, \
+    { 'J', line_handle_keypress, "Scroll down one page" }, \
+    { 'K', line_handle_keypress, "Scrool up one page" }, \
+    { KEY_NPAGE, line_handle_keypress, "Scroll down one page" }, \
+    { KEY_PPAGE, line_handle_keypress, "Scroll up one page" }
 
 #endif
