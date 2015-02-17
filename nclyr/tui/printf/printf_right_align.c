@@ -22,10 +22,14 @@ static void print_right_align(struct printf_opt *opt, struct tui_printf_compiled
 
     tui_printf(ra->print, &new_chstr, chstr->max_width, TUI_PRINTF_COMP_ATTRS(comp), args, arg_count);
 
-    if (chstr->max_width)
-        chstr_addchstr_at(chstr, &new_chstr, chstr->max_width - new_chstr.length);
-    else
+    if (chstr->max_width) {
+        if (chstr->max_width - new_chstr.length >= 0)
+            chstr_addchstr_at(chstr, &new_chstr, chstr->max_width - new_chstr.length);
+        else
+            chstr_addchstr_at(chstr, &new_chstr, 0);
+    } else {
         chstr_addchstr(chstr, &new_chstr);
+    }
 
     chstr_clear(&new_chstr);
 }

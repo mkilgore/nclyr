@@ -79,14 +79,15 @@ void chstr_addstr(struct chstr *chstr, const char *str, chtype attrs)
 
         for (cur = chstr->chstr + chstr->length; *str; str++, cur++)
             *cur = *str | attrs;
-    } else {
+        *cur = '\0';
+    } else if (chstr->length < chstr->max_width) {
         for (cur = chstr->chstr + chstr->length;
-             *str && (cur - chstr->chstr) < chstr->max_width;
+             *str && ((cur - chstr->chstr) < chstr->max_width - 1);
              str++, cur++)
             *cur = *str | attrs;
+        *cur = '\0';
     }
 
-    *cur = '\0';
 
     chstr->length += len;
 }
