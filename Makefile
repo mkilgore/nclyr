@@ -142,6 +142,12 @@ endif
 # Actual entry
 real-all: configure $(EXES)
 
+install:
+	$(Q)mkdir -p $(BINDIR)
+	@echo " INSTALL nclyr"
+	$(Q)install -m 775 ./bin/nclyr $(BINDIR)
+	@echo " nclyr Installation done"
+
 dist: clean
 	$(Q)mkdir -p $(EXE)-$(VERSION_N)
 	$(Q)cp -R Makefile README.md config.mk LICENSE ./doc ./include ./src ./nclyr $(EXE)-$(VERSION_N)
