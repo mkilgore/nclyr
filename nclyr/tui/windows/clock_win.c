@@ -12,7 +12,7 @@
 #include "lyr_thread.h"
 #include "player.h"
 #include "tui_internal.h"
-#include "tui_window.h"
+#include "window.h"
 #include "tui_color.h"
 #include "clock_win.h"
 

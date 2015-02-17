@@ -8,7 +8,7 @@
 
 #include "song.h"
 #include "lyr_thread.h"
-#include "tui_window.h"
+#include "windows/window.h"
 #include "tui_internal.h"
 
 void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
@@ -20,7 +20,8 @@ void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
 
     if (!tui->sel_window->already_lookedup) {
         tui->sel_window->already_lookedup = 1;
-        lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
+        if (tui->state.song)
+            lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 }
 

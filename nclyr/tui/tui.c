@@ -11,15 +11,15 @@
 #include "player.h"
 #include "lyr_thread.h"
 #include "tui_internal.h"
-#include "tui_window.h"
 #include "tui_color.h"
-#include "statusline.h"
-#include "clock_win.h"
-#include "lyrics_win.h"
-#include "help_win.h"
-#include "artist_win.h"
-#include "playlist_win.h"
-#include "config_win.h"
+#include "windows/window.h"
+#include "windows/statusline.h"
+#include "windows/clock_win.h"
+#include "windows/lyrics_win.h"
+#include "windows/help_win.h"
+#include "windows/artist_win.h"
+#include "windows/playlist_win.h"
+#include "windows/config_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -103,7 +103,8 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
         }
 
         tui->sel_window->already_lookedup = 1;
-        lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
+        if (tui->state.song)
+            lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 
     for (win = tui->windows; *win; win++) {

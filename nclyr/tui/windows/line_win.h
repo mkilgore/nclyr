@@ -2,7 +2,7 @@
 #define NCLYR_CURSES_LINE_WIN_H
 
 #include "player.h"
-#include "tui_window.h"
+#include "window.h"
 
 struct line_win {
     struct nclyr_win super_win;

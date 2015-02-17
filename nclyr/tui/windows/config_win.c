@@ -5,7 +5,7 @@
 #include "config.h"
 #include "nclyr_conf.h"
 #include "tui_internal.h"
-#include "tui_window.h"
+#include "window.h"
 #include "line_win.h"
 #include "config_win.h"
 #include "debug.h"

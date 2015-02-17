@@ -14,7 +14,7 @@
 #include "tui_chstr.h"
 #include "tui_printf.h"
 #include "tui_color.h"
-#include "tui_window.h"
+#include "window.h"
 #include "playlist_win.h"
 #include "debug.h"
 

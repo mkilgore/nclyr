@@ -11,7 +11,7 @@
 #include "tui_internal.h"
 #include "player.h"
 #include "lyr_thread.h"
-#include "tui_window.h"
+#include "window.h"
 #include "char_to_str.h"
 #include "help_win.h"
 

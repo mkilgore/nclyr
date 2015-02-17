@@ -6,8 +6,8 @@
 #include "iface.h"
 #include "config.h"
 #include "player.h"
-#include "tui_window.h"
-#include "statusline.h"
+#include "windows/window.h"
+#include "windows/statusline.h"
 
 struct tui_iface {
     struct nclyr_iface iface;

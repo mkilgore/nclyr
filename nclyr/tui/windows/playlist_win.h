@@ -1,8 +1,8 @@
 #ifndef NCLYR_CURSES_PLAYLIST_WIN_H
 #define NCLYR_CURSES_PLAYLIST_WIN_H
 
-#include "tui_window.h"
 #include "tui_printf.h"
+#include "windows/window.h"
 #include "playlist.h"
 
 struct playlist_win {
