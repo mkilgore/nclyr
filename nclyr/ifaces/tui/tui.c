@@ -81,6 +81,9 @@ static void global_keys(struct nclyr_win *win, int ch, struct nclyr_mouse_event 
         tui_change_window(tui, tui->windows[tui->sel_window_index]);
     } else if (ch == 'Q') {
         tui->exit_flag = 1;
+    } else if (ch == ':') {
+        tui->grab_input = 1;
+        memset(tui->inp_buf, 0, tui->inp_buf_len);
     }
 }
 
@@ -164,7 +167,7 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
         for (win = tui->windows; *win; win++) {
             struct nclyr_win *w = *win;
             delwin(w->win);
-            w->win = newwin(LINES - rows - 1, COLS, rows + 1, 0);
+            w->win = newwin(LINES - rows - 2, COLS, rows + 1, 0);
             touchwin(w->win);
             w->updated = 1;
 
@@ -260,6 +263,19 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
         goto found_key;
     }
 
+    if (tui->grab_input) {
+        if (ch == KEY_BACKSPACE) {
+            tui->inp_buf[strlen(tui->inp_buf) - 1] = '\0';
+        } else if (ch == KEY_ENTER || ch == '\n') {
+            tui->grab_input = 0;
+        } else {
+            size_t len = strlen(tui->inp_buf);
+            tui->inp_buf[len] = ch;
+            tui->inp_buf[len + 1] = '\0';
+        }
+        goto found_key;
+    }
+
     for (cur_keylist = keylist; *cur_keylist != NULL; cur_keylist++) {
         for (key = *cur_keylist; key->ch != '\0'; key++) {
             if (key->ch == ch) {
@@ -278,6 +294,7 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 {
     int i = 0;
     int rows;
+    char inp_buf[200];
     struct tui_iface *tui = container_of(iface, struct tui_iface, iface);
     struct pollfd main_notify[4];
     struct nclyr_win **win;
@@ -304,6 +321,9 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui_color_init();
 
+    tui->inp_buf = inp_buf;
+    tui->inp_buf_len = sizeof(inp_buf);
+
     tui->cfg = tui_config_get_root();
 
     tui->status->tui = tui;
@@ -314,7 +334,7 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     for (win = tui->windows; *win; win++) {
         struct nclyr_win *w = *win;
         w->tui = tui;
-        w->win = newwin(LINES - rows - 1, COLS, rows + 1, 0);
+        w->win = newwin(LINES - rows - 2, COLS, rows + 1, 0);
         touchwin(w->win);
         w->updated = 1;
 
@@ -347,6 +367,13 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
         addch(ACS_RTEE);
         printw(" %s ", tui->sel_window->win_name);
         addch(ACS_LTEE);
+
+        if (tui->grab_input) {
+            mvprintw(LINES - 1, 0, ":%-*s", COLS - 1, inp_buf);
+        } else {
+            move(LINES - 1, 0);
+            clrtoeol();
+        }
 
         refresh();
 
@@ -417,6 +444,7 @@ struct tui_iface tui_iface  = {
         N_KEYPRESS('q', global_keys, "Switch to previous window."),
         N_KEYPRESS('w', global_keys, "Switch to next window."),
         N_KEYPRESS('Q', global_keys, "Exit TUI."),
+        N_KEYPRESS(':', global_keys, "Start command entry."),
 
         N_KEYPRESS(' ', player_keys, "Toggle Pause"),
         N_KEYPRESS('p', player_keys, "Previous song"),
@@ -431,5 +459,6 @@ struct tui_iface tui_iface  = {
     .sel_window_index = 0,
     .sel_window = NULL,
     .exit_flag = 0,
+    .grab_input = 0,
 };
 

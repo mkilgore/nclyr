@@ -29,6 +29,9 @@ struct tui_iface {
     struct config_item *cfg;
 
     enum nclyr_mouse_event_type last_mevent;
+    unsigned int grab_input :1;
+    char *inp_buf;
+    size_t inp_buf_len;
 };
 
 void tui_change_window(struct tui_iface *, struct nclyr_win *);
