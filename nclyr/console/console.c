@@ -122,7 +122,16 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
             if (!inp_flag) {
                 switch (ch) {
                 case 'h':
-                    printf("Console help:\nstuff\nstuff\n");
+                case '?':
+                    printf("Console help:\n"
+                           " p    - Display playlist\n"
+                           "Space - Toggle Pause\n"
+                           " >    - Next song\n"
+                           " <    - Previous song\n"
+                           " +    - Increse volume by 1\n"
+                           " -    - Decrease volume by 1\n"
+                           " s    - Change song, enter song playlist number at prompt\n"
+                          );
                     break;
                 case 'p':
                     printf("Playlist:\n");
