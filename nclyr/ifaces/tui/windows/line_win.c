@@ -47,7 +47,7 @@ void line_clean (struct nclyr_win *win)
     line_free_lines(line);
 }
 
-void line_handle_keypress(struct nclyr_win *win, int ch)
+void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
     WINDOW *curwin = win->win;

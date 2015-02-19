@@ -16,16 +16,16 @@ struct line_win {
 
 void line_update(struct nclyr_win *);
 void line_clean(struct nclyr_win *);
-void line_handle_keypress(struct nclyr_win *, int ch);
+void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent);
 
 void line_free_lines(struct line_win *);
 
-#define LINE_KEYPRESSES \
-    { 'j', line_handle_keypress, "Scroll down" }, \
-    { 'k', line_handle_keypress, "Scroll up" }, \
-    { 'J', line_handle_keypress, "Scroll down one page" }, \
-    { 'K', line_handle_keypress, "Scrool up one page" }, \
-    { KEY_NPAGE, line_handle_keypress, "Scroll down one page" }, \
-    { KEY_PPAGE, line_handle_keypress, "Scroll up one page" }
+#define LINE_KEYPRESSES() \
+    N_KEYPRESS('j', line_handle_keypress, "Scroll down"), \
+    N_KEYPRESS('k', line_handle_keypress, "Scroll up"), \
+    N_KEYPRESS('J', line_handle_keypress, "Scroll down one page"), \
+    N_KEYPRESS('K', line_handle_keypress, "Scroll up one page"), \
+    N_KEYPRESS(KEY_NPAGE, line_handle_keypress, "Scroll down one page"), \
+    N_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page")
 
 #endif

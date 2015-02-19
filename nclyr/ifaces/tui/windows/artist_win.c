@@ -87,8 +87,8 @@ struct line_win artist_window = {
         .timeout = -1,
         .lyr_types = (const enum lyr_data_type[]) { LYR_ARTIST_BIO, LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            LINE_KEYPRESSES,
-            { '\0', NULL, NULL }
+            LINE_KEYPRESSES(),
+            N_END()
         },
         .init = NULL,
         .clean = line_clean,

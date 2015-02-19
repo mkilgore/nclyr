@@ -29,7 +29,33 @@ static struct cons_printf_arg args[] = {
     { .id = "selected", .type = CONS_ARG_BOOL },
 };
 
-static void handle_ch(struct nclyr_win *win, int ch)
+static void handle_mouse(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
+{
+    struct playlist_win *play = container_of(win, struct playlist_win, super_win);
+    struct tui_iface *tui = win->tui;
+
+    if (ch != KEY_MOUSE || !mevent)
+        return ;
+
+    DEBUG_PRINTF("Playlist Mouse event: %d, (%d, %d)\n", mevent->type, mevent->x, mevent->y);
+
+    if (mevent->type == SCROLL_UP) {
+        if (play->disp_offset > 0) {
+            play->disp_offset--;
+            win->updated = 1;
+        }
+    } else if (mevent->type == SCROLL_DOWN) {
+        if (play->disp_offset < tui->state.playlist.song_count - 1) {
+            play->disp_offset++;
+            win->updated = 1;
+        }
+    } else if (mevent->type == LEFT_CLICKED) {
+        play->selected = play->disp_offset + mevent->y;
+        win->updated = 1;
+    }
+}
+
+static void handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct playlist_win *play = container_of(win, struct playlist_win, super_win);
     struct tui_iface *tui = win->tui;
@@ -137,10 +163,13 @@ struct playlist_win playlist_window = {
         .timeout = 400,
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            { 'j', handle_ch, "Select song above" },
-            { 'k', handle_ch, "Select song below" },
-            { '\n', handle_ch, "Play selected song" },
-            { '\0', NULL, NULL }
+            N_KEYPRESS('j', handle_ch, "Select song above"),
+            N_KEYPRESS('k', handle_ch, "Select song below"),
+            N_KEYPRESS('\n', handle_ch, "Play selected song"),
+            N_MOUSE(SCROLL_UP, handle_mouse, "Scroll playlist up"),
+            N_MOUSE(SCROLL_DOWN, handle_mouse, "Scroll playlist down"),
+            N_MOUSE(LEFT_CLICKED, handle_mouse, "Select song"),
+            N_END()
         },
         .init = playlist_win_init,
         .clean = playlist_win_clear,

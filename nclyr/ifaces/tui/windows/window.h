@@ -3,8 +3,55 @@
 
 #include <ncurses.h>
 
-struct nclyr_keypress;
+/* all this stuff has to get put *Before* we include those other files, since
+ * they might need it. */
+
 struct nclyr_win;
+
+enum nclyr_mouse_event_type {
+    LEFT_PRESSED,
+    LEFT_RELEASED,
+    LEFT_CLICKED,
+    RIGHT_PRESSED,
+    RIGHT_RELEASED,
+    RIGHT_CLICKED,
+    SCROLL_UP,
+    SCROLL_DOWN,
+    SCROLL_PRESSED,
+    SCROLL_RELEASED,
+    SCROLL_CLICKED,
+};
+
+struct nclyr_mouse_event {
+    /* When provided to callback, (x, y) will be relative to the nclyr_win's WINDOW * */
+    int x, y;
+    enum nclyr_mouse_event_type type;
+};
+
+struct nclyr_keypress {
+    int ch;
+    enum nclyr_mouse_event_type mtype;
+    void (*callback) (struct nclyr_win *, int ch, struct nclyr_mouse_event *);
+    const char *help_text;
+};
+
+#define N_KEYPRESS(chr, call, text) \
+    { \
+        .ch = (chr), \
+        .callback = (call), \
+        .help_text = (text) \
+    }
+
+#define N_MOUSE(mtyp, call, text) \
+    { \
+        .ch = KEY_MOUSE, \
+        .mtype = (mtyp), \
+        .callback = (call), \
+        .help_text = (text) \
+    }
+
+#define N_END() { .ch = '\0', .mtype = 0, .callback = NULL, .help_text = NULL }
+
 
 #include "song.h"
 #include "player.h"
@@ -70,10 +117,5 @@ struct nclyr_win {
     void (*new_player_notif) (struct nclyr_win *, enum player_notif_type, struct player_state_full *);
 };
 
-struct nclyr_keypress {
-    int ch;
-    void (*callback) (struct nclyr_win *, int ch);
-    const char *help_text;
-};
 
 #endif

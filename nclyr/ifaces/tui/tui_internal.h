@@ -27,6 +27,8 @@ struct tui_iface {
 
     int exit_flag;
     struct config_item *cfg;
+
+    enum nclyr_mouse_event_type last_mevent;
 };
 
 void tui_change_window(struct tui_iface *, struct nclyr_win *);

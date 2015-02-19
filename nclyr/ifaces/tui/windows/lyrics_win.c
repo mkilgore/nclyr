@@ -74,7 +74,7 @@ void lyrics_clear_song_data (struct nclyr_win *win)
     line_free_lines(line);
 }
 
-static void lyrics_handle_keypress(struct nclyr_win *win, int ch)
+static void lyrics_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
@@ -93,9 +93,9 @@ struct line_win lyrics_window = {
         .timeout = -1,
         .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            LINE_KEYPRESSES,
-            { 'c', lyrics_handle_keypress, "Toggle line centering" },
-            { '\0', NULL, NULL }
+            LINE_KEYPRESSES(),
+            N_KEYPRESS('c', lyrics_handle_keypress, "Toggle line centering"),
+            N_END()
         },
         .init = NULL,
         .clean = line_clean,

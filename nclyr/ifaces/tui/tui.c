@@ -36,7 +36,7 @@ static struct nclyr_win *nclyr_windows[] = {
     NULL
 };
 
-static void player_keys(struct nclyr_win *win, int ch)
+static void player_keys(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct player *player = player_current();
 
@@ -65,7 +65,7 @@ static void player_keys(struct nclyr_win *win, int ch)
     }
 }
 
-static void global_keys(struct nclyr_win *win, int ch)
+static void global_keys(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct tui_iface *tui = win->tui;
 
@@ -178,6 +178,73 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
     return ;
 }
 
+static void handle_mouse(struct tui_iface *tui)
+{
+    struct nclyr_mouse_event mevent;
+    struct nclyr_win *win = tui->sel_window;
+    const struct nclyr_keypress *key;
+    int x, y, v;
+    MEVENT me;
+
+    v = getmouse(&me);
+    x = me.x;
+    y = me.y;
+
+    DEBUG_PRINTF("Mouse event: 0x%08x - %d\n", me.bstate, v);
+
+    if (!wmouse_trafo(win->win, &y, &x, FALSE)) {
+        DEBUG_PRINTF("X and Y wern't inside the window\n");
+        return ;
+    }
+
+    DEBUG_PRINTF("(x, y) = (%d, %d)\n", x, y);
+
+    memset(&mevent, 0, sizeof(mevent));
+    mevent.x = x;
+    mevent.y = y;
+
+    switch (me.bstate) {
+    case BUTTON1_PRESSED:
+        mevent.type = LEFT_PRESSED;
+        break;
+    case BUTTON1_RELEASED:
+        if (tui->last_mevent == LEFT_PRESSED)
+            mevent.type = LEFT_CLICKED;
+        else
+            mevent.type = LEFT_RELEASED;
+        break;
+    case BUTTON3_PRESSED:
+        mevent.type = RIGHT_PRESSED;
+        break;
+    case BUTTON3_RELEASED:
+        if (tui->last_mevent == RIGHT_PRESSED)
+            mevent.type = RIGHT_CLICKED;
+        else
+            mevent.type = RIGHT_RELEASED;
+        break;
+    case BUTTON4_PRESSED:
+        mevent.type = SCROLL_UP;
+        break;
+    case BUTTON2_PRESSED:
+        mevent.type = SCROLL_DOWN;
+        break;
+    case REPORT_MOUSE_POSITION:
+        mevent.type = tui->last_mevent;
+        break;
+    }
+
+    tui->last_mevent = mevent.type;
+
+    for (key = win->keypresses; key->ch !=  '\0'; key++) {
+        if (key->ch == KEY_MOUSE) {
+            if (key->mtype == mevent.type) {
+                key->callback(tui->sel_window, KEY_MOUSE, &mevent);
+                break;
+            }
+        }
+    }
+}
+
 static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
 {
     int ch = getch();
@@ -188,10 +255,15 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
         NULL
     };
 
+    if (ch == KEY_MOUSE) {
+        handle_mouse(tui);
+        goto found_key;
+    }
+
     for (cur_keylist = keylist; *cur_keylist != NULL; cur_keylist++) {
         for (key = *cur_keylist; key->ch != '\0'; key++) {
             if (key->ch == ch) {
-                key->callback(tui->sel_window, ch);
+                key->callback(tui->sel_window, ch, NULL);
                 goto found_key;
             }
         }
@@ -215,9 +287,17 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     keypad(stdscr, 1);
     nodelay(stdscr, TRUE);
     noecho();
+    if (has_colors()) {
+        DEBUG_PRINTF("Terminal supports colors\n");
+        start_color();
+        use_default_colors();
+    } else {
+        DEBUG_PRINTF("!!!Terminal doesn't support colors!!!\n");
+    }
 
-    start_color();
-    use_default_colors();
+    mousemask(ALL_MOUSE_EVENTS, NULL);
+    /* A zero internal is nessisary to correctly detect scrolling */
+    mouseinterval(0);
 
     if (COLOR_PAIRS <= 64)
         cons_color_set_default( &(struct cons_color_pair) { CONS_COLOR_WHITE, CONS_COLOR_BLACK });
@@ -334,17 +414,17 @@ struct tui_iface tui_iface  = {
     .windows = nclyr_windows,
     .window_count = sizeof(nclyr_windows)/sizeof(*nclyr_windows) - 1,
     .global_keys = (const struct nclyr_keypress[]) {
-        { 'q', global_keys, "Switch to previous window." },
-        { 'w', global_keys, "Switch to next window." },
-        { 'Q', global_keys, "Exit TUI." },
+        N_KEYPRESS('q', global_keys, "Switch to previous window."),
+        N_KEYPRESS('w', global_keys, "Switch to next window."),
+        N_KEYPRESS('Q', global_keys, "Exit TUI."),
 
-        { ' ', player_keys, "Toggle Pause" },
-        { 'p', player_keys, "Previous song" },
-        { 'n', player_keys, "Next song" },
-        { '+', player_keys, "+1 volume" },
-        { '-', player_keys, "-1 volume" },
+        N_KEYPRESS(' ', player_keys, "Toggle Pause"),
+        N_KEYPRESS('p', player_keys, "Previous song"),
+        N_KEYPRESS('n', player_keys, "Next song"),
+        N_KEYPRESS('+', player_keys, "+1 volume"),
+        N_KEYPRESS('-', player_keys, "-1 volume"),
 
-        { '\0', NULL, NULL }
+        N_END()
     },
     .show_status = 1,
     .status = &statusline,

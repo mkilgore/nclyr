@@ -66,7 +66,7 @@ static int help_create_key_text(char **lines, const char *title, const struct nc
     l_count++;
 
     for (i = 0; keys[i].ch != '\0'; i++) {
-        a_sprintf(lines + i + 2, "   %12s : %s", char_to_str(keys[i].ch), keys[i].help_text);
+        a_sprintf(lines + i + 2, "   %12s : %s", keypress_to_str(keys + i), keys[i].help_text);
         l_count++;
     }
 
@@ -112,8 +112,8 @@ struct line_win help_window = {
         .timeout = -1,
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            LINE_KEYPRESSES,
-            { '\0', NULL, NULL }
+            LINE_KEYPRESSES(),
+            N_END()
         },
         .init = help_init,
         .clean = line_clean,

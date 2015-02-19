@@ -42,9 +42,35 @@ static const char *key_chart[] = {
     [KEY_END] = "End",
     [KEY_NPAGE] = "Page Down",
     [KEY_PPAGE] = "Page Up",
+    [KEY_MOUSE] = "Mouse",
+};
+
+static const char *mouse_event_chart[] = {
+    [LEFT_PRESSED] = "Left hold",
+    [LEFT_RELEASED] = "Left release",
+    [LEFT_CLICKED] = "Left click",
+
+    [RIGHT_PRESSED] = "Right hold",
+    [RIGHT_RELEASED] = "Right release",
+    [RIGHT_CLICKED] = "Right click",
+
+    [SCROLL_UP] = "Scroll up",
+    [SCROLL_DOWN] = "Scroll down",
+    [SCROLL_PRESSED] = "Scroll hold",
+    [SCROLL_RELEASED] = "Scroll release",
+    [SCROLL_CLICKED] = "Scroll click",
 };
 
 const char *char_to_str(int ch)
 {
      return key_chart[ch];
 }
+
+const char *keypress_to_str(const struct nclyr_keypress *key)
+{
+    if (key->ch != KEY_MOUSE)
+        return key_chart[key->ch];
+    else
+        return mouse_event_chart[key->mtype];
+}
+
