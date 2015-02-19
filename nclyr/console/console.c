@@ -87,12 +87,11 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
             } else {
                 snprintf(line, cols, "Player %s is not open.", player_current()->name);
             }
+            printf("\r" TERM_CLEAR "%s", line);
         } else {
-            snprintf(line, cols, ":%-*s", cols - 2, linebuf);
+            printf("\r" TERM_CLEAR ":%-.*s", cols - 2, linebuf);
         }
 
-
-        printf("\r" TERM_CLEAR "%s", line);
 
         poll(main_notify, sizeof(main_notify)/sizeof(*main_notify), -1);
 
@@ -171,11 +170,12 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 }
             } else {
                 if (ch == '\n') {
-                    printf("Input: %s\n", linebuf);
                     inp_flag = 0;
                     if (song_change) {
-                        int song = strtol(linebuf, NULL, 0);
-                        player_change_song(player_current(), song);
+                        if (inp_len > 0) {
+                            int song = strtol(linebuf, NULL, 0);
+                            player_change_song(player_current(), song);
+                        }
                         song_change = 0;
                     }
                 } else if (ch != 127) {
