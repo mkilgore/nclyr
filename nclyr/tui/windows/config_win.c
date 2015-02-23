@@ -1,7 +1,6 @@
 
 #include "common.h"
 
-#include "cons_color.h"
 #include "config.h"
 #include "nclyr_conf.h"
 #include "tui_internal.h"

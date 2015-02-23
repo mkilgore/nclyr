@@ -4,7 +4,7 @@
 #include "common.h"
 
 #include <stdlib.h>
-#include "cons_color.h"
+#include "cons/color.h"
 
 enum config_item_type {
     CONFIG_STRING,

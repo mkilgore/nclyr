@@ -5,28 +5,29 @@
 
 #include "a_sprintf.h"
 #include "config.h"
+#include "cons/str.h"
+#include "cons/printf.h"
 #include "tui_internal.h"
-#include "tui_chstr.h"
-#include "tui_printf.h"
+#include "tui_state.h"
 #include "player.h"
 #include "statusline.h"
 #include "debug.h"
 
-static struct tui_printf_arg args[] = {
-    { .id = "title", .type = TUI_ARG_STRING },
-    { .id = "artist", .type = TUI_ARG_STRING },
-    { .id = "album", .type = TUI_ARG_STRING },
-    { .id = "duration", .type = TUI_ARG_TIME },
-    { .id = "position", .type = TUI_ARG_TIME },
-    { .id = "paused", .type = TUI_ARG_BOOL },
-    { .id = "volume", .type = TUI_ARG_INT },
+static struct cons_printf_arg args[] = {
+    { .id = "title", .type = CONS_ARG_STRING },
+    { .id = "artist", .type = CONS_ARG_STRING },
+    { .id = "album", .type = CONS_ARG_STRING },
+    { .id = "duration", .type = CONS_ARG_TIME },
+    { .id = "position", .type = CONS_ARG_TIME },
+    { .id = "paused", .type = CONS_ARG_BOOL },
+    { .id = "volume", .type = CONS_ARG_INT },
 };
 
 void statusline_update(struct statusline *status)
 {
     struct tui_iface *tui = status->tui;
     struct song_info *song = tui->state.song;
-    struct chstr chstr;
+    struct cons_str chstr;
     status->updated = 0;
 
     if (tui->state.is_up) {
@@ -44,10 +45,10 @@ void statusline_update(struct statusline *status)
             args[4].u.time_val = tui->state.seek_pos;
             args[5].u.bool_val = tui->state.state == PLAYER_PAUSED;
             args[6].u.int_val = tui->state.volume;
-            chstr_init(&chstr);
-            tui_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
+            cons_str_init(&chstr);
+            cons_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
             waddchstr(status->win, chstr.chstr);
-            chstr_clear(&chstr);
+            cons_str_clear(&chstr);
         } else {
             wprintw(status->win, "No song playing");
         }
@@ -82,12 +83,12 @@ void statusline_init(struct statusline *status, int cols)
     status->win = newwin(2, cols, 0, 0);
     status->updated = 1;
 
-    status->song_name = tui_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG)->u.str.str, ARRAY_SIZE(args), args);
+    status->song_name = cons_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG)->u.str.str, ARRAY_SIZE(args), args);
 }
 
 void statusline_clean(struct statusline *status)
 {
-    tui_printf_compile_free(status->song_name);
+    cons_printf_compiled_free(status->song_name);
     delwin(status->win);
 }
 

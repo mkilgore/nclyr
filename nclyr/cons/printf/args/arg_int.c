@@ -4,7 +4,9 @@
 #include <string.h>
 
 #include "stringcasecmp.h"
-#include "tui_color.h"
+#include "cons/color.h"
+#include "cons/str.h"
+#include "cons/printf.h"
 #include "printf/compiler.h"
 #include "arg_int.h"
 #include "debug.h"
@@ -17,7 +19,7 @@ struct printf_opt_arg_int {
     unsigned int zero_pad :1;
 };
 
-static void print_arg_int(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
+static void print_arg_int(struct printf_opt *opt, struct cons_printf_compiled *comp, struct cons_str *chstr, size_t arg_count, const struct cons_printf_arg *args)
 {
     char buffer[19], *c = buffer + sizeof(buffer);
     int i, len = 0;
@@ -32,10 +34,10 @@ static void print_arg_int(struct printf_opt *opt, struct tui_printf_compiled *co
         for (; len <  arg->width; len++)
             *--c = (arg->zero_pad)? '0': ' ';
 
-    chstr_addstr(chstr, c, TUI_PRINTF_COMP_ATTRS(comp));
+    cons_str_add_str(chstr, c, CONS_PRINTF_COMP_ATTRS(comp));
 }
 
-struct printf_opt *printf_arg_parse_int(int index, char *params, size_t arg_count, const struct tui_printf_arg *args)
+struct printf_opt *printf_arg_parse_int(int index, char *params, size_t arg_count, const struct cons_printf_arg *args)
 {
     struct printf_opt_arg_int *arg = malloc(sizeof(*arg));
     char *val, *i;

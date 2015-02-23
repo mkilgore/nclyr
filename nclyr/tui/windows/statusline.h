@@ -5,7 +5,7 @@
 
 struct statusline;
 
-#include "tui_printf.h"
+#include "cons/printf.h"
 #include "player.h"
 #include "tui.h"
 
@@ -22,7 +22,7 @@ struct statusline {
     void (*update) (struct statusline *);
     void (*player_notif) (struct statusline *, enum player_notif_type, struct player_state_full *);
 
-    tui_printf_compiled *song_name;
+    cons_printf_compiled *song_name;
 };
 
 extern struct statusline statusline;

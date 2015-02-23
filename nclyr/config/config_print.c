@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "stringcasecmp.h"
-#include "cons_color.h"
+#include "cons/color.h"
 #include "config.h"
 #include "debug.h"
 

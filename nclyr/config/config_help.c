@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cons_color.h"
+#include "cons/color.h"
 #include "config.h"
 #include "debug.h"
 

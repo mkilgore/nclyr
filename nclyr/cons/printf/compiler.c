@@ -3,13 +3,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses.h>
 
-#include "cons_color.h"
-#include "tui_internal.h"
-#include "tui_color.h"
-#include "tui_printf.h"
-#include "tui_chstr.h"
+#include "nclyr_ncurses.h"
+#include "cons/color.h"
+#include "cons/str.h"
+#include "cons/printf.h"
 #include "printf_string.h"
 #include "printf_attr.h"
 #include "printf_arg.h"
@@ -21,7 +19,7 @@
 
 struct printf_cmd {
     const char *id;
-    struct printf_opt *(*get) (const char *id, char **c, char *params, size_t arg_count, const struct tui_printf_arg *args);
+    struct printf_opt *(*get) (const char *id, char **c, char *params, size_t arg_count, const struct cons_printf_arg *args);
 };
 
 static struct printf_cmd cmds[] = {
@@ -73,7 +71,7 @@ char *printf_get_next_param(char *params, char **id, char **val)
 }
 
 
-static void handle_id(struct printf_opt ***opt_next, char *id,  char **c, size_t arg_count, const struct tui_printf_arg *args)
+static void handle_id(struct printf_opt ***opt_next, char *id,  char **c, size_t arg_count, const struct cons_printf_arg *args)
 {
     char *colon, *id_par = NULL;
     int i;
@@ -101,9 +99,9 @@ static void handle_id(struct printf_opt ***opt_next, char *id,  char **c, size_t
     }
 }
 
-tui_printf_compiled *tui_printf_compile_internal(char **c, size_t arg_count, const struct tui_printf_arg *args, const char *stop_id)
+cons_printf_compiled *cons_printf_compile_internal(char **c, size_t arg_count, const struct cons_printf_arg *args, const char *stop_id)
 {
-    struct tui_printf_compiled *comp = malloc(sizeof(*comp));
+    struct cons_printf_compiled *comp = malloc(sizeof(*comp));
     struct printf_opt **opt_next = &comp->head;
     char *c1;
 
@@ -156,44 +154,28 @@ cleanup:
     return comp;
 }
 
-tui_printf_compiled *tui_printf_compile(const char *format, size_t arg_count, const struct tui_printf_arg *args)
+cons_printf_compiled *cons_printf_compile(const char *format, size_t arg_count, const struct cons_printf_arg *args)
 {
-    tui_printf_compiled *comp;
+    cons_printf_compiled *comp;
     char *c_orig = strdup(format);
     char *c = c_orig;
 
-    comp = tui_printf_compile_internal(&c, arg_count, args, NULL);
+    comp = cons_printf_compile_internal(&c, arg_count, args, NULL);
 
     free(c_orig);
     return comp;
 }
 
-static chtype attr_t_to_chtype(attr_t attrs)
-{
-    chtype attributes = 0;
-    if (attrs & WA_BOLD)
-        attributes |= A_BOLD;
-    if (attrs & WA_REVERSE)
-        attributes |= A_REVERSE;
-    if (attrs & WA_DIM)
-        attributes |= A_DIM;
-    if (attrs & WA_BLINK)
-        attributes |= A_BLINK;
-    if (attrs & WA_UNDERLINE)
-        attributes |= A_UNDERLINE;
-    return attributes;
-}
-
 /* The WINDOW * is used to get the current attributes */
-void tui_printf(tui_printf_compiled *print, struct chstr *chstr, int max_width, chtype attrs, const struct tui_printf_arg *args, size_t arg_count)
+void cons_printf(cons_printf_compiled *print, struct cons_str *chstr, int max_width, chtype attrs, const struct cons_printf_arg *args, size_t arg_count)
 {
-    struct tui_printf_compiled *comp = print;
+    struct cons_printf_compiled *comp = print;
     struct printf_opt *cur;
 
-    chstr_init(chstr);
+    cons_str_init(chstr);
 
     if (max_width)
-        chstr_setwidth(chstr, max_width);
+        cons_str_setwidth(chstr, max_width);
 
     /*
      * The color pair information A_COLOR is counted as an 'attribute', thus
@@ -204,7 +186,7 @@ void tui_printf(tui_printf_compiled *print, struct chstr *chstr, int max_width, 
      * which makes the colors display wrong.
      */
     comp->attributes = attrs & (A_ATTRIBUTES & ~A_COLOR);
-    tui_color_pair_fb(PAIR_NUMBER(attrs), &comp->colors);
+    cons_color_num_to_pair(PAIR_NUMBER(attrs), &comp->colors);
 
     for (cur = comp->head; cur; cur = cur->next)
         (cur->print) (cur, comp, chstr, arg_count, args);
@@ -212,9 +194,9 @@ void tui_printf(tui_printf_compiled *print, struct chstr *chstr, int max_width, 
     return ;
 }
 
-void tui_printf_compile_free(tui_printf_compiled *print)
+void cons_printf_compiled_free(cons_printf_compiled *print)
 {
-    struct tui_printf_compiled *comp = print;
+    struct cons_printf_compiled *comp = print;
     struct printf_opt *cur, *tmp;
 
     for (cur = comp->head; cur; cur = tmp) {
@@ -228,19 +210,5 @@ void tui_printf_compile_free(tui_printf_compiled *print)
 void printf_opt_free(struct printf_opt *opt)
 {
     free(opt);
-}
-
-chtype tui_get_chtype_from_window(WINDOW *win)
-{
-    chtype ret = 0;
-    int col_pair;
-    attr_t attrs;
-
-    wattr_get(win, &attrs, &col_pair, NULL);
-
-    ret |= COLOR_PAIR(col_pair);
-    ret |= attr_t_to_chtype(attrs);
-
-    return ret;
 }
 

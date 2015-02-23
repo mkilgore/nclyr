@@ -4,8 +4,8 @@
 #include <string.h>
 #include <ncurses.h>
 
-#include "cons_color.h"
-#include "tui_color.h"
+#include "cons/color.h"
+#include "cons/printf.h"
 #include "compiler.h"
 #include "printf_color.h"
 #include "debug.h"
@@ -17,7 +17,7 @@ struct printf_opt_color {
     unsigned int have_b :1;
 };
 
-static void print_color(struct printf_opt *opt, struct tui_printf_compiled *comp, struct chstr *chstr, size_t arg_count, const struct tui_printf_arg *args)
+static void print_color(struct printf_opt *opt, struct cons_printf_compiled *comp, struct cons_str *chstr, size_t arg_count, const struct cons_printf_arg *args)
 {
     struct printf_opt_color *color = container_of(opt, struct printf_opt_color, opt);
     if (color->have_f)
@@ -32,7 +32,7 @@ static void print_free(struct printf_opt *opt)
     free(opt);
 }
 
-struct printf_opt *print_color_get(const char *id, char **c, char *params, size_t arg_count, const struct tui_printf_arg *args)
+struct printf_opt *print_color_get(const char *id, char **c, char *params, size_t arg_count, const struct cons_printf_arg *args)
 {
     struct printf_opt_color *color = malloc(sizeof(*color));
     char *val, *i;

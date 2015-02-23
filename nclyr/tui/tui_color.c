@@ -3,7 +3,7 @@
 
 #include <ncurses.h>
 
-#include "cons_color.h"
+#include "cons/color.h"
 #include "tui_color.h"
 #include "debug.h"
 
@@ -41,7 +41,7 @@ void tui_color_init(void)
     DEBUG_PRINTF("Color pairs: %d\n", COLOR_PAIRS);
     for (i = 0; i < count; i++)
         for (k = 0; k < count; k++)
-            init_pair(CALC_PAIR(colors[i], colors[k], count), color_map_curses[i], color_map_curses[k]);
+            init_pair(cons_color_pair_to_num(&(struct cons_color_pair) { colors[i], colors[k] }), color_map_curses[i], color_map_curses[k]);
 }
 
 void tui_color_set(WINDOW *win, struct cons_color_pair colors)

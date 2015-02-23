@@ -25,3 +25,33 @@ void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
     }
 }
 
+static chtype attr_t_to_chtype(attr_t attrs)
+{
+    chtype attributes = 0;
+    if (attrs & WA_BOLD)
+        attributes |= A_BOLD;
+    if (attrs & WA_REVERSE)
+        attributes |= A_REVERSE;
+    if (attrs & WA_DIM)
+        attributes |= A_DIM;
+    if (attrs & WA_BLINK)
+        attributes |= A_BLINK;
+    if (attrs & WA_UNDERLINE)
+        attributes |= A_UNDERLINE;
+    return attributes;
+}
+
+chtype tui_get_chtype_from_window(WINDOW *win)
+{
+    chtype ret = 0;
+    int col_pair;
+    attr_t attrs;
+
+    wattr_get(win, &attrs, &col_pair, NULL);
+
+    ret |= COLOR_PAIR(col_pair);
+    ret |= attr_t_to_chtype(attrs);
+
+    return ret;
+}
+

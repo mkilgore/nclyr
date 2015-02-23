@@ -3,7 +3,7 @@
 
 #include <ncurses.h>
 
-#include "cons_color.h"
+#include "cons/color.h"
 #include "config.h"
 
 void tui_color_init(void);
