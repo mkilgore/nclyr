@@ -18,6 +18,9 @@ enum cons_color cons_color_get(const char *name)
 
 const char *cons_color_name(enum cons_color color)
 {
-    return color_names[color];
+    if (color == CONS_COLOR_DEFAULT)
+        return "default";
+    else
+        return color_names[color];
 }
 

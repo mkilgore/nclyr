@@ -6,8 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "cons_color.h"
-#include "tui/tui_color.h"
+#include "cons/color.h"
 #include "test/test.h"
 
 static const char *color_names[] = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "default" };
@@ -55,8 +54,8 @@ int tui_cols (void)
             pair.f = i;
             pair.b = k;
 
-            n = tui_color_pair_get(&pair);
-            tui_color_pair_fb(n, &pair2);
+            n = cons_color_pair_to_num(&pair);
+            cons_color_num_to_pair(n, &pair2);
 
             sprintf(buf, "%d - %d,%d", n, i, k);
 

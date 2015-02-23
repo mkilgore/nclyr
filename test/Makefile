@@ -19,9 +19,8 @@ TESTS += player
 # More complex tests may require the use of more then just one .c file from
 # ./src, in which case all of them should be listed. Also possible is having
 # more the one test program per ./src file.
-cons_color.OBJ := ./nclyr/cons_color.o \
+cons_color.OBJ := ./nclyr/cons/cons_color.o \
 					./nclyr/common.o \
-					./nclyr/tui/tui_color.o \
 					./test/cons_color.o
 song.OBJ := ./nclyr/song.o \
 				./nclyr/common.o \

@@ -21,7 +21,7 @@ struct printf_opt_arg_int {
 
 static void print_arg_int(struct printf_opt *opt, struct cons_printf_compiled *comp, struct cons_str *chstr, size_t arg_count, const struct cons_printf_arg *args)
 {
-    char buffer[19], *c = buffer + sizeof(buffer);
+    char buffer[19], *c = buffer + sizeof(buffer) - 1;
     int i, len = 0;
     struct printf_opt_arg_int *arg = container_of(opt, struct printf_opt_arg_int, opt);
 
