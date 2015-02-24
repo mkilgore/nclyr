@@ -2,7 +2,6 @@
 #define NCLYR_TUI_PRINTF_COMPILED_H
 
 #include <stdlib.h>
-#include <ncurses.h>
 
 #include "cons/color.h"
 #include "cons/str.h"

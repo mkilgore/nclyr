@@ -7,6 +7,7 @@
 extern struct nclyr_iface console_iface;
 
 enum console_config {
+    CONSOLE_CONFIG_STATUSLINE,
     CONSOLE_CONFIG_TOTAL
 };
 

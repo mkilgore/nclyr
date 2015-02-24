@@ -3,7 +3,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses.h>
 
 #include "config.h"
 #include "nclyr_conf.h"

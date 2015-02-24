@@ -2,7 +2,6 @@
 #include "common.h"
 
 #include <string.h>
-#include <ncurses.h>
 
 #include "stringcasecmp.h"
 #include "cons/color.h"

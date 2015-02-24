@@ -2,7 +2,6 @@
 #include "common.h"
 
 #include <string.h>
-#include <ncurses.h>
 
 #include "cons/printf.h"
 #include "compiler.h"

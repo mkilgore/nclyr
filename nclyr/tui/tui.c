@@ -215,8 +215,12 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     keypad(stdscr, 1);
     nodelay(stdscr, TRUE);
     noecho();
+
     start_color();
     use_default_colors();
+
+    if (COLOR_PAIRS <= 64)
+        cons_color_set_default( &(struct cons_color_pair) { CONS_COLOR_WHITE, CONS_COLOR_BLACK });
 
     tui_color_init();
 
