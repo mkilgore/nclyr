@@ -4,7 +4,6 @@ objs-y += signal_handler.o
 objs-y += args.o
 objs-y += nclyr_conf.o
 objs-y += iface.o
-objs-y += ifaces.o
 objs-y += build.o
 
 objs-$(CONFIG_LIB_GLYR) += lyr_thread.o
@@ -16,6 +15,5 @@ subdir-y += player
 subdir-y += players
 subdir-y += config
 subdir-y += cons
-subdir-$(CONFIG_TUI) += tui
-subdir-$(CONFIG_CONSOLE) += console
+subdir-y += ifaces
 
