@@ -5,6 +5,8 @@ CFLAGS += -I'./test' -I'./nclyr'
 
 # This defines the names of all the tests we should run
 TESTS += cons_color
+TESTS += cons_str
+TESTS += cons_printf
 TESTS += song
 TESTS += player
 
@@ -22,6 +24,15 @@ TESTS += player
 cons_color.OBJ := ./nclyr/cons/cons_color.o \
 					./nclyr/common.o \
 					./test/cons_color.o
+cons_str.OBJ := ./nclyr/cons/cons_str.o \
+					./nclyr/cons/cons_color.o \
+					./nclyr/common.o \
+					./test/cons_str.o
+cons_printf.OBJ := ./nclyr/cons/printf.o \
+					./nclyr/cons/cons_color.o \
+					./nclyr/cons/cons_str.o \
+					./nclyr/common.o \
+					./test/cons_printf.o
 song.OBJ := ./nclyr/song.o \
 				./nclyr/common.o \
 				./test/song.o

@@ -28,7 +28,7 @@ int config_load_from_file(struct root_config *root, const char *unexp_file)
 
     yyin = fin;
 
-    if (!yyparse(&state))
+    if (yyparse(&state) != 0)
         ret = 1;
 
     free(file);

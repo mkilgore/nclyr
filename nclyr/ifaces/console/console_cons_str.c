@@ -118,5 +118,11 @@ char *console_cons_str_print(struct cons_str *chstr)
         str_add_ch(&ret, *ch & A_CHARTEXT);
     }
 
+    if (cur_color.f != CONS_COLOR_DEFAULT)
+        str_add_str(&ret, TERM_COLOR_DEFAULT);
+
+    if (cur_color.b != CONS_COLOR_DEFAULT)
+        str_add_str(&ret, TERM_COLOR_BG_DEFAULT);
+
     return ret.str;
 }

@@ -49,6 +49,9 @@ config_file:
         (void)@1.first_line;
         YYABORT;
     }
+    | config_file TOK_EOF {
+        YYACCEPT;
+    }
     ;
 
 block:
@@ -72,6 +75,7 @@ assignment:
     config_item '=' string {
         config_item_data_clear($1->type, &$1->u);
         rd_string_dup(&$1->u.str, $3);
+
         free($3);
     }
     | config_item '=' TOK_INTEGER {
@@ -119,9 +123,9 @@ string:
         $$ = $1;
     }
     | string TOK_STRING {
-        $$ = realloc($$, strlen($$) + strlen($1) + 2);
-        strcat($$, $1);
-        free($1);
+        $$ = realloc($$, strlen($$) + strlen($2) + 2);
+        strcat($$, $2);
+        free($2);
     }
     ;
 
