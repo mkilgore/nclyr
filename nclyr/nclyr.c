@@ -52,6 +52,7 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
     struct arg_parser_extra *extra = container_of(parser, struct arg_parser_extra, parser);
     struct player **player;
     struct nclyr_iface **iface;
+    const char *def_iface;
 
     switch (index) {
     case ARG_help:
@@ -73,9 +74,10 @@ static int arg_handle(struct arg_parser *parser, int index, const char *arg)
         return 1;
 
     case ARG_list_interfaces:
+        def_iface = ROOT_CONFIG(NCLYR_CONFIG_INTERFACE)->u.str.str;
         printf("Available interfaces:\n");
         for (iface = nclyr_iface_list; *iface; iface++)
-            printf("  - %s: %s\n", (*iface)->name, (*iface)->description);
+            printf("  - %s: %s%s\n", (*iface)->name, (*iface)->description, (strcmp((*iface)->name, def_iface) == 0)? " (default)":"");
         return 1;
 
     case ARG_help_config:
