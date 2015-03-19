@@ -13,12 +13,14 @@
 int compare_cons_str(const struct cons_str *str1, const struct cons_str *str2)
 {
     cons_char *c1 = str1->chstr, *c2 = str2->chstr;
-    if (str1->length != str2->length)
-        return 1;
-
     while (*c1 && *c2)
         if (*c1 != *c2)
-            return 0;
+            return 1;
+
+    if (*c1 || *c2)
+        return 1;
+
+    return 0;
 }
 
 #define assert_cons_str_equal(str1, str2) \
@@ -30,13 +32,23 @@ int cons_str_test(void)
 {
     int ret = 0;
     struct cons_str cmp;
-    struct cons_str chstr, chstr2;
+    struct cons_str chstr;
+    cons_char *c;
 
     cons_str_init(&chstr);
     cons_str_init(&cmp);
 
     cmp.chstr = (cons_char []) TEST_ARR;
     cons_str_add_str(&chstr, (char []) TEST_ARR, 0);
+
+    printf("Cmp: ");
+    for (c = cmp.chstr; *c; c++)
+        putchar(*c);
+    putchar('\n');
+    printf("chstr: ");
+    for (c = chstr.chstr; *c; c++)
+        putchar(*c);
+    putchar('\n');
 
     ret += assert_cons_str_equal(&chstr, &cmp);
 
