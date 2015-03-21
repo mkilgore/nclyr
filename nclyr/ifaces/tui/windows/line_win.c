@@ -47,6 +47,22 @@ void line_clean (struct nclyr_win *win)
     line_free_lines(line);
 }
 
+void line_handle_mouse(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
+{
+    /* We just 'map' the mouse events to the coresponding keypress event, to
+     * avoid duplicating the logic. */
+    switch (mevent->type) {
+    case SCROLL_UP:
+        line_handle_keypress(win, 'k', NULL);
+        break;
+    case SCROLL_DOWN:
+        line_handle_keypress(win, 'j', NULL);
+        break;
+    default:
+        break;
+    }
+}
+
 void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);

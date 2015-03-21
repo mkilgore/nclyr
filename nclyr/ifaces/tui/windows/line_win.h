@@ -17,6 +17,7 @@ struct line_win {
 void line_update(struct nclyr_win *);
 void line_clean(struct nclyr_win *);
 void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent);
+void line_handle_mouse(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent);
 
 void line_free_lines(struct line_win *);
 
@@ -26,6 +27,8 @@ void line_free_lines(struct line_win *);
     N_KEYPRESS('J', line_handle_keypress, "Scroll down one page"), \
     N_KEYPRESS('K', line_handle_keypress, "Scroll up one page"), \
     N_KEYPRESS(KEY_NPAGE, line_handle_keypress, "Scroll down one page"), \
-    N_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page")
+    N_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page"), \
+    N_MOUSE(SCROLL_UP, line_handle_mouse, "Scroll up"), \
+    N_MOUSE(SCROLL_DOWN, line_handle_mouse, "Scroll down")
 
 #endif
