@@ -13,7 +13,7 @@
 int compare_cons_str(const struct cons_str *str1, const struct cons_str *str2)
 {
     cons_char *c1 = str1->chstr, *c2 = str2->chstr;
-    while (*c1 && *c2)
+    for (; *c1 && *c2; c1++, c2++)
         if (*c1 != *c2)
             return 1;
 
