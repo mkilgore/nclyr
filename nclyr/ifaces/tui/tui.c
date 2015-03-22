@@ -12,6 +12,8 @@
 #include "lyr_thread.h"
 #include "tui_internal.h"
 #include "tui_color.h"
+#include "cmd_exec.h"
+#include "cmd_handle.h"
 #include "windows/window.h"
 #include "windows/statusline.h"
 #include "windows/clock_win.h"
@@ -35,6 +37,11 @@ static struct nclyr_win *nclyr_windows[] = {
     &clock_window.super_win,
     NULL
 };
+
+static void tui_cmd_quit(struct tui_iface *tui, int argc, char **argv)
+{
+    tui->exit_flag = 1;
+}
 
 static void player_keys(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
@@ -83,6 +90,9 @@ static void global_keys(struct nclyr_win *win, int ch, struct nclyr_mouse_event 
         tui->exit_flag = 1;
     } else if (ch == ':') {
         tui->grab_input = 1;
+        if (tui->display)
+            free(tui->display);
+        tui->display = NULL;
         memset(tui->inp_buf, 0, tui->inp_buf_len);
     }
 }
@@ -265,9 +275,17 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
 
     if (tui->grab_input) {
         if (ch == KEY_BACKSPACE) {
-            tui->inp_buf[strlen(tui->inp_buf) - 1] = '\0';
+            /* If they try to backspace past the beginning of the input, then
+             * we exit command input */
+            if (strlen(tui->inp_buf) > 0)
+                tui->inp_buf[strlen(tui->inp_buf) - 1] = '\0';
+            else
+                tui->grab_input = 0;
         } else if (ch == KEY_ENTER || ch == '\n') {
             tui->grab_input = 0;
+            /* We don't try running the command if the buffer is empty */
+            if (strlen(tui->inp_buf))
+                tui_cmd_exec(tui, tui->cmds, tui->inp_buf);
         } else {
             size_t len = strlen(tui->inp_buf);
             tui->inp_buf[len] = ch;
@@ -323,6 +341,7 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui->inp_buf = inp_buf;
     tui->inp_buf_len = sizeof(inp_buf);
+    tui->display = NULL;
 
     tui->cfg = tui_config_get_root();
 
@@ -368,12 +387,10 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
         printw(" %s ", tui->sel_window->win_name);
         addch(ACS_LTEE);
 
-        if (tui->grab_input) {
+        if (tui->grab_input)
             mvprintw(LINES - 1, 0, ":%-*s", COLS - 1, inp_buf);
-        } else {
-            move(LINES - 1, 0);
-            clrtoeol();
-        }
+        else
+            mvprintw(LINES - 1, 0, "%-*s", COLS, (tui->display)? tui->display: "");
 
         refresh();
 
@@ -389,8 +406,20 @@ static void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
         wrefresh(tui->sel_window->win);
 
-        if (tui->sel_window->show_cursor)
+        /* We check if the currently selected window wants to show the cursor,
+         * and display it if it does.
+         *
+         * Alternatively, if we're currently getting input for a command, then
+         * we want to show the cursor down on the input line at the end of the
+         * line. */
+        if (tui->sel_window->show_cursor && !tui->grab_input) {
             curs_set(1);
+        } else if (tui->grab_input) {
+            move(LINES - 1, strlen(tui->inp_buf) + 1);
+            refresh();
+            curs_set(1);
+        }
+
 
         poll(main_notify, sizeof(main_notify)/sizeof(main_notify[0]), tui->sel_window->timeout);
 
@@ -460,5 +489,12 @@ struct tui_iface tui_iface  = {
     .sel_window = NULL,
     .exit_flag = 0,
     .grab_input = 0,
+    .cmds = (const struct tui_cmd[]) {
+        TUI_CMD("player", tui_cmd_handle_player),
+        TUI_CMD("window", tui_cmd_handle_window),
+        TUI_CMD("tui",    tui_cmd_handle_tui),
+        TUI_CMD("quit",   tui_cmd_quit),
+        TUI_CMD_END()
+    },
 };
 

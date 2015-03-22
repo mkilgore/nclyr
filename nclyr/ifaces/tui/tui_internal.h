@@ -8,6 +8,7 @@
 #include "player.h"
 #include "windows/window.h"
 #include "windows/statusline.h"
+#include "cmd_exec.h"
 
 struct tui_iface {
     struct nclyr_iface iface;
@@ -29,9 +30,16 @@ struct tui_iface {
     struct config_item *cfg;
 
     enum nclyr_mouse_event_type last_mevent;
+
+    /* For command input bar. If 'grab_input' is set, then we're capturing the
+     * keyboard to read in a command. If it's not set, then we're displaying
+     * 'display' on the bottom bar. */
     unsigned int grab_input :1;
     char *inp_buf;
+    char *display;
     size_t inp_buf_len;
+
+    const struct tui_cmd *cmds;
 };
 
 void tui_change_window(struct tui_iface *, struct nclyr_win *);

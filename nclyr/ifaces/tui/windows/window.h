@@ -114,6 +114,9 @@ struct nclyr_win {
     /* Called when we recieve a response from the query thread that this window asked for */
     void (*new_song_data) (struct nclyr_win *, const struct lyr_thread_notify *);
 
+    /* Text command for this window */
+    void (*cmd_exec) (struct nclyr_win *, int argc, char **argv);
+
     void (*new_player_notif) (struct nclyr_win *, enum player_notif_type, struct player_state_full *);
 };
 
