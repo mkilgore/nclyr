@@ -61,4 +61,19 @@ enum tui_config_statusline {
     TUI_CONFIG_STATUSLINE_TOTAL
 };
 
+struct tui_window_desc {
+    const char *name;
+    const char *player; /* If not null, then it requires the player matching this name */
+    struct nclyr_win *(*new)(void);
+};
+
+extern struct tui_window_desc window_descs[];
+
+#define WIN_DESC(wname, wplayer, winit) { .name = (wname), .player = (wplayer), .new = (winit) }
+#define WIN_DESC_END() { .name = NULL }
+
+struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x);
+void tui_window_add(struct tui_iface *tui, struct nclyr_win *win);
+void tui_window_del(struct tui_iface *tui, int window_id);
+
 #endif

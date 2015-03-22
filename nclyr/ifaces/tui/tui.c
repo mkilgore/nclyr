@@ -29,16 +29,45 @@
 #include "tui.h"
 #include "debug.h"
 
-static struct nclyr_win *nclyr_windows[] = {
-    &playlist_window.super_win,
+struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x)
+{
+    struct nclyr_win *w = (win_desc->new) ();
+
+    w->tui = tui;
+    w->win = newwin(rows, cols, y, x);
+    touchwin(w->win);
+    w->updated = 1;
+
+    if (w->init)
+        w->init(w);
+
+    return w;
+}
+
+void tui_window_add(struct tui_iface *tui, struct nclyr_win *win)
+{
+    tui->window_count++;
+    tui->windows = realloc(tui->windows, sizeof(*tui->windows) * tui->window_count);
+    tui->windows[tui->window_count - 1] = win;
+}
+
+void tui_window_del(struct tui_iface *tui, int window_id)
+{
+    if (window_id + 1 < tui->window_count)
+        memmove(tui->windows + window_id, tui->windows + window_id + 1, tui->window_count - window_id - 1);
+    tui->window_count--;
+}
+
+struct tui_window_desc window_descs[] = {
+    WIN_DESC("playlist", NULL, playlist_win_new),
 #if CONFIG_LIB_GLYR
-    &lyrics_window.super_win,
-    &artist_window.super_win,
+    WIN_DESC("lyrics", NULL, lyrics_win_new),
+    WIN_DESC("artist", NULL, artist_win_new),
 #endif
-    &config_window.super_win,
-    &help_window.super_win,
-    &clock_window.super_win,
-    NULL
+    WIN_DESC("config", NULL, config_win_new),
+    WIN_DESC("help", NULL, help_win_new),
+    WIN_DESC("clock", NULL, clock_win_new),
+    WIN_DESC_END()
 };
 
 struct tui_iface tui_iface  = {
@@ -48,8 +77,8 @@ struct tui_iface tui_iface  = {
         .main_loop = tui_main_loop,
     },
     .state = { .is_up = 0 },
-    .windows = nclyr_windows,
-    .window_count = sizeof(nclyr_windows)/sizeof(*nclyr_windows) - 1,
+    .windows = NULL,
+    .window_count = 0,
     .global_keys = (const struct nclyr_keypress[]) {
         N_KEYPRESS('q', tui_keys_global, "Switch to previous window."),
         N_KEYPRESS('w', tui_keys_global, "Switch to next window."),

@@ -235,7 +235,7 @@ static void clock_clean (struct nclyr_win *win)
     free(clock->last_buf);
 }
 
-struct clock_win clock_window = {
+static struct clock_win clock_window_init = {
     .super_win = {
         .win_name = "Clock",
         .win = NULL,
@@ -255,4 +255,11 @@ struct clock_win clock_window = {
         .new_player_notif = NULL,
     },
 };
+
+struct nclyr_win *clock_win_new(void)
+{
+    struct clock_win *clock = malloc(sizeof(*clock));
+    memcpy(clock, &clock_window_init, sizeof(clock_window_init));
+    return &clock->super_win;
+}
 

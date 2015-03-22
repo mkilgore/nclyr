@@ -4,6 +4,6 @@
 #include "window.h"
 #include "line_win.h"
 
-extern struct line_win lyrics_window;
+struct nclyr_win *lyrics_win_new(void);
 
 #endif

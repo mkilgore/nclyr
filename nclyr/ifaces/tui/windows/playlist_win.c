@@ -171,7 +171,7 @@ static void playlist_win_new_player_notif(struct nclyr_win *win, enum player_not
     return ;
 }
 
-struct playlist_win playlist_window = {
+static struct playlist_win playlist_window_init = {
     .super_win = {
         .win_name = "Playlist",
         .win = NULL,
@@ -199,4 +199,11 @@ struct playlist_win playlist_window = {
     .selected = 0,
     .disp_offset = 0
 };
+
+struct nclyr_win *playlist_win_new(void)
+{
+    struct playlist_win *win = malloc(sizeof(*win));
+    memcpy(win, &playlist_window_init, sizeof(playlist_window_init));
+    return &win->super_win;
+}
 

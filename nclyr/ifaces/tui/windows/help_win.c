@@ -17,16 +17,17 @@
 
 static int help_count_lines(struct tui_iface *tui)
 {
-    int lines = 2;
-    struct nclyr_win **win;
+    int lines = 2, i;
     const struct nclyr_keypress *key;
 
     for (key = tui->global_keys; key->ch != '\0'; key++)
         lines++;
 
-    for (win = tui->windows; *win; win++) {
+    for (i = 0; i < tui->window_count; i++) {
+        struct nclyr_win *win = tui->windows[i];
+
         lines += 4;
-        for (key = (*win)->keypresses; key->ch != '\0'; key++)
+        for (key = win->keypresses; key->ch != '\0'; key++)
             lines++;
     }
 
@@ -75,13 +76,17 @@ static int help_create_key_text(char **lines, const char *title, const struct nc
 
 static void help_create_text(struct tui_iface *tui, struct line_win *line)
 {
-    struct nclyr_win **win;
+    int i;
     int next;
+
     next = help_create_key_text(line->lines, "Global", tui->global_keys);
-    for (win = tui->windows; *win; win++) {
+
+    for (i = 0; i < tui->window_count; i++) {
+        struct nclyr_win *win = tui->windows[i];
+
         line->lines[next++] = strdup("");
         line->lines[next++] = strdup("");
-        next += help_create_key_text(line->lines + next, (*win)->win_name, (*win)->keypresses);
+        next += help_create_key_text(line->lines + next, win->win_name, win->keypresses);
     }
 }
 
@@ -105,7 +110,7 @@ static void help_resize(struct nclyr_win *win)
     help_resize_dashes(line);
 }
 
-struct line_win help_window = {
+static struct line_win help_window_init = {
     .super_win = {
         .win_name = "Help",
         .win = NULL,
@@ -125,4 +130,11 @@ struct line_win help_window = {
         .new_player_notif = NULL,
     }
 };
+
+struct nclyr_win *help_win_new(void)
+{
+    struct line_win *win = malloc(sizeof(*win));
+    memcpy(win, &help_window_init, sizeof(help_window_init));
+    return &win->super_win;
+}
 

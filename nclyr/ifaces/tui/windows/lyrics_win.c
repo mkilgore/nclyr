@@ -94,7 +94,7 @@ static void lyrics_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_m
     }
 }
 
-struct line_win lyrics_window = {
+static struct line_win lyrics_window_init = {
     .super_win = {
         .win_name = "Lyrics",
         .win = NULL,
@@ -119,4 +119,11 @@ struct line_win lyrics_window = {
     .lines = NULL,
     .center = 1
 };
+
+struct nclyr_win *lyrics_win_new(void)
+{
+    struct line_win *win = malloc(sizeof(*win));
+    memcpy(win, &lyrics_window_init, sizeof(lyrics_window_init));
+    return &win->super_win;
+}
 

@@ -4,6 +4,6 @@
 #include "window.h"
 #include "line_win.h"
 
-extern struct line_win config_window;
+struct nclyr_win *config_win_new(void);
 
 #endif

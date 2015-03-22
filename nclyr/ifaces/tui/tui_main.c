@@ -21,7 +21,7 @@
 static void handle_player_fd(struct tui_iface *tui, int playerfd)
 {
     struct player_notification notif;
-    struct nclyr_win **win;
+    int i;
 
     read(playerfd, &notif, sizeof(notif));
 
@@ -30,10 +30,12 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
     player_state_full_update(&tui->state, &notif);
 
     if (notif.type == PLAYER_SONG) {
-        for (win = tui->windows; *win; win++) {
-            if ((*win)->clear_song_data)
-                (*win)->clear_song_data(*win);
-            (*win)->already_lookedup = 0;
+        for (i = 0; i < tui->window_count; i++) {
+            struct nclyr_win *win = tui->windows[i];
+
+            if (win->clear_song_data)
+                win->clear_song_data(win);
+            win->already_lookedup = 0;
         }
 
         tui->sel_window->already_lookedup = 1;
@@ -41,9 +43,11 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
             lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
     }
 
-    for (win = tui->windows; *win; win++) {
-        if ((*win)->new_player_notif)
-            (*win)->new_player_notif(*win, notif.type, &tui->state);
+    for (i = 0; i < tui->window_count; i++) {
+        struct nclyr_win *win = tui->windows[i];
+
+        if (win->new_player_notif)
+            win->new_player_notif(win, notif.type, &tui->state);
     }
 
     tui->status->player_notif(tui->status, notif.type, &tui->state);
@@ -235,7 +239,8 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     char inp_buf[200];
     struct tui_iface *tui = container_of(iface, struct tui_iface, iface);
     struct pollfd main_notify[4];
-    struct nclyr_win **win;
+    struct tui_window_desc *descs[] = { window_descs + 0, window_descs + 1, window_descs + 2, window_descs + 4, NULL };
+    struct tui_window_desc **d;
 
     initscr();
     cbreak();
@@ -270,6 +275,10 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     rows = getmaxy(tui->status->win);
 
+    for (d = descs; *d; d++)
+        tui_window_add(tui, tui_window_new(tui, *d, LINES - rows - 2, COLS, rows + 1, 0));
+
+    /*
     for (win = tui->windows; *win; win++) {
         struct nclyr_win *w = *win;
         w->tui = tui;
@@ -279,7 +288,7 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
         if (w->init)
             w->init(w);
-    }
+    } */
 
     main_notify[0].fd = pipes->player[0];
     main_notify[0].events = POLLIN;
@@ -366,12 +375,15 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     tui->status->clean(tui->status);
 
-    for (win = tui->windows; *win; win++) {
-        struct nclyr_win *w = *win;
+    for (i = 0; i < tui->window_count; i++) {
+        struct nclyr_win *w = tui->windows[i];
         if (w->clean)
             w->clean(w);
         delwin(w->win);
+        free(w);
     }
+
+    free(tui->windows);
 
     endwin();
 

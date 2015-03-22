@@ -65,7 +65,7 @@ static void config_init(struct nclyr_win *win)
     config_add_group(line, &nclyr_config.group, 0);
 }
 
-struct line_win config_window = {
+static struct line_win config_window_init = {
     .super_win = {
         .win_name = "Config",
         .win = NULL,
@@ -85,4 +85,11 @@ struct line_win config_window = {
         .new_player_notif = NULL,
     }
 };
+
+struct nclyr_win *config_win_new(void)
+{
+    struct line_win *win = malloc(sizeof(*win));
+    memcpy(win, &config_window_init, sizeof(config_window_init));
+    return &win->super_win;
+}
 

@@ -80,7 +80,7 @@ void artist_clear_song_data (struct nclyr_win *win)
     win->updated = 1;
 }
 
-struct line_win artist_window = {
+static struct line_win artist_window_init = {
     .super_win = {
         .win_name = "Artist bio",
         .win = NULL,
@@ -103,4 +103,11 @@ struct line_win artist_window = {
     .disp_offset = 0,
     .lines = NULL,
 };
+
+struct nclyr_win *artist_win_new(void)
+{
+    struct line_win *win = malloc(sizeof(*win));
+    memcpy(win, &artist_window_init, sizeof(artist_window_init));
+    return &win->super_win;
+}
 

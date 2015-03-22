@@ -16,6 +16,6 @@ struct playlist_win {
     cons_printf_compiled *song_filename;
 };
 
-extern struct playlist_win playlist_window;
+struct nclyr_win *playlist_win_new(void);
 
 #endif

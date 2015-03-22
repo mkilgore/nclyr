@@ -10,6 +10,6 @@ struct clock_win {
     char *last_buf;
 };
 
-extern struct clock_win clock_window;
+struct nclyr_win *clock_win_new(void);
 
 #endif
