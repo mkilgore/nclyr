@@ -116,6 +116,9 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
     return ;
 }
 
+/* For whatever reason, ncurses mouse handling seems to be somewhat broken. The
+ * below code is ugly for that reason. Perhaps someone who knows what's wrong
+ * can fix it. */
 static void handle_mouse(struct tui_iface *tui)
 {
     struct nclyr_mouse_event mevent;
@@ -130,6 +133,10 @@ static void handle_mouse(struct tui_iface *tui)
 
     DEBUG_PRINTF("Mouse event: 0x%08x - %d\n", me.bstate, v);
 
+    /* Either this function is bugged or the documentation s bugged. It says
+     * that sending it TRUE should allow us to convert (y, x) to
+     * window-relative cords, but I've only gotten it to do so if I send it
+     * FALSE instead. */
     if (!wmouse_trafo(win->win, &y, &x, FALSE)) {
         DEBUG_PRINTF("X and Y wern't inside the window\n");
         return ;
@@ -143,30 +150,46 @@ static void handle_mouse(struct tui_iface *tui)
 
     switch (me.bstate) {
     case BUTTON1_PRESSED:
+        DEBUG_PRINTF("Button1 Pressed\n");
         mevent.type = LEFT_PRESSED;
         break;
+
+    /* Button4 is actually the scroll wheel, but I've seen a bug that a get
+     * BUTTON4_RELEASED in place of a BUTTON1_RELEASED, causing us to lose the
+     * left click */
+    case BUTTON4_RELEASED:
     case BUTTON1_RELEASED:
+        DEBUG_PRINTF("Button1 Released\n");
         if (tui->last_mevent == LEFT_PRESSED)
             mevent.type = LEFT_CLICKED;
         else
             mevent.type = LEFT_RELEASED;
         break;
     case BUTTON3_PRESSED:
+        DEBUG_PRINTF("Button3 Pressed\n");
         mevent.type = RIGHT_PRESSED;
         break;
     case BUTTON3_RELEASED:
+        DEBUG_PRINTF("Button3 Released\n");
         if (tui->last_mevent == RIGHT_PRESSED)
             mevent.type = RIGHT_CLICKED;
         else
             mevent.type = RIGHT_RELEASED;
         break;
     case BUTTON4_PRESSED:
+        DEBUG_PRINTF("Button4 Pressed\n");
         mevent.type = SCROLL_UP;
         break;
     case BUTTON2_PRESSED:
+        DEBUG_PRINTF("Button2 Pressed\n");
         mevent.type = SCROLL_DOWN;
         break;
+
+    /* We mask out REPORT_MOUSE_POSITION, but they're still sent when we
+     * scroll. They seem to only be sent on duplicates, so we just repeat the
+     * last event */
     case REPORT_MOUSE_POSITION:
+        DEBUG_PRINTF("Report mouse position\n");
         mevent.type = tui->last_mevent;
         break;
     }
