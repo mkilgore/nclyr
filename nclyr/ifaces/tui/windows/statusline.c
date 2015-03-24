@@ -105,6 +105,7 @@ void statusline_player_notif(struct statusline *status, enum player_notif_type n
             || notif == PLAYER_NO_SONG
             || notif == PLAYER_IS_DOWN
             || notif == PLAYER_IS_UP
+            || notif == PLAYER_VOLUME
             || notif == PLAYER_STATE)
         status->updated = 1;
 }
