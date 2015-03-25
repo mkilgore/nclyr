@@ -5,6 +5,7 @@ compiler:
   - gcc
 
 install:
+  - sudo apt-get update
   - sudo apt-get install valgrind
   - sudo apt-get install libmpdclient-dev
   - wget http://security.ubuntu.com/ubuntu/pool/universe/g/glyr/libglyr-dev_1.0.5-1_amd64.deb
