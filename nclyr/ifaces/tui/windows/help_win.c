@@ -90,10 +90,12 @@ static void help_create_text(struct tui_iface *tui, struct line_win *line)
     }
 }
 
-static void help_init(struct nclyr_win *win)
+static void help_switch_to(struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
     struct tui_iface *tui = win->tui;
+
+    win->clean(win);
 
     line->line_count = help_count_lines(tui);
     line->disp_offset = 0;
@@ -103,6 +105,11 @@ static void help_init(struct nclyr_win *win)
     help_create_text(tui, line);
 }
 
+static void help_init(struct nclyr_win *win)
+{
+    help_switch_to(win);
+}
+
 static void help_resize(struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
@@ -110,7 +117,7 @@ static void help_resize(struct nclyr_win *win)
     help_resize_dashes(line);
 }
 
-static struct line_win help_window_init = {
+struct line_win help_win = {
     .super_win = {
         .win_name = "Help",
         .win = NULL,
@@ -122,7 +129,7 @@ static struct line_win help_window_init = {
         },
         .init = help_init,
         .clean = line_clean,
-        .switch_to = NULL,
+        .switch_to = help_switch_to,
         .update = line_update,
         .resize = help_resize,
         .clear_song_data = NULL,
@@ -130,11 +137,4 @@ static struct line_win help_window_init = {
         .new_player_notif = NULL,
     }
 };
-
-struct nclyr_win *help_win_new(void)
-{
-    struct line_win *win = malloc(sizeof(*win));
-    memcpy(win, &help_window_init, sizeof(help_window_init));
-    return &win->super_win;
-}
 

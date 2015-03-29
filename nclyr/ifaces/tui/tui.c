@@ -19,6 +19,7 @@
 #include "cmd_handle.h"
 #include "windows/window.h"
 #include "windows/statusline.h"
+#include "windows/manager_win.h"
 #include "windows/clock_win.h"
 #include "windows/lyrics_win.h"
 #include "windows/help_win.h"
@@ -29,10 +30,8 @@
 #include "tui.h"
 #include "debug.h"
 
-struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x)
+void tui_window_init_dim(struct tui_iface *tui, struct nclyr_win *w, int rows, int cols, int y, int x)
 {
-    struct nclyr_win *w = (win_desc->new) ();
-
     w->tui = tui;
     w->win = newwin(rows, cols, y, x);
     touchwin(w->win);
@@ -40,6 +39,26 @@ struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *
 
     if (w->init)
         w->init(w);
+}
+
+void tui_window_init(struct tui_iface *tui, struct nclyr_win *win)
+{
+    int rows = getmaxy(tui->status->win);
+    tui_window_init_dim(tui, win, LINES - rows - 2, COLS, rows + 1, 0);
+}
+
+struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc)
+{
+    int rows = getmaxy(tui->status->win);
+
+    return tui_window_new_dim(tui, win_desc, LINES - rows - 2, COLS, rows + 1, 0);
+}
+
+struct nclyr_win *tui_window_new_dim(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x)
+{
+    struct nclyr_win *w = (win_desc->new) ();
+
+    tui_window_init_dim(tui, w, rows, cols, y, x);
 
     return w;
 }
@@ -65,7 +84,6 @@ struct tui_window_desc window_descs[] = {
     WIN_DESC("artist", NULL, artist_win_new),
 #endif
     WIN_DESC("config", NULL, config_win_new),
-    WIN_DESC("help", NULL, help_win_new),
     WIN_DESC("clock", NULL, clock_win_new),
     WIN_DESC_END()
 };
@@ -95,6 +113,8 @@ struct tui_iface tui_iface  = {
     },
     .show_status = 1,
     .status = &statusline,
+    .manager_win = &manager_win.super_win,
+    .help_win = &help_win.super_win,
     .sel_window_index = 0,
     .sel_window = NULL,
     .exit_flag = 0,
@@ -104,6 +124,7 @@ struct tui_iface tui_iface  = {
         TUI_CMD("window", tui_cmd_handle_window),
         TUI_CMD("tui",    tui_cmd_handle_tui),
         TUI_CMD("quit",   tui_cmd_quit),
+        TUI_CMD("help",   tui_cmd_help),
         TUI_CMD_END()
     },
 };

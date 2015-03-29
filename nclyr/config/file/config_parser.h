@@ -12,4 +12,6 @@ struct config_parser_state {
 # include "config_parser.tab.h"
 #endif
 
+int yyparse(struct config_parser_state *);
+
 #endif

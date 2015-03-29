@@ -15,6 +15,11 @@
 #include "tui_cmds.h"
 #include "debug.h"
 
+void tui_cmd_help(struct tui_iface *tui, int argc, char **argv)
+{
+    tui_change_window(tui, tui->help_win);
+}
+
 void tui_cmd_quit(struct tui_iface *tui, int argc, char **argv)
 {
     tui->exit_flag = 1;

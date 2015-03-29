@@ -58,7 +58,7 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
 
 static void handle_notify_fd(struct tui_iface *tui, int notifyfd)
 {
-    struct nclyr_win **win;
+    int i;
     struct lyr_thread_notify song_notif;
     const enum lyr_data_type *song_data;
 
@@ -71,10 +71,12 @@ static void handle_notify_fd(struct tui_iface *tui, int notifyfd)
         goto clear_song_notify;
     }
 
-    for (win = tui->windows; *win; win++)
-        for (song_data = (*win)->lyr_types; *song_data != LYR_DATA_TYPE_COUNT; song_data++)
+    for (i = 0; i < tui->window_count; i++) {
+        struct nclyr_win *win = tui->windows[i];
+        for (song_data = win->lyr_types; *song_data != LYR_DATA_TYPE_COUNT; song_data++)
             if (*song_data == song_notif.type)
-                (*win)->new_song_data(*win, &song_notif);
+                win->new_song_data(win, &song_notif);
+    }
 
 clear_song_notify:
     lyr_thread_notify_clear(&song_notif);
@@ -83,8 +85,7 @@ clear_song_notify:
 
 static void handle_signal_fd(struct tui_iface *tui, int signalfd)
 {
-    int sig, rows;
-    struct nclyr_win **win;
+    int sig, rows, i;
 
     rows = getmaxy(tui->status->win);
 
@@ -99,8 +100,9 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
         endwin();
         refresh();
 
-        for (win = tui->windows; *win; win++) {
-            struct nclyr_win *w = *win;
+        for (i = 0; i < tui->window_count; i++) {
+            struct nclyr_win *w = tui->windows[i];
+
             delwin(w->win);
             w->win = newwin(LINES - rows - 2, COLS, rows + 1, 0);
             touchwin(w->win);
@@ -296,10 +298,16 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     tui->status->tui = tui;
     tui->status->init(tui->status, COLS);
 
+    tui_window_init(tui, tui->manager_win);
+    tui->manager_win->init(tui->manager_win);
+
+    tui_window_init(tui, tui->help_win);
+    tui->help_win->init(tui->help_win);
+
     rows = getmaxy(tui->status->win);
 
     for (d = descs; *d; d++)
-        tui_window_add(tui, tui_window_new(tui, *d, LINES - rows - 2, COLS, rows + 1, 0));
+        tui_window_add(tui, tui_window_new(tui, *d));
 
     /*
     for (win = tui->windows; *win; win++) {
@@ -397,6 +405,8 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     }
 
     tui->status->clean(tui->status);
+    tui->manager_win->clean(tui->manager_win);
+    tui->help_win->clean(tui->help_win);
 
     for (i = 0; i < tui->window_count; i++) {
         struct nclyr_win *w = tui->windows[i];

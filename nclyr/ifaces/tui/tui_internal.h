@@ -22,6 +22,8 @@ struct tui_iface {
 
     int show_status :1;
     struct statusline *status;
+    struct nclyr_win *manager_win;
+    struct nclyr_win *help_win;
 
     int sel_window_index;
     struct nclyr_win *sel_window;
@@ -72,7 +74,10 @@ extern struct tui_window_desc window_descs[];
 #define WIN_DESC(wname, wplayer, winit) { .name = (wname), .player = (wplayer), .new = (winit) }
 #define WIN_DESC_END() { .name = NULL }
 
-struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x);
+void tui_window_init_dim(struct tui_iface *tui, struct nclyr_win *win, int rows, int cols, int y, int x);
+void tui_window_init(struct tui_iface *tui, struct nclyr_win *win);
+struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *win_desc);
+struct nclyr_win *tui_window_new_dim(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x);
 void tui_window_add(struct tui_iface *tui, struct nclyr_win *win);
 void tui_window_del(struct tui_iface *tui, int window_id);
 

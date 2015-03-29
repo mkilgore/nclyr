@@ -54,13 +54,21 @@ void tui_keys_global(struct nclyr_win *win, int ch, struct nclyr_mouse_event *me
     struct tui_iface *tui = win->tui;
 
     DEBUG_PRINTF("Got global key: %c\n", ch);
-    if (ch == 'w') {
-        tui->sel_window_index = (tui->sel_window_index + 1) % tui->window_count;
-        tui_change_window(tui, tui->windows[tui->sel_window_index]);
-    } else if (ch == 'q') {
-        tui->sel_window_index = tui->sel_window_index - 1;
-        if (tui->sel_window_index == -1)
-            tui->sel_window_index = tui->window_count - 1;
+    if (ch == 'w' || ch == 'q') {
+        /* There's a chance we're actually on a window not in the 'windows'
+         * list. If that's the case we just return to the sel_window_index
+         * window */
+        if (tui->sel_window == tui->windows[tui->sel_window_index]) {
+            if (ch == 'w') {
+                tui->sel_window_index = (tui->sel_window_index + 1) % tui->window_count;
+            } else {
+                if (tui->sel_window == tui->windows[tui->sel_window_index]) {
+                    tui->sel_window_index = tui->sel_window_index - 1;
+                    if (tui->sel_window_index == -1)
+                        tui->sel_window_index = tui->window_count - 1;
+                }
+            }
+        }
 
         tui_change_window(tui, tui->windows[tui->sel_window_index]);
     } else if (ch == 'Q') {

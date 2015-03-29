@@ -26,6 +26,7 @@ static void prefix_remove(struct config_parser_state *state);
 }
 
 %parse-param { struct config_parser_state *state }
+%locations
 
 %token <str> TOK_IDENT
 %token <str> TOK_STRING

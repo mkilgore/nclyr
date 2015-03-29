@@ -43,7 +43,6 @@ void line_clean (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
 
-    delwin(win->win);
     line_free_lines(line);
 }
 

@@ -3,6 +3,7 @@
 
 #include "cmd_exec.h"
 
+void tui_cmd_help(struct tui_iface *tui, int argc, char **argv);
 void tui_cmd_quit(struct tui_iface *tui, int argc, char **argv);
 
 #endif
