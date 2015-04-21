@@ -18,7 +18,6 @@
 #include "signal_handler.h"
 #include "config.h"
 #include "nclyr_conf.h"
-#include "thread_com.h"
 #include "args.h"
 #include "iface.h"
 #include "build.h"

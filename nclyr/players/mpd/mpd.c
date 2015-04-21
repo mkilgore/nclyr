@@ -164,8 +164,13 @@ static void update_elapsed_time(struct mpd_player *player)
     }
 }
 
-static void wait_for_mpd_up(struct mpd_player *player)
+static int wait_for_mpd_up(struct mpd_player *player)
 {
+    struct pollfd fds[1] = { { 0 } };
+
+    fds[0].fd = player->stop_fd[0];
+    fds[0].events = POLLIN;
+
     do {
         DEBUG_PRINTF("Connecting to mpd...\n");
         player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
@@ -175,10 +180,12 @@ static void wait_for_mpd_up(struct mpd_player *player)
         if (mpd_connection_get_error(player->conn) != MPD_ERROR_SUCCESS) {
             mpd_connection_free(player->conn);
             player->conn = NULL;
-            sleep(2);
+            poll(fds, ARRAY_SIZE(fds), 2000);
+            if (fds[0].revents & POLLIN)
+                return 1;
         }
-    }
-    while (!player->conn);
+    } while (!player->conn);
+    return 0;
 }
 
 static void *mpd_thread(void *p)
@@ -188,7 +195,10 @@ static void *mpd_thread(void *p)
     struct pollfd fds[3] = { { 0 } };
     enum mpd_idle idle;
 
-    wait_for_mpd_up(player);
+    if (wait_for_mpd_up(player)) {
+        DEBUG_PRINTF("Stop recieved while trying to connect to MPD\n");
+        return NULL;
+    }
 
     DEBUG_PRINTF("Connection sucessfull\n");
 
