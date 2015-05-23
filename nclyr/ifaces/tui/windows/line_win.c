@@ -2,6 +2,7 @@
 #include "common.h"
 
 #include <string.h>
+#include <ncurses.h>
 
 #include "song.h"
 #include "player.h"
@@ -71,18 +72,21 @@ void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_even
     rows = getmaxy(curwin);
 
     switch (ch) {
+    case KEY_DOWN:
     case 'j':
         if (line->disp_offset < line->line_count - 1) {
             line->disp_offset++;
             win->updated = 1;
         }
         break;
+    case KEY_UP:
     case 'k':
         if (line->disp_offset > 0) {
             line->disp_offset--;
             win->updated = 1;
         }
         break;
+    case KEY_LEFT:
     case 'J':
     case KEY_NPAGE:
         if (line->disp_offset < line->line_count - 1) {
@@ -93,6 +97,7 @@ void line_handle_keypress(struct nclyr_win *win, int ch, struct nclyr_mouse_even
             win->updated = 1;
         }
         break;
+    case KEY_RIGHT:
     case 'K':
     case KEY_PPAGE:
         if (line->disp_offset > 0) {

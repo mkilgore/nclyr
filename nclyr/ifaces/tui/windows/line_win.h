@@ -24,8 +24,12 @@ void line_free_lines(struct line_win *);
 #define LINE_KEYPRESSES() \
     N_KEYPRESS('j', line_handle_keypress, "Scroll down"), \
     N_KEYPRESS('k', line_handle_keypress, "Scroll up"), \
+    N_KEYPRESS(KEY_DOWN, line_handle_keypress, "Scroll down"), \
+    N_KEYPRESS(KEY_UP, line_handle_keypress, "Scroll up"), \
     N_KEYPRESS('J', line_handle_keypress, "Scroll down one page"), \
     N_KEYPRESS('K', line_handle_keypress, "Scroll up one page"), \
+    N_KEYPRESS(KEY_LEFT, line_handle_keypress, "Scroll down one page"), \
+    N_KEYPRESS(KEY_RIGHT, line_handle_keypress, "Scroll up one page"), \
     N_KEYPRESS(KEY_NPAGE, line_handle_keypress, "Scroll down one page"), \
     N_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page"), \
     N_MOUSE(SCROLL_UP, line_handle_mouse, "Scroll up"), \

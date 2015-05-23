@@ -164,28 +164,87 @@ static void update_elapsed_time(struct mpd_player *player)
     }
 }
 
-static int wait_for_mpd_up(struct mpd_player *player)
-{
-    struct pollfd fds[1] = { { 0 } };
+/* Waiting for mpd to be up is hacky. The issue is that 'mpd_connection_new'
+ * doesn't always return quickly if there's a connection issue, instead it just
+ * blocks. This becomes a problem because we're going to end-up waiting on this
+ * thread when the user tries to close nclyr, meaning that we're hanging the
+ * program to wait to see if we can connect to mpd just so we can kill the
+ * connection and exit. Obviously, it should be better.
+ *
+ * The solutions is more threads (Of course...). We spawn a thread to take-care
+ * of calling `mpd_connection_new`, and then we have our separate thread which
+ * waits for both a response from that thread, *or* a notification that we
+ * should close. We close uncleanly if we have to if we're being notified to
+ * exit - It's not worth trying to clean-up cleanly when we're just going to
+ * close the program anyway (And thus such clean-up will be forced if we
+ * couldn't do it). */
 
-    fds[0].fd = player->stop_fd[0];
-    fds[0].events = POLLIN;
+struct mpd_conn_params {
+    struct mpd_player *player;
+    int pipe[2];
+};
+
+static void *mpd_connection_new_thread(void *p)
+{
+    struct mpd_conn_params *params = p;
 
     do {
         DEBUG_PRINTF("Connecting to mpd...\n");
-        player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
-                                          mpd_config[PLAYER_CONFIG_MPD_PORT].u.integer,
-                                          0);
+        params->player->conn = mpd_connection_new(mpd_config[PLAYER_CONFIG_MPD_SERVER].u.str.str,
+                                                  mpd_config[PLAYER_CONFIG_MPD_PORT].u.integer,
+                                                  0);
 
-        if (mpd_connection_get_error(player->conn) != MPD_ERROR_SUCCESS) {
-            mpd_connection_free(player->conn);
-            player->conn = NULL;
-            poll(fds, ARRAY_SIZE(fds), 2000);
-            if (fds[0].revents & POLLIN)
-                return 1;
+        if (mpd_connection_get_error(params->player->conn) != MPD_ERROR_SUCCESS) {
+            mpd_connection_free(params->player->conn);
+            params->player->conn = NULL;
+        }
+
+    } while (!params->player->conn);
+
+    /* Flag that it worked */
+    int flag = 2;
+    write(params->pipe[1], &flag, sizeof(flag));
+
+    return NULL;
+}
+
+static int wait_for_mpd_up(struct mpd_player *player)
+{
+    int ret = 0;
+    struct mpd_conn_params params;
+    struct pollfd fds[2] = { { 0 } };
+    pthread_t mpd_conn_thread;
+
+    params.player = player;
+    pipe(params.pipe);
+
+    pthread_create(&mpd_conn_thread, NULL, mpd_connection_new_thread, &params);
+
+    fds[0].fd = player->stop_fd[0];
+    fds[0].events = POLLIN;
+    fds[1].fd = params.pipe[0];
+    fds[1].events = POLLIN;
+
+    do {
+        poll(fds, ARRAY_SIZE(fds), -1);
+        if (fds[0].revents & POLLIN) {
+            ret = 1;
+            goto cancel_thread;
+        }
+
+        if (fds[1].revents & POLLIN) {
+            /* Connection was sucessfull */
+            pthread_join(mpd_conn_thread, NULL);
+            goto cleanup;
         }
     } while (!player->conn);
-    return 0;
+
+cancel_thread:
+    pthread_cancel(mpd_conn_thread);
+cleanup:
+    close(params.pipe[0]);
+    close(params.pipe[1]);
+    return ret;
 }
 
 static void *mpd_thread(void *p)

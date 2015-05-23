@@ -63,6 +63,7 @@ static void handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *m
     int rows;
 
     switch (ch) {
+    case KEY_UP:
     case 'k':
         if (play->selected > 0) {
             play->selected--;
@@ -71,6 +72,7 @@ static void handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *m
             win->updated = 1;
         }
         break;
+    case KEY_DOWN:
     case 'j':
         if (play->selected < tui->state.playlist.song_count - 1) {
             play->selected++;
@@ -83,6 +85,31 @@ static void handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *m
 
     case 'd':
         player_remove_song(player_current(), play->selected);
+        break;
+
+    case KEY_LEFT:
+    case 'J':
+    case KEY_NPAGE:
+        if (play->disp_offset < tui->state.playlist.song_count - 1) {
+            rows = getmaxy(win->win);
+            if (rows < ((tui->state.playlist.song_count - 1) - play->disp_offset))
+                play->disp_offset += rows;
+            else
+                play->disp_offset = tui->state.playlist.song_count - 1;
+            win->updated = 1;
+        }
+        break;
+    case KEY_RIGHT:
+    case 'K':
+    case KEY_PPAGE:
+        if (play->disp_offset > 0) {
+            rows = getmaxy(win->win);
+            if (rows < play->disp_offset)
+                play->disp_offset -= rows;
+            else
+                play->disp_offset = 0;
+            win->updated = 1;
+        }
         break;
 
     case '\n':
@@ -178,8 +205,10 @@ static struct playlist_win playlist_window_init = {
         .timeout = 400,
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            N_KEYPRESS('j', handle_ch, "Select song above"),
-            N_KEYPRESS('k', handle_ch, "Select song below"),
+            N_KEYPRESS('j', handle_ch, "Select song below"),
+            N_KEYPRESS('k', handle_ch, "Select song above"),
+            N_KEYPRESS(KEY_UP, handle_ch, "Select song below"),
+            N_KEYPRESS(KEY_DOWN, handle_ch, "Select song above"),
             N_KEYPRESS('\n', handle_ch, "Play selected song"),
             N_KEYPRESS('d', handle_ch, "Remove selected song"),
             N_MOUSE(SCROLL_UP, handle_mouse, "Scroll playlist up"),
