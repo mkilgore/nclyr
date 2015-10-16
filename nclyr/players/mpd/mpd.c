@@ -197,6 +197,8 @@ static void *mpd_connection_new_thread(void *p)
         if (mpd_connection_get_error(params->player->conn) != MPD_ERROR_SUCCESS) {
             mpd_connection_free(params->player->conn);
             params->player->conn = NULL;
+            /* Try a connection once every second */
+            sleep(1);
         }
 
     } while (!params->player->conn);
@@ -247,28 +249,15 @@ cleanup:
     return ret;
 }
 
-static void *mpd_thread(void *p)
+/* Returns 0 on normal termination.
+ * Returns -1 on connection termination
+ */
+static int mpd_normal_loop(struct mpd_player *player)
 {
+    int ret = 0;
     int stop_flag = 0, idle_flag = 0;
-    struct mpd_player *player = p;
     struct pollfd fds[3] = { { 0 } };
     enum mpd_idle idle;
-
-    if (wait_for_mpd_up(player)) {
-        DEBUG_PRINTF("Stop recieved while trying to connect to MPD\n");
-        return NULL;
-    }
-
-    DEBUG_PRINTF("Connection sucessfull\n");
-
-    player_send_is_up(&player->player);
-
-    player->state.state = PLAYER_STOPPED;
-    player_send_state(&player->player, player->state.state);
-
-    get_and_send_cur_song(player);
-    get_and_send_playlist(player);
-    update_status(player);
 
     fds[0].fd = mpd_connection_get_fd(player->conn);
     fds[0].events = POLLIN;
@@ -279,7 +268,17 @@ static void *mpd_thread(void *p)
     fds[2].fd = player->stop_fd[0];
     fds[2].events = POLLIN;
 
+    player_send_is_up(&player->player);
+
+    player->state.state = PLAYER_STOPPED;
+    player_send_state(&player->player, player->state.state);
+
+    get_and_send_cur_song(player);
+    get_and_send_playlist(player);
+    update_status(player);
+
     do {
+        enum mpd_error err;
         int handle_idle = 0;
 
         if (player->state.state == PLAYER_PLAYING)
@@ -386,8 +385,43 @@ static void *mpd_thread(void *p)
             update_status(player);
         }
 
+        err = mpd_connection_get_error(player->conn);
+
+        if (err != MPD_ERROR_SUCCESS) {
+            DEBUG_PRINTF("Mpd error: %d\n", err);
+            if (err == MPD_ERROR_CLOSED) {
+                stop_flag = 1;
+                ret = -1;
+            }
+        }
     } while (!stop_flag);
 
+    return ret;
+}
+
+static void *mpd_thread(void *p)
+{
+    struct mpd_player *player = p;
+    int term = 0;
+
+    do {
+        int ret;
+
+        player_send_is_down(&player->player);
+
+        if (wait_for_mpd_up(player)) {
+            DEBUG_PRINTF("Stop recieved while trying to connect to MPD\n");
+            return NULL;
+        }
+
+        DEBUG_PRINTF("Connection sucessfull\n");
+
+        ret = mpd_normal_loop(player);
+
+        if (ret == 0)
+            term = 1;
+
+    } while (!term);
 
     mpd_connection_free(player->conn);
     player_state_full_clear(&player->state);

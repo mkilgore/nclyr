@@ -43,21 +43,25 @@ void tui_cmd_exec_args(struct tui_iface *tui, const struct tui_cmd *cmds, int ar
 {
     const struct tui_cmd *cmd;
     char *c = argv[0];
+    size_t l = strlen(c);
+
+    if (l == 0)
+        goto unknown_cmd;
 
     argc--;
     argv++;
 
     for (cmd = cmds; cmd->cmd; cmd++) {
         DEBUG_PRINTF("Cmd: %s\n", cmd->cmd);
-        if (strcmp(c, cmd->cmd) == 0) {
+        if (strncmp(c, cmd->cmd, l) == 0) {
             DEBUG_PRINTF("Found cmd: %s\n", c);
             (cmd->callback) (tui, argc, argv);
-            break;
+            return ;
         }
     }
 
-    if (!cmd->cmd)
-        a_sprintf(&tui->display, "Unknown comamnd: %s", c);
+  unknown_cmd:
+    a_sprintf(&tui->display, "Unknown comamnd: %s", c);
 }
 
 void tui_cmd_exec(struct tui_iface *tui, const struct tui_cmd *cmds, char *cmd)

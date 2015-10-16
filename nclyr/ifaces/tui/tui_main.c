@@ -224,7 +224,8 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
     }
 
     if (tui->grab_input) {
-        if (ch == KEY_BACKSPACE) {
+        /* Not all systems actually return '\b' or KEY_BACKSPACE for the backspace key, crazy enough */
+        if (ch == KEY_BACKSPACE || ch == '\b' || ch == 127) {
             /* If they try to backspace past the beginning of the input, then
              * we exit command input */
             if (strlen(tui->inp_buf) > 0)
