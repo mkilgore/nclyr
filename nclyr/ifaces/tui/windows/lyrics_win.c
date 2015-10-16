@@ -43,7 +43,8 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
 
     line_free_lines(line);
 
-    line_count = 0;
+    line_count = 1; /* We start at one to count to the last line, which doesn't
+                       end in a '\n', but '\0' */
     for (ptr = song_notif->u.lyrics; *ptr; ptr++)
         if (*ptr == '\n')
             line_count++;
@@ -53,8 +54,10 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
     line->lines = malloc(line_count * sizeof(char *));
 
     line_count = 0;
-    for (start = ptr = song_notif->u.lyrics; *ptr; ptr++) {
-        if (*ptr == '\n') {
+    start = ptr = song_notif->u.lyrics;
+
+    while (1) {
+        if (*ptr == '\n' || *ptr == '\0') {
             line->lines[line_count] = malloc(ptr - start + 1);
             memset(line->lines[line_count], 0, ptr - start + 1);
             if (ptr - start > 0)
@@ -63,6 +66,11 @@ static void lyrics_new_song_data (struct nclyr_win *win, const struct lyr_thread
             line_count++;
             start = ptr + 1;
         }
+
+        if (!*ptr)
+            break;
+
+        ptr++;
     }
 }
 

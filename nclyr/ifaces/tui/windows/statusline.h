@@ -23,6 +23,7 @@ struct statusline {
     void (*player_notif) (struct statusline *, enum player_notif_type, struct player_state_full *);
 
     cons_printf_compiled *song_name;
+    cons_printf_compiled *song_triple, *song_filename;
 };
 
 extern struct statusline statusline;

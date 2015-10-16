@@ -239,14 +239,18 @@ static void *mpd_thread(void *p)
          * going to need to do something that requires exiting idle mode first,
          * and if so sets a flag so we do. */
         if (!(fds[0].revents & POLLIN) && (fds[1].revents & POLLIN)) {
+            if (fds[1].revents & POLLIN)
+                DEBUG_PRINTF("Pollin on CTRL fd\n");
+            DEBUG_PRINTF("Sending noidle to mpd\n");
             mpd_send_noidle(player->conn);
             handle_idle = 1;
         }
 
         if (fds[0].revents & POLLIN || handle_idle) {
-            DEBUG_PRINTF("Recieved idle info from mpd!\n");
             idle = mpd_recv_idle(player->conn, false);
             idle_flag = 0;
+
+            DEBUG_PRINTF("Recieved idle info from mpd: %d\n", idle);
 
             if ((idle & MPD_IDLE_PLAYER) || (idle & MPD_IDLE_MIXER)) {
                 get_and_send_cur_song(player);
@@ -297,6 +301,11 @@ static void *mpd_thread(void *p)
 
             case PLAYER_CTRL_CHANGE_SONG:
                 mpd_run_play_pos(player->conn, msg.u.song_pos);
+                break;
+
+            case PLAYER_CTRL_REMOVE_SONG:
+                DEBUG_PRINTF("Sending remove song: %d\n", msg.u.song_pos);
+                mpd_run_delete(player->conn, msg.u.song_pos);
                 break;
 
             case PLAYER_CTRL_SEEK:

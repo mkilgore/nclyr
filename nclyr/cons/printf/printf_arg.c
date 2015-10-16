@@ -9,6 +9,7 @@
 #include "args/arg_string.h"
 #include "args/arg_bool.h"
 #include "args/arg_time.h"
+#include "args/arg_song.h"
 #include "printf_arg.h"
 #include "debug.h"
 
@@ -19,6 +20,7 @@ struct printf_opt *printf_arg_get(int index, char *id_par, size_t arg_count, con
         [CONS_ARG_STRING] = printf_arg_parse_string,
         [CONS_ARG_BOOL] = printf_arg_parse_bool,
         [CONS_ARG_TIME] = printf_arg_parse_time,
+        [CONS_ARG_SONG] = printf_arg_parse_song,
     };
 
     return (parse[args[index].type]) (index, id_par, arg_count, args);

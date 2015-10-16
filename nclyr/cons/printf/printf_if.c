@@ -50,6 +50,10 @@ static void print_if(struct printf_opt *opt, struct cons_printf_compiled *comp, 
         if (args[if_stmt->check.arg].u.time_val == if_stmt->check.data.time_val)
             print = 1;
         break;
+    case CONS_ARG_SONG:
+        if (args[if_stmt->check.arg].u.song.s)
+            print = 1;
+        break;
     }
 
     if (print) {
@@ -99,6 +103,8 @@ struct printf_opt *print_if_get(const char *id, char **c, char *params, size_t a
                     break;
                 case CONS_ARG_TIME:
                     if_stmt->check.data.time_val = strtol(val, NULL, 0);
+                    break;
+                case CONS_ARG_SONG:
                     break;
                 }
             }

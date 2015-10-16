@@ -21,6 +21,7 @@ static struct cons_printf_arg args[] = {
     { .id = "position", .type = CONS_ARG_TIME },
     { .id = "paused", .type = CONS_ARG_BOOL },
     { .id = "volume", .type = CONS_ARG_INT },
+    { .id = "song", .type = CONS_ARG_SONG },
 };
 
 void statusline_update(struct statusline *status)
@@ -45,6 +46,8 @@ void statusline_update(struct statusline *status)
             args[4].u.time_val = tui->state.seek_pos;
             args[5].u.bool_val = tui->state.state == PLAYER_PAUSED;
             args[6].u.int_val = tui->state.volume;
+            args[7].u.song.s = song;
+
             cons_str_init(&chstr);
             cons_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
             waddchstr(status->win, chstr.chstr);
@@ -84,6 +87,11 @@ void statusline_init(struct statusline *status, int cols)
     status->updated = 1;
 
     status->song_name = cons_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG)->u.str.str, ARRAY_SIZE(args), args);
+    status->song_triple = cons_printf_compile_song(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG_TRIPLE)->u.str.str);
+    status->song_filename = cons_printf_compile_song(CONFIG_GET(tui->cfg, TUI_CONFIG_STATUSLINE, SONG_FILENAME)->u.str.str);
+
+    args[7].u.song.triple = status->song_triple;
+    args[7].u.song.filename = status->song_filename;
 }
 
 void statusline_clean(struct statusline *status)

@@ -24,6 +24,7 @@ void player_state_full_update(struct player_state_full *state, struct player_not
         break;
 
     case PLAYER_PLAYLIST:
+        DEBUG_PRINTF("Recieved new playlist!\n");
         playlist_clear(&state->playlist);
         playlist_move(&state->playlist, &notif->u.playlist);
         break;

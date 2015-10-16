@@ -12,6 +12,8 @@ struct playlist_win {
     int disp_offset;
 
     cons_printf_compiled *printline;
+    cons_printf_compiled *song_triple;
+    cons_printf_compiled *song_filename;
 };
 
 extern struct playlist_win playlist_window;

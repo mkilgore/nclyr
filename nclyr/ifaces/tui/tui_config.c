@@ -11,6 +11,16 @@ static struct config_item tui_statusline[] = {
             .str = CONFIG_TUI_STATUSLINE_SONG_DEFAULT
         },
     },
+    [TUI_CONFIG_STATUSLINE_SONG_TRIPLE] = { .name = "song_triple", .type = CONFIG_STRING,
+        .u.str = {
+            .str = CONFIG_TUI_STATUSLINE_SONG_TRIPLE_DEFAULT
+        },
+    },
+    [TUI_CONFIG_STATUSLINE_SONG_FILENAME] = { .name = "song_filename", .type = CONFIG_STRING,
+        .u.str = {
+            .str = CONFIG_TUI_STATUSLINE_SONG_FILENAME_DEFAULT
+        },
+    },
 };
 
 static struct config_item tui_playlist[] = {
@@ -18,7 +28,17 @@ static struct config_item tui_playlist[] = {
         .u.str = {
             .str = CONFIG_TUI_PLAYLIST_PRINTLINE_DEFAULT
         },
-    }
+    },
+    [TUI_CONFIG_PLAYLIST_SONG_TRIPLE] = { .name = "song_triple", .type = CONFIG_STRING,
+        .u.str = {
+            .str = CONFIG_TUI_PLAYLIST_SONG_TRIPLE_DEFAULT
+        },
+    },
+    [TUI_CONFIG_PLAYLIST_SONG_FILENAME] = { .name = "song_filename", .type = CONFIG_STRING,
+        .u.str = {
+            .str = CONFIG_TUI_PLAYLIST_SONG_FILENAME_DEFAULT
+        },
+    },
 };
 
 struct config_item tui_conf[] = {

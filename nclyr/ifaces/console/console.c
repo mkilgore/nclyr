@@ -51,11 +51,16 @@ static void term_settings(struct termios *old, struct termios *new)
 
 static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 {
+    enum {
+        I_NONE,
+        I_SONG_CHANGE,
+        I_DELETE_SONG,
+    };
     cons_printf_compiled *comp;
     struct player_state_full play_state;
     char linebuf[200];
     struct termios oldterm, newterm;
-    int cols, i, inp_flag = 0, inp_len = 0, song_change = 0;
+    int cols, i, inp_flag = 0, inp_len = 0, inp_type = 0;
     int console_exit_flag = 0;
     struct pollfd main_notify[4];
     struct cons_str chstr;
@@ -104,26 +109,6 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
             cons_str_init(&chstr);
 
             cons_printf(comp, &chstr, cols, 0, args, ARRAY_SIZE(args));
-            /*
-            if (play_state.is_up) {
-                if (play_state.state != PLAYER_STOPPED && play_state.song) {
-                    char *endline;
-                    int len_print;
-                    len = snprintf(line, cols, "[%zu%%] %s by %s on %s%s", play_state.volume, play_state.song->tag.title, play_state.song->tag.artist, play_state.song->tag.album, (play_state.state == PLAYER_PAUSED)? " [paused]":"");
-                    if (len < cols - 15) {
-                        endline = line + len;
-                        len_print = cols - len - 15;
-                    } else {
-                        endline = line + cols - 15;
-                        len_print = 0;
-                    }
-                    snprintf(endline, cols, "%*s[%02zu:%02zu]/[%02zu:%02zu]", len_print, "", play_state.seek_pos / 60, play_state.seek_pos % 60, play_state.song->duration / 60, play_state.song->duration % 60);
-                } else {
-                    snprintf(line, cols, "Player stopped");
-                }
-            } else {
-                snprintf(line, cols, "Player %s is not open.", player_current()->name);
-            } */
             buf = console_cons_str_print(&chstr);
             printf("\r" TERM_CLEAR "%s", buf);
 
@@ -172,6 +157,7 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                            " +    - Increse volume by 1\n"
                            " -    - Decrease volume by 1\n"
                            " s    - Change song, enter song playlist number at prompt\n"
+                           " d    - Delete song, enter song playlist number at prompt\n"
                           );
                     break;
                 case 'p':
@@ -205,13 +191,20 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
                 case '-':
                     player_change_volume(player_current(), -1);
                     break;
+                case 'd':
+                    inp_type = I_DELETE_SONG;
+                    inp_flag = 1;
+                    inp_len = 0;
+                    memset(linebuf, 0, sizeof(linebuf));
+                    break;
                 case 's':
-                    song_change = 1;
+                    inp_type = I_SONG_CHANGE;
                     inp_flag = 1;
                     inp_len = 0;
                     memset(linebuf, 0, sizeof(linebuf));
                     break;
                 case ':':
+                    inp_type = I_NONE;
                     printf("\r" TERM_CLEAR ":");
                     inp_flag = 1;
                     inp_len = 0;
@@ -221,12 +214,24 @@ static void console_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pip
             } else {
                 if (ch == '\n') {
                     inp_flag = 0;
-                    if (song_change) {
+                    switch (inp_type) {
+                    case I_SONG_CHANGE:
                         if (inp_len > 0) {
                             int song = strtol(linebuf, NULL, 0);
                             player_change_song(player_current(), song);
                         }
-                        song_change = 0;
+                        break;
+
+                    case I_DELETE_SONG:
+                        if (inp_len > 0) {
+                            int song = strtol(linebuf, NULL, 0);
+                            DEBUG_PRINTF("Sending remove song:%d\n", song);
+                            player_remove_song(player_current(), song);
+                        }
+                        break;
+
+                    case I_NONE:
+                        break;
                     }
                 } else if (ch != 127) {
                     if (inp_len < sizeof(linebuf))

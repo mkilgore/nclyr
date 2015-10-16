@@ -62,6 +62,7 @@ enum player_ctrl_msg_type {
     PLAYER_CTRL_SET_VOLUME,
     PLAYER_CTRL_CHANGE_VOLUME,
     PLAYER_CTRL_CHANGE_SONG,
+    PLAYER_CTRL_REMOVE_SONG,
 };
 
 struct player_ctrl_msg {
@@ -131,6 +132,7 @@ void player_shuffle(struct player *);
 void player_set_volume(struct player *, size_t volume);
 void player_change_volume(struct player *, int change);
 void player_change_song(struct player *, int song_pos);
+void player_remove_song(struct player *, int song_pos);
 
 void player_send_is_up(struct player *);
 void player_send_is_down(struct player *);
