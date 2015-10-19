@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "cons/color.h"
+
+#include "output_config.h"
 #include "config_lex.h"
 #include "config_parser.h"
 
@@ -17,6 +19,8 @@ static void prefix_remove(struct config_parser_state *state);
 
 %union {
     char *str;
+    int color;
+    struct cons_color_pair pair;
 }
 
 %parse-param { struct config_parser_state *state }
@@ -24,10 +28,12 @@ static void prefix_remove(struct config_parser_state *state);
 %token <str> TOK_STRING
 %token <str> TOK_IDENT
 %token <str> TOK_INTEGER
+%token <color> TOK_COLOR
 %token TOK_EOF TOK_ERR
 
 %type <str> string
 %type <str> identifier
+%type <pair> color_pair
 
 %%
 
@@ -86,6 +92,12 @@ assignment:
               state->out->write_var(OUTPUT_NO, state->prefix, $1, NULL);
               free($1);
           }
+          | identifier '=' color_pair {
+              char buf[50];
+              sprintf(buf, "{ .f = %d, .b = %d}", $3.f, $3.b);
+              state->out->write_var(OUTPUT_NOQUOTE_STRING, state->prefix, $1, buf);
+              free($1);
+          }
           ;
 
 identifier:
@@ -105,6 +117,12 @@ string:
           $$ = $1;
       }
       ;
+
+color_pair:
+    TOK_COLOR ',' TOK_COLOR {
+        $$.f = $1;
+        $$.b = $3;
+    }
 
 %%
 

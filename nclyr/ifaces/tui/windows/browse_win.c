@@ -98,6 +98,8 @@ static void browse_win_init(struct nclyr_win *win)
 
     song_args[6].u.song.triple = brow->song_triple;
     song_args[6].u.song.filename = brow->song_filename;
+
+    brow->sel.super_win.win_name = strdup("Browse");
 }
 
 static void browse_win_clear(struct nclyr_win *win)
@@ -195,8 +197,6 @@ struct nclyr_win *browse_win_new(void)
 {
     struct browse_win *win = malloc(sizeof(*win));
     memcpy(win, &browse_window_init, sizeof(browse_window_init));
-    win->sel.super_win.win_name = strdup("Browse");
     return &win->sel.super_win;
 }
-
 

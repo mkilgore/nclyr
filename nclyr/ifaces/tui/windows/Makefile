@@ -10,6 +10,7 @@ objs-y += manager_win.o
 objs-y += browse_win.o
 objs-y += selectable_win.o
 
+objs-$(CONFIG_TUI_MPD_VISUALIZER) += visual_win.o
 objs-$(CONFIG_LIB_GLYR) += lyrics_win.o
 objs-$(CONFIG_LIB_GLYR) += artist_win.o
 

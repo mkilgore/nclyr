@@ -3,8 +3,6 @@
 
 #include <stdlib.h>
 
-#include "song.h"
-
 #include "color.h"
 #include "str.h"
 

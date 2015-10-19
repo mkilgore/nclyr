@@ -64,6 +64,19 @@ enum tui_config_statusline {
     TUI_CONFIG_STATUSLINE_TOTAL
 };
 
+enum tui_config_mpd_visualizer {
+    TUI_CONFIG_MPD_VISUALIZER_FILENAME,
+    TUI_CONFIG_MPD_VISUALIZER_COLOR,
+    TUI_CONFIG_MPD_VISUALIZER_TOTAL
+};
+
+enum tui_config_mpd {
+#if CONFIG_TUI_MPD_VISUALIZER
+    TUI_CONFIG_MPD_VISUALIZER,
+#endif
+    TUI_CONFIG_MPD_TOTAL
+};
+
 struct tui_window_desc {
     const char *name;
     const char *player; /* If not null, then it requires the player matching this name */

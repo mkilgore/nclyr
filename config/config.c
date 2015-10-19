@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "cons/color.h"
+
+#include "output_config.h"
 #include "config_parser.h"
 #include "config_parser.tab.h"
 #include "config_c.h"

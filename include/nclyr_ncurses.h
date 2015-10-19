@@ -8,7 +8,8 @@
  * ncurses unless we're compiling the TUI in.
  *
  * Thus, we just make some fake ncurses settings that are compatable enough for
- * our uses. */
+ * our uses. These definitions only get used if ncurses isn't actually going to
+ * ever get used in this program, so compatibility isn't a concern. */
 
 #if CONFIG_TUI
 # include <ncurses.h>
@@ -55,7 +56,7 @@ enum {
 
 #endif /* CONFIG_TUI */
 
-/* This is a flag to get hte attributes excluding the color pair */
+/* This is a flag to get the attributes excluding the color pair */
 enum {
     NCLYR_A_ATTRIBUTES_ONLY = (A_ATTRIBUTES & ~A_COLOR)
 };

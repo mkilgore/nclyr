@@ -33,3 +33,7 @@ ifdef CONFIG_PLAYER_MPD
 	NCLYR_LIBFLAGS += $(shell pkg-config --libs libmpdclient)
 endif
 
+ifdef CONFIG_TUI_MPD_VISUALIZER
+	NCLYR_LIBFLAGS += -lm -lfftw3
+endif
+

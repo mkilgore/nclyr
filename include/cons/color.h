@@ -2,7 +2,6 @@
 #define INCLUDE_CONS_COLOR_H
 
 #include "nclyr_ncurses.h"
-#include "debug.h"
 
 enum cons_color {
     CONS_COLOR_BLACK   = COLOR_BLACK,

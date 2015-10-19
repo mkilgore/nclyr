@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include "config.h"
+#include "output_config.h"
 
 void m_begin(void)
 {

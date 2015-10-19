@@ -27,6 +27,7 @@
 #include "windows/playlist_win.h"
 #include "windows/config_win.h"
 #include "windows/browse_win.h"
+#include "windows/visual_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -87,6 +88,9 @@ struct tui_window_desc window_descs[] = {
     WIN_DESC("browse", NULL, browse_win_new),
     WIN_DESC("config", NULL, config_win_new),
     WIN_DESC("clock", NULL, clock_win_new),
+#if CONFIG_TUI_MPD_VISUALIZER
+    WIN_DESC("visual", "mpd", visual_win_new),
+#endif
     WIN_DESC_END()
 };
 

@@ -264,8 +264,7 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     char inp_buf[200];
     struct tui_iface *tui = container_of(iface, struct tui_iface, iface);
     struct pollfd main_notify[4];
-    struct tui_window_desc *descs[] = { window_descs + 0, window_descs + 1, window_descs + 2, window_descs + 3, window_descs + 4, window_descs + 5, NULL };
-    struct tui_window_desc **d;
+    struct tui_window_desc *d;
 
     initscr();
     cbreak();
@@ -304,9 +303,11 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     rows = getmaxy(tui->status->win);
 
-    for (d = descs; *d; d++) {
-        DEBUG_PRINTF("Starting window %s\n", (*d)->name);
-        tui_window_add(tui, tui_window_new(tui, *d));
+    for (d = window_descs; d->name; d++) {
+        if (!d->player || strcmp(player_current()->name, d->player) == 0) {
+            DEBUG_PRINTF("Starting window %s\n", d->name);
+            tui_window_add(tui, tui_window_new(tui, d));
+        }
     }
 
     main_notify[0].fd = pipes->player[0];
@@ -349,10 +350,8 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
         wrefresh(tui->status->win);
 
-        if (tui->sel_window->updated) {
-            DEBUG_PRINTF("Update win: %s %d\n", tui->sel_window->win_name, tui->sel_window->updated);
+        if (tui->sel_window->updated)
             tui->sel_window->update(tui->sel_window);
-        }
 
         wrefresh(tui->sel_window->win);
 
