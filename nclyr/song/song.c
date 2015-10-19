@@ -53,14 +53,32 @@ int song_equal(const struct song_info *src1, const struct song_info *src2)
 {
     if (!src1 || !src2)
         return 0;
-    if (!src1->tag.title || !src2->tag.title || !!strcmp(src1->tag.title, src2->tag.title))
+    /* Compare by tag information if both have it, or name if both do not.
+     * If one has tag information and the other doesn't, then they're
+     * automatically not equal. */
+
+    if ((!!src1->tag.title ^ !!src2->tag.title)
+        || (!!src1->tag.artist ^ !!src2->tag.artist)
+        || (!!src1->tag.album ^ !!src2->tag.album))
         return 0;
-    if (!src1->tag.artist || !src2->tag.artist || !!strcmp(src1->tag.artist, src2->tag.artist))
-        return 0;
-    if (!src1->tag.album || !src2->tag.album || !!strcmp(src1->tag.album, src2->tag.album))
-        return 0;
+
+    /* The above check passed, so either both have all their tag information,
+     * or both do not */
+    if (src1->tag.title) {
+        if (!!strcmp(src1->tag.title, src2->tag.title))
+            return 0;
+        if (!!strcmp(src1->tag.artist, src2->tag.artist))
+            return 0;
+        if (!!strcmp(src1->tag.album, src2->tag.album))
+            return 0;
+    } else {
+        if (!src1->name || !src2->name || !!strcmp(src1->name, src2->name))
+            return 0;
+    }
+
     if (src1->duration != src2->duration)
         return 0;
+
     return 1;
 }
 

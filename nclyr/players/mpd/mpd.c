@@ -21,7 +21,7 @@
 #include "mpd.h"
 #include "debug.h"
 
-static struct song_info_mpd *mpd_song_to_song_info(struct mpd_song *msong)
+static struct song_info_mpd *mpd_song_to_song_info(const struct mpd_song *msong)
 {
     struct song_info_mpd *isong = malloc(sizeof(*isong));
     song_info_mpd_init(isong);
@@ -144,6 +144,7 @@ static void update_status(struct mpd_player *player)
 
     if (player->state.song_pos
             != mpd_status_get_song_pos(status)) {
+        player->state.song_pos = mpd_status_get_song_pos(status);
         player_send_song_pos(&player->player, mpd_status_get_song_pos(status));
     }
 
@@ -161,6 +162,84 @@ static void update_elapsed_time(struct mpd_player *player)
         player->state.seek_pos = new_seek_pos;
         DEBUG_PRINTF("Seek: %d\n", new_seek_pos);
         player_send_seek(&player->player, new_seek_pos);
+    }
+}
+
+static void send_directory(struct mpd_player *player)
+{
+    struct directory *cwd;
+    struct mpd_entity *entity;
+
+    cwd = malloc(sizeof(*cwd));
+
+    directory_init(cwd);
+
+    cwd->name = nstrdup(player->state.cwd.name);
+    mpd_send_list_meta(player->conn, cwd->name);
+
+    if (strcmp("/", player->state.cwd.name) != 0) {
+        struct directory_entry *entry = malloc(sizeof(*entry));
+        memset(entry, 0, sizeof(*entry));
+
+        entry->type = ENTRY_TYPE_DIR;
+        entry->name = strdup("..");
+
+        cwd->entry_count++;
+        list_add_tail(&cwd->entries, &entry->dir_entry);
+    }
+
+    while ((entity = mpd_recv_entity(player->conn))) {
+        enum mpd_entity_type type = mpd_entity_get_type(entity);
+
+        if (type != MPD_ENTITY_TYPE_SONG && type != MPD_ENTITY_TYPE_DIRECTORY)
+            goto free_entity;
+
+        struct directory_entry *entry = malloc(sizeof(*entry));
+        memset(entry, 0, sizeof(*entry));
+
+        switch (type) {
+        case MPD_ENTITY_TYPE_DIRECTORY:
+            entry->name = strdup(mpd_directory_get_path(mpd_entity_get_directory(entity)));
+            entry->type = ENTRY_TYPE_DIR;
+            break;
+
+        case MPD_ENTITY_TYPE_SONG:
+            entry->song = &mpd_song_to_song_info(mpd_entity_get_song(entity))->song;
+            entry->type = ENTRY_TYPE_SONG;
+            break;
+
+        default:
+            break;
+        }
+
+        cwd->entry_count++;
+        list_add_tail(&cwd->entries, &entry->dir_entry);
+
+      free_entity:
+        mpd_entity_free(entity);
+    }
+
+    player_send_directory(&player->player, cwd);
+}
+
+static void change_directory_up(struct mpd_player *player)
+{
+    size_t len = strlen(player->state.cwd.name);
+
+    /* Just mark a new end for the current string.
+     *
+     * Note that mpd directories don't start with '/', but '/' is still
+     * considered the root. */
+    if (len > 1) {
+        int last_slash = 0;
+        char *tmp = player->state.cwd.name;
+        int i;
+
+        for (i = 0; *tmp; tmp++, i++)
+            if (*tmp == '/')
+                last_slash = i;
+
+        player->state.cwd.name[last_slash] = '\0';
     }
 }
 
@@ -376,7 +455,29 @@ static int mpd_normal_loop(struct mpd_player *player)
                 mpd_run_delete(player->conn, msg.u.song_pos);
                 break;
 
+            case PLAYER_CTRL_GET_DIRECTORY:
+                send_directory(player);
+                break;
+
+            case PLAYER_CTRL_CHANGE_DIRECTORY:
+                if (strcmp(msg.u.change_dir, "..") == 0) {
+                    change_directory_up(player);
+                    free(msg.u.change_dir);
+                } else {
+                    free(player->state.cwd.name);
+                    player->state.cwd.name = msg.u.change_dir;
+                }
+                break;
+
+            case PLAYER_CTRL_ADD_SONG:
+                mpd_run_add(player->conn, msg.u.song_name);
+                free(msg.u.song_name);
+                break;
+
             case PLAYER_CTRL_SEEK:
+                mpd_run_seek_pos(player->conn, player->state.song_pos, msg.u.seek_pos);
+                break;
+
             case PLAYER_CTRL_SHUFFLE:
                 break;
 
@@ -436,6 +537,8 @@ static void mpd_start_thread(struct player *p)
     pipe(player->stop_fd);
     pipe(player->ctrl_fd);
 
+    player->state.cwd.name = strdup("");
+
     pthread_create(&player->mpd_thread, NULL, mpd_thread, player);
     return ;
 }
@@ -482,6 +585,7 @@ struct mpd_player mpd_player = {
             .has_set_volume = 1,
             .has_change_volume = 1
         }
-    }
+    },
+    .state = PLAYER_STATE_FULL_INIT(mpd_player.state)
 };
 

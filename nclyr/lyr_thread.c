@@ -15,6 +15,7 @@
 
 struct lyr_thread {
     struct song_info *song;
+    GLYR_DATA_TYPE intended_type;
     pthread_t thread;
 
     GlyrQuery q;
@@ -62,6 +63,7 @@ static void start_lyr_thread(const struct song_info *song, int thread_fd, const 
 
     song_data->song = song_copy(song);
     song_data->pipefd = thread_fd;
+    song_data->intended_type = type;
 
     /* Note - glyr_opt_* will strdup these strings, so 'song' can be
      * deleted even if the query is still going on.
@@ -76,18 +78,23 @@ static void start_lyr_thread(const struct song_info *song, int thread_fd, const 
     switch (type) {
     case LYR_ARTIST_BIO:
         glyr_opt_type(&song_data->q, GLYR_GET_ARTISTBIO);
+        song_data->intended_type = GLYR_TYPE_ARTIST_BIO;
         break;
     case LYR_SIMILAR_SONG:
         glyr_opt_type(&song_data->q, GLYR_GET_SIMILAR_SONGS);
+        song_data->intended_type = GLYR_TYPE_SIMILAR_SONG;
         break;
     case LYR_SIMILAR_ARTIST:
         glyr_opt_type(&song_data->q, GLYR_GET_SIMILAR_ARTISTS);
+        song_data->intended_type = GLYR_TYPE_SIMILAR_ARTIST;
         break;
     case LYR_COVERART:
         glyr_opt_type(&song_data->q, GLYR_GET_COVERART);
+        song_data->intended_type = GLYR_TYPE_COVERART;
         break;
     case LYR_LYRICS:
         glyr_opt_type(&song_data->q, GLYR_GET_LYRICS);
+        song_data->intended_type = GLYR_TYPE_LYRICS;
         break;
     case LYR_DATA_TYPE_COUNT:
         break;
@@ -104,11 +111,91 @@ static void start_lyr_thread_together(const struct song_info *song, const enum l
         start_lyr_thread(song, thread_exit[1], *t);
 }
 
+static void process_glyr_result(struct lyr_thread *song_thr)
+{
+    struct lyr_thread_notify song_notify;
+    GlyrMemCache *cur;
+
+    memset(&song_notify, 0, sizeof(song_notify));
+    song_notify.song = song_thr->song;
+
+    switch (song_thr->intended_type) {
+    case GLYR_TYPE_ARTIST_BIO:
+        song_notify.type = LYR_ARTIST_BIO;
+        break;
+
+    case GLYR_TYPE_SIMILAR_SONG:
+        song_notify.type = LYR_SIMILAR_SONG;
+        break;
+
+    case GLYR_TYPE_SIMILAR_ARTIST:
+        song_notify.type = LYR_SIMILAR_ARTIST;
+        break;
+
+    case GLYR_TYPE_COVERART:
+        song_notify.type = LYR_COVERART;
+        break;
+
+    case GLYR_TYPE_LYRICS:
+        song_notify.type = LYR_LYRICS;
+        break;
+
+    default:
+        break;
+    }
+
+    for (cur = song_thr->head; cur != NULL; cur = cur->next) {
+        if (song_thr->intended_type != cur->type)
+            continue;
+
+        switch (cur->type) {
+        case GLYR_TYPE_ARTIST_BIO:
+            DEBUG_PRINTF("Got artist bio\n");
+            song_notify.u.bio = strdup(cur->data);
+            song_notify.was_recieved = 1;
+            goto found_glyr_data;
+
+        case GLYR_TYPE_SIMILAR_SONG:
+            DEBUG_PRINTF("Got similar song\n");
+            song_notify.u.similar_songs = strdup(cur->data);
+            song_notify.was_recieved = 1;
+            goto found_glyr_data;
+
+        case GLYR_TYPE_SIMILAR_ARTIST:
+            DEBUG_PRINTF("Got similar artist\n");
+            song_notify.u.similar_artist = strdup(cur->data);
+            song_notify.was_recieved = 1;
+            goto found_glyr_data;
+
+        case GLYR_TYPE_COVERART:
+            DEBUG_PRINTF("Got coverart\n");
+            song_notify.u.img.format = strdup(cur->img_format);
+            song_notify.u.img.data = malloc(cur->size);
+            memcpy(song_notify.u.img.data, cur->data, cur->size);
+            song_notify.u.img.size = cur->size;
+            song_notify.was_recieved = 1;
+            goto found_glyr_data;
+
+        case GLYR_TYPE_LYRICS:
+            DEBUG_PRINTF("Got lyrics\n");
+            song_notify.u.lyrics = strdup(cur->data);
+            song_notify.was_recieved = 1;
+            goto found_glyr_data;
+
+        default:
+            break;
+        }
+
+    }
+
+  found_glyr_data:
+    write(song_notify_fd, &song_notify, sizeof(song_notify));
+}
+
 static void *lyr_thread(void *nothing)
 {
     int exit_flag = 0;
     nfds_t nfds = 2;
-    struct lyr_thread_notify song_notify;
     struct pollfd fds[nfds];
 
     memset(fds, 0, sizeof(fds));
@@ -129,50 +216,11 @@ static void *lyr_thread(void *nothing)
 
         if (fds[1].revents & POLLIN) {
             struct lyr_thread *song_thr;
-            GlyrMemCache *cur;
             read(fds[1].fd, &song_thr, sizeof(song_thr));
 
-            memset(&song_notify, 0, sizeof(song_notify));
-            song_notify.song = song_thr->song;
-            for (cur = song_thr->head; cur != NULL; cur = cur->next) {
-                song_notify.type = LYR_DATA_TYPE_COUNT;
+            DEBUG_PRINTF("Recieved GLYR result: %d\n", song_thr->intended_type);
 
-                switch (cur->type) {
-                case GLYR_TYPE_ARTIST_BIO:
-                    DEBUG_PRINTF("Got artist bio\n");
-                    song_notify.type = LYR_ARTIST_BIO;
-                    song_notify.u.bio = strdup(cur->data);
-                    break;
-                case GLYR_TYPE_SIMILAR_SONG:
-                    DEBUG_PRINTF("Got similar song\n");
-                    song_notify.type = LYR_SIMILAR_SONG;
-                    song_notify.u.similar_songs = strdup(cur->data);
-                    break;
-                case GLYR_TYPE_SIMILAR_ARTIST:
-                    DEBUG_PRINTF("Got similar artist\n");
-                    song_notify.type = LYR_SIMILAR_ARTIST;
-                    song_notify.u.similar_artist = strdup(cur->data);
-                    break;
-                case GLYR_TYPE_COVERART:
-                    DEBUG_PRINTF("Got coverart\n");
-                    song_notify.type = LYR_COVERART;
-                    song_notify.u.img.format = strdup(cur->img_format);
-                    song_notify.u.img.data = malloc(cur->size);
-                    memcpy(song_notify.u.img.data, cur->data, cur->size);
-                    song_notify.u.img.size = cur->size;
-                    break;
-                case GLYR_TYPE_LYRICS:
-                    DEBUG_PRINTF("Got lyrics\n");
-                    song_notify.type = LYR_LYRICS;
-                    song_notify.u.lyrics = strdup(cur->data);
-                    break;
-                default:
-                    break;
-                }
-
-                if (song_notify.type != LYR_DATA_TYPE_COUNT)
-                    write(song_notify_fd, &song_notify, sizeof(song_notify));
-            }
+            process_glyr_result(song_thr);
 
             pthread_join(song_thr->thread, NULL);
 

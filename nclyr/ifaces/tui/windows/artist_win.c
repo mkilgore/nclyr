@@ -18,13 +18,23 @@
 #include "artist_win.h"
 #include "debug.h"
 
+struct artist_win {
+    struct line_win line;
+
+    int being_looked_up;
+};
+
 static void artist_update (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
+    struct artist_win *art = container_of(line, struct artist_win, line);
 
     if (line->line_count == 0) {
         werase(win->win);
-        win_center_str(win->win, "Artist bio not available");
+        if (!art->being_looked_up)
+            win_center_str(win->win, "Artist bio not available");
+        else
+            win_center_str(win->win, "Artist bio being found...");
     } else {
         line_update(win);
     }
@@ -33,6 +43,7 @@ static void artist_update (struct nclyr_win *win)
 static void artist_new_song_data (struct nclyr_win *win, const struct lyr_thread_notify *song_notif)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
+    struct artist_win *art = container_of(line, struct artist_win, line);
 
     DEBUG_PRINTF("Got artist song_notif\n");
 
@@ -40,74 +51,69 @@ static void artist_new_song_data (struct nclyr_win *win, const struct lyr_thread
         return ;
 
     line_free_lines(line);
+    art->being_looked_up = 0;
+    win->updated = 1;
+
+    if (!song_notif->was_recieved)
+        return ;
 
     line->line_count = 1;
     line->disp_offset = 0;
     line->lines = malloc(line->line_count * sizeof(char *));
     line->lines[0] = strdup(song_notif->u.bio);
-
-    win->updated = 1;
-
-    /*
-    line_count = 0;
-    for (ptr = song_notif->u.bio; *ptr; ptr++)
-        if (*ptr == '\n')
-            line_count++;
-
-    line->line_count = line_count;
-    line->disp_offset = 0;
-    line->lines = malloc(line_count * sizeof(char *));
-
-    line_count = 0;
-    for (start = ptr = song_notif->u.bio; *ptr; ptr++) {
-        if (*ptr == '\n') {
-            line->lines[line_count] = malloc(ptr - start + 1);
-            memset(line->lines[line_count], 0, ptr - start + 1);
-            if (ptr - start > 0)
-                memcpy(line->lines[line_count], start, ptr - start);
-            line->lines[line_count][ptr - start] = '\0';
-            line_count++;
-            start = ptr + 1;
-        }
-    } */
 }
 
 void artist_clear_song_data (struct nclyr_win *win)
 {
     struct line_win *line = container_of(win, struct line_win, super_win);
+    struct artist_win *art = container_of(line, struct artist_win, line);
 
     line_free_lines(line);
+    art->being_looked_up = 0;
     win->updated = 1;
 }
 
-static struct line_win artist_window_init = {
-    .super_win = {
-        .win_name = "Artist bio",
-        .win = NULL,
-        .timeout = -1,
-        .lyr_types = (const enum lyr_data_type[]) { LYR_ARTIST_BIO, LYR_DATA_TYPE_COUNT },
-        .keypresses = (const struct nclyr_keypress[]) {
-            LINE_KEYPRESSES(),
-            N_END()
+void artist_lookup_started(struct nclyr_win *win)
+{
+    struct line_win *line = container_of(win, struct line_win, super_win);
+    struct artist_win *art = container_of(line, struct artist_win, line);
+
+    art->being_looked_up = 1;
+    win->updated = 1;
+}
+
+static struct artist_win artist_window_init = {
+    .line = {
+        .super_win = {
+            .win_name = "Artist bio",
+            .win = NULL,
+            .timeout = -1,
+            .lyr_types = (const enum lyr_data_type[]) { LYR_ARTIST_BIO, LYR_DATA_TYPE_COUNT },
+            .keypresses = (const struct nclyr_keypress[]) {
+                LINE_KEYPRESSES(),
+                N_END()
+            },
+            .init = NULL,
+            .clean = line_clean,
+            .switch_to = NULL,
+            .update = artist_update,
+            .resize = NULL,
+            .clear_song_data = artist_clear_song_data,
+            .new_song_data = artist_new_song_data,
+            .new_player_notif = NULL,
+            .lookup_started = artist_lookup_started,
         },
-        .init = NULL,
-        .clean = line_clean,
-        .switch_to = NULL,
-        .update = artist_update,
-        .resize = NULL,
-        .clear_song_data = artist_clear_song_data,
-        .new_song_data = artist_new_song_data,
-        .new_player_notif = NULL,
+        .line_count = 0,
+        .disp_offset = 0,
+        .lines = NULL,
     },
-    .line_count = 0,
-    .disp_offset = 0,
-    .lines = NULL,
+    .being_looked_up = 0,
 };
 
 struct nclyr_win *artist_win_new(void)
 {
-    struct line_win *win = malloc(sizeof(*win));
+    struct artist_win *win = malloc(sizeof(*win));
     memcpy(win, &artist_window_init, sizeof(artist_window_init));
-    return &win->super_win;
+    return &win->line.super_win;
 }
 

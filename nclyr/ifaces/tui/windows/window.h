@@ -60,7 +60,7 @@ struct nclyr_keypress {
 
 struct nclyr_win {
     /* Name to identify this window */
-    const char *win_name;
+    char *win_name;
 
     /* We store a pointer to the tui_iface in every window so it can access it */
     struct tui_iface *tui;
@@ -118,6 +118,9 @@ struct nclyr_win {
     void (*cmd_exec) (struct nclyr_win *, int argc, char **argv);
 
     void (*new_player_notif) (struct nclyr_win *, enum player_notif_type, struct player_state_full *);
+
+    /* Called when lyr_thread looked has started */
+    void (*lookup_started) (struct nclyr_win *);
 };
 
 

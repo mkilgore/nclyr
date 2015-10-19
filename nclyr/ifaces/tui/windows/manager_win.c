@@ -22,7 +22,7 @@ static struct cons_printf_arg args[] = {
 static void manager_win_init(struct nclyr_win *win)
 {
     struct manager_win *man = container_of(win, struct manager_win, super_win);
-
+    DEBUG_PRINTF("Initing Manager window...\n");
     man->printwin = cons_printf_compile("${if;selected:true}${reverse}${endif} ${win_num}: ${name}${right_align} ", ARRAY_SIZE(args), args);
 }
 

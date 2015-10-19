@@ -11,6 +11,16 @@
 #include "windows/window.h"
 #include "tui_internal.h"
 
+void tui_lookup_song(struct tui_iface *tui, struct nclyr_win *win)
+{
+    if (!win->already_lookedup) {
+        win->already_lookedup = 1;
+        lyr_thread_song_lookup(tui->state.song, win->lyr_types);
+        if (win->lookup_started)
+            (win->lookup_started) (win);
+    }
+}
+
 void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
 {
     tui->sel_window = win;
@@ -18,11 +28,7 @@ void tui_change_window (struct tui_iface *tui, struct nclyr_win *win)
     if (tui->sel_window->switch_to)
         tui->sel_window->switch_to(tui->sel_window);
 
-    if (!tui->sel_window->already_lookedup) {
-        tui->sel_window->already_lookedup = 1;
-        if (tui->state.song)
-            lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
-    }
+    tui_lookup_song(tui, tui->sel_window);
 }
 
 static chtype attr_t_to_chtype(attr_t attrs)

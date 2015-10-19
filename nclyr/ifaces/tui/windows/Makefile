@@ -7,6 +7,8 @@ objs-y += window_center.o
 objs-y += playlist_win.o
 objs-y += config_win.o
 objs-y += manager_win.o
+objs-y += browse_win.o
+objs-y += selectable_win.o
 
 objs-$(CONFIG_LIB_GLYR) += lyrics_win.o
 objs-$(CONFIG_LIB_GLYR) += artist_win.o

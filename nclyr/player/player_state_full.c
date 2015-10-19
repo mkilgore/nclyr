@@ -7,11 +7,13 @@
 #include "song.h"
 #include "playlist.h"
 #include "player.h"
+#include "debug.h"
 
 void player_state_full_clear(struct player_state_full *state)
 {
     song_free(state->song);
     playlist_clear(&state->playlist);
+    directory_clear(&state->cwd);
 }
 
 void player_state_full_update(struct player_state_full *state, struct player_notification *notif)
@@ -56,6 +58,12 @@ void player_state_full_update(struct player_state_full *state, struct player_not
 
     case PLAYER_SONG_POS:
         state->song_pos = notif->u.song_pos;
+        break;
+
+    case PLAYER_DIRECTORY:
+        directory_clear(&state->cwd);
+        directory_init(&state->cwd);
+        directory_move(&state->cwd, notif->u.dir);
         break;
     }
 }

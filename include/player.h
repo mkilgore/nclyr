@@ -5,6 +5,7 @@
 #include "config.h"
 #include "song.h"
 #include "playlist.h"
+#include "directory.h"
 
 #include <limits.h>
 
@@ -24,6 +25,7 @@ enum player_notif_type {
     PLAYER_VOLUME,
     PLAYER_PLAYLIST,
     PLAYER_SONG_POS,
+    PLAYER_DIRECTORY,
 };
 
 struct player_notification {
@@ -35,6 +37,7 @@ struct player_notification {
         size_t volume;
         struct playlist playlist;
         int song_pos;
+        struct directory *dir;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -49,7 +52,27 @@ struct player_state_full {
     size_t seek_pos;
     struct playlist playlist;
     int song_pos;
+    struct directory cwd;
 };
+
+#define PLAYER_STATE_FULL_INIT(state_full) \
+    { \
+        .is_up = 0, \
+        .state = 0, \
+        .song = NULL, \
+        .volume = 0, \
+        .seek_pos = 0, \
+        .playlist = PLAYLIST_INIT(), \
+        .song_pos = 0, \
+        .cwd = DIRECTORY_INIT((state_full).cwd), \
+    }
+
+static inline void player_state_full_init(struct player_state_full *state)
+{
+    memset(state, 0, sizeof(*state));
+    playlist_init(&state->playlist);
+    directory_init(&state->cwd);
+}
 
 enum player_ctrl_msg_type {
     PLAYER_CTRL_PLAY,
@@ -63,6 +86,10 @@ enum player_ctrl_msg_type {
     PLAYER_CTRL_CHANGE_VOLUME,
     PLAYER_CTRL_CHANGE_SONG,
     PLAYER_CTRL_REMOVE_SONG,
+
+    PLAYER_CTRL_ADD_SONG,
+    PLAYER_CTRL_GET_DIRECTORY,
+    PLAYER_CTRL_CHANGE_DIRECTORY,
 };
 
 struct player_ctrl_msg {
@@ -73,6 +100,8 @@ struct player_ctrl_msg {
         int pause;
         int vol_change;
         int song_pos;
+        char *change_dir;
+        char *song_name;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_ctrl_msg) <= PIPE_BUF);
@@ -133,6 +162,9 @@ void player_set_volume(struct player *, size_t volume);
 void player_change_volume(struct player *, int change);
 void player_change_song(struct player *, int song_pos);
 void player_remove_song(struct player *, int song_pos);
+void player_add_song(struct player *, char *song);
+void player_change_working_directory(struct player *, char *dir);
+void player_get_working_directory(struct player *);
 
 void player_send_is_up(struct player *);
 void player_send_is_down(struct player *);
@@ -143,6 +175,7 @@ void player_send_seek(struct player *, size_t seek_pos);
 void player_send_volume(struct player *, size_t volume);
 void player_send_playlist(struct player *, struct playlist *);
 void player_send_song_pos(struct player *, int song_pos);
+void player_send_directory(struct player *, struct directory *);
 
 enum {
 #if CONFIG_PLAYER_MPD

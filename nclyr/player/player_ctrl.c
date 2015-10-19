@@ -72,3 +72,21 @@ void player_remove_song (struct player *p, int song_pos)
     p->ctrls.ctrl(p, &msg);
 }
 
+void player_get_working_directory(struct player *p)
+{
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_GET_DIRECTORY };
+    p->ctrls.ctrl(p, &msg);
+}
+
+void player_change_working_directory(struct player *p, char *dir)
+{
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_CHANGE_DIRECTORY, .u.change_dir = dir };
+    p->ctrls.ctrl(p, &msg);
+}
+
+void player_add_song(struct player *p, char *song)
+{
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_ADD_SONG, .u.song_name = song };
+    p->ctrls.ctrl(p, &msg);
+}
+

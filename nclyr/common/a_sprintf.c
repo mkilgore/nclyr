@@ -8,7 +8,7 @@ int a_sprintfv (char **buf, const char *format, va_list lst)
 {
     size_t size = vsnprintf(NULL, 0, format, lst) + 1;
 
-    *buf = malloc(size);
+    *buf = realloc(*buf, size);
 
     if (!*buf)
         return -1;

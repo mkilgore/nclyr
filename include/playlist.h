@@ -11,6 +11,12 @@ struct playlist {
     size_t song_count;
 };
 
+#define PLAYLIST_INIT() \
+    { \
+        .songs = NULL, \
+        .song_count = 0, \
+    }
+
 void playlist_init(struct playlist *);
 void playlist_copy(struct playlist *dest, struct playlist *src);
 void playlist_clear(struct playlist *);

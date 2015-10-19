@@ -13,7 +13,7 @@ enum lyr_data_type {
     LYR_SIMILAR_ARTIST,
     LYR_COVERART,
     LYR_LYRICS,
-    LYR_DATA_TYPE_COUNT
+    LYR_DATA_TYPE_COUNT,
 };
 
 struct lyr_thread_notify {
@@ -30,6 +30,9 @@ struct lyr_thread_notify {
             size_t size;
         } img;
     } u;
+
+    /* This marks if the requested LYR_* was actually found or not */
+    uint32_t was_recieved :1;
 };
 STATIC_ASSERT(sizeof(struct lyr_thread_notify) <= PIPE_BUF);
 

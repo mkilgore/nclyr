@@ -101,6 +101,7 @@ static void help_switch_to(struct nclyr_win *win)
     line->disp_offset = 0;
 
     line->lines = malloc(line->line_count * sizeof(*line->lines));
+    memset(line->lines, 0, line->line_count * sizeof(*line->lines));
 
     help_create_text(tui, line);
 }

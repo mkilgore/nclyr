@@ -45,6 +45,7 @@ struct tui_iface {
 };
 
 void tui_change_window(struct tui_iface *, struct nclyr_win *);
+void tui_lookup_song(struct tui_iface *, struct nclyr_win *);
 
 void tui_config_init(struct config_item *);
 struct config_item *tui_config_get_root(void);

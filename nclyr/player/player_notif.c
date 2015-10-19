@@ -6,6 +6,7 @@
 
 #include "song.h"
 #include "playlist.h"
+#include "directory.h"
 #include "player.h"
 #include "debug.h"
 
@@ -18,6 +19,11 @@ void player_notification_clear(struct player_notification *notif)
 
     case PLAYER_PLAYLIST:
         playlist_clear(&notif->u.playlist);
+        break;
+
+    case PLAYER_DIRECTORY:
+        directory_clear(notif->u.dir);
+        free(notif->u.dir);
         break;
 
     case PLAYER_STATE:

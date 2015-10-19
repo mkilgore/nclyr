@@ -38,9 +38,7 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
             win->already_lookedup = 0;
         }
 
-        tui->sel_window->already_lookedup = 1;
-        if (tui->state.song)
-            lyr_thread_song_lookup(tui->state.song, tui->sel_window->lyr_types);
+        tui_lookup_song(tui, tui->sel_window);
     }
 
     for (i = 0; i < tui->window_count; i++) {
@@ -65,6 +63,7 @@ static void handle_notify_fd(struct tui_iface *tui, int notifyfd)
     read(notifyfd, &song_notif, sizeof(song_notif));
 
     DEBUG_PRINTF("Got Lyr-thread notification: %d\n", song_notif.type);
+    DEBUG_PRINTF("Song: %p\n", song_notif.song);
 
     if (!song_equal(song_notif.song, tui->state.song)) {
         DEBUG_PRINTF("Song didn't match!\n");
@@ -140,7 +139,7 @@ static void handle_mouse(struct tui_iface *tui)
      * window-relative cords, but I've only gotten it to do so if I send it
      * FALSE instead. */
     if (!wmouse_trafo(win->win, &y, &x, FALSE)) {
-        DEBUG_PRINTF("X and Y wern't inside the window\n");
+        DEBUG_PRINTF("X and Y weren't inside the window\n");
         return ;
     }
 
@@ -265,7 +264,7 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     char inp_buf[200];
     struct tui_iface *tui = container_of(iface, struct tui_iface, iface);
     struct pollfd main_notify[4];
-    struct tui_window_desc *descs[] = { window_descs + 0, window_descs + 1, window_descs + 2, window_descs + 4, NULL };
+    struct tui_window_desc *descs[] = { window_descs + 0, window_descs + 1, window_descs + 2, window_descs + 3, window_descs + 4, window_descs + 5, NULL };
     struct tui_window_desc **d;
 
     initscr();
@@ -300,27 +299,15 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     tui->status->init(tui->status, COLS);
 
     tui_window_init(tui, tui->manager_win);
-    tui->manager_win->init(tui->manager_win);
 
     tui_window_init(tui, tui->help_win);
-    tui->help_win->init(tui->help_win);
 
     rows = getmaxy(tui->status->win);
 
-    for (d = descs; *d; d++)
+    for (d = descs; *d; d++) {
+        DEBUG_PRINTF("Starting window %s\n", (*d)->name);
         tui_window_add(tui, tui_window_new(tui, *d));
-
-    /*
-    for (win = tui->windows; *win; win++) {
-        struct nclyr_win *w = *win;
-        w->tui = tui;
-        w->win = newwin(LINES - rows - 2, COLS, rows + 1, 0);
-        touchwin(w->win);
-        w->updated = 1;
-
-        if (w->init)
-            w->init(w);
-    } */
+    }
 
     main_notify[0].fd = pipes->player[0];
     main_notify[0].events = POLLIN;
@@ -335,6 +322,8 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     main_notify[3].events = POLLIN;
 
     tui->sel_window = tui->windows[tui->sel_window_index];
+
+    player_get_working_directory(player_current());
 
     while (!tui->exit_flag) {
         curs_set(0);
@@ -380,7 +369,6 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
             refresh();
             curs_set(1);
         }
-
 
         poll(main_notify, sizeof(main_notify)/sizeof(main_notify[0]), tui->sel_window->timeout);
 

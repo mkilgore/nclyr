@@ -5,6 +5,7 @@ objs-y += args.o
 objs-y += nclyr_conf.o
 objs-y += iface.o
 objs-y += build.o
+objs-y += directory.o
 
 objs-$(CONFIG_LIB_GLYR) += lyr_thread.o
 objs-$(CONFIG_DEBUG) += debug.o

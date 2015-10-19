@@ -26,6 +26,7 @@
 #include "windows/artist_win.h"
 #include "windows/playlist_win.h"
 #include "windows/config_win.h"
+#include "windows/browse_win.h"
 
 #include "tui.h"
 #include "debug.h"
@@ -83,6 +84,7 @@ struct tui_window_desc window_descs[] = {
     WIN_DESC("lyrics", NULL, lyrics_win_new),
     WIN_DESC("artist", NULL, artist_win_new),
 #endif
+    WIN_DESC("browse", NULL, browse_win_new),
     WIN_DESC("config", NULL, config_win_new),
     WIN_DESC("clock", NULL, clock_win_new),
     WIN_DESC_END()
@@ -94,7 +96,7 @@ struct tui_iface tui_iface  = {
         .description = "Text (ncurses-based) User Interface",
         .main_loop = tui_main_loop,
     },
-    .state = { .is_up = 0 },
+    .state = PLAYER_STATE_FULL_INIT(tui_iface.state),
     .windows = NULL,
     .window_count = 0,
     .global_keys = (const struct nclyr_keypress[]) {
