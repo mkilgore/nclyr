@@ -33,6 +33,8 @@ extern YYLTYPE yylloc;
 "{" { return '{'; }
 "}" { return '}'; }
 "," { return ','; }
+"(" { return '('; }
+")" { return ')'; }
 
 "include" {
     BEGIN(inc);
@@ -61,26 +63,6 @@ n {
 [0-9]+ {
     yylval.str = strdup(yytext);
     return TOK_INTEGER;
-}
-
-[bB][lL][aA][cC][kK] {
-    yylval.color = CONS_COLOR_BLACK;
-    return TOK_COLOR;
-}
-
-[rR][eE][dD] {
-    yylval.color = CONS_COLOR_RED;
-    return TOK_COLOR;
-}
-
-[gG][rR][eE][eE][nN] {
-    yylval.color = CONS_COLOR_GREEN;
-    return TOK_COLOR;
-}
-
-[yY][eE][lL][lL][oO][wW] {
-    yylval.color = CONS_COLOR_YELLOW;
-    return TOK_COLOR;
 }
 
 [a-zA-Z0-9_\-]+ {

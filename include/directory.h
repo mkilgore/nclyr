@@ -12,7 +12,6 @@ enum entry_type {
 };
 
 struct directory_entry {
-    list_node_t dir_entry;
     char *name;
     enum entry_type type;
     struct song_info *song;
@@ -21,31 +20,26 @@ struct directory_entry {
 struct directory {
     char *name;
     int entry_count;
-    list_head_t entries;
+    struct directory_entry *entries;
 };
 
 static inline void directory_init(struct directory *dir)
 {
     memset(dir, 0, sizeof(*dir));
-    INIT_LIST_HEAD(&dir->entries);
 }
 
 void directory_clear(struct directory *dir);
 
 static inline void directory_move(struct directory *new, struct directory *old)
 {
-    DEBUG_PRINTF("Old: %p, %p\n", &old->entries, old->entries.next);
-    list_replace(&new->entries, &old->entries);
-    DEBUG_PRINTF("New: %p, %p\n", &new->entries, new->entries.next);
-    new->name = old->name;
-    new->entry_count = old->entry_count;
+    memcpy(new, old, sizeof(*new));
     directory_init(old);
 }
 
 #define DIRECTORY_INIT(dir) \
     { \
         .name = NULL, \
-        .entries = LIST_HEAD_INIT(dir.entries), \
+        .entries = NULL, \
         .entry_count = 0, \
     }
 

@@ -21,10 +21,30 @@
 #include "selectable_win.h"
 #include "debug.h"
 
+#define MAX_DIRECTORY_HISTORY 20
+
+struct history_pos {
+    int selected;
+    int disp_offset;
+};
+
 struct browse_win {
     struct selectable_win sel;
 
-    struct directory_entry *entries;
+    /* Keeps a history of how many levels deep, and the past selections made.
+     * Note we count the levels past 'MAX_DIRECTORY_HISTORY', but only store
+     * MAX_DIRECTORY_HISTORY levels. Levels past that won't have their
+     * selection stored.
+     *
+     * This feature allows you to traverse into a directory, and then exit that
+     * directory and not have to scroll back to where you were. */
+    int directory_level;
+    struct history_pos directory_history[MAX_DIRECTORY_HISTORY];
+
+    int next_sel;
+    int next_disp_off;
+
+    int waiting_for_directory;
 
     cons_printf_compiled *directory;
     cons_printf_compiled *song;
@@ -47,20 +67,19 @@ static struct cons_printf_arg song_args[] = {
     { .id = "song", .type = CONS_ARG_SONG },
 };
 
-static void browse_win_get_line(struct selectable_win *win, int line, int is_sel, struct cons_str *chstr)
+static void browse_win_get_line(struct selectable_win *win, int line, int width, struct cons_str *chstr)
 {
     struct browse_win *brow = container_of(win, struct browse_win, sel);
     struct directory_entry *entry;
-    int cols;
+    struct tui_iface *tui = win->super_win.tui;
 
-    cols = getmaxx(win->super_win.win);
+    entry = tui->state.cwd.entries + line;
 
-    entry = brow->entries + line;
     switch (entry->type) {
     case ENTRY_TYPE_DIR:
         dir_args[0].u.str_val = entry->name;
-        dir_args[1].u.bool_val = is_sel;
-        cons_printf(brow->directory, chstr, cols, tui_get_chtype_from_window(win->super_win.win), dir_args, ARRAY_SIZE(dir_args));
+        dir_args[1].u.bool_val = line == win->selected;
+        cons_printf(brow->directory, chstr, width, tui_get_chtype_from_window(win->super_win.win), dir_args, ARRAY_SIZE(dir_args));
         break;
 
     case ENTRY_TYPE_SONG:
@@ -69,35 +88,27 @@ static void browse_win_get_line(struct selectable_win *win, int line, int is_sel
         song_args[2].u.str_val = entry->song->tag.album;
         song_args[3].u.time_val = entry->song->duration;
         song_args[4].u.str_val = entry->song->name;
-        song_args[5].u.bool_val = is_sel;
+        song_args[5].u.bool_val = line == win->selected;
         song_args[6].u.song.s = entry->song;
-        cons_printf(brow->song, chstr, cols, tui_get_chtype_from_window(win->super_win.win), song_args, ARRAY_SIZE(song_args));
+        cons_printf(brow->song, chstr, width, tui_get_chtype_from_window(win->super_win.win), song_args, ARRAY_SIZE(song_args));
         break;
     }
-}
-
-static void browse_win_clear_entries(struct browse_win *brow)
-{
-    int i;
-    for (i = 0; i < brow->sel.total_lines; i++)
-        directory_entry_clear(brow->entries + i);
-
-    free(brow->entries);
 }
 
 static void browse_win_init(struct nclyr_win *win)
 {
     struct browse_win *brow = container_of(win, struct browse_win, sel.super_win);
+    struct tui_iface *tui = win->tui;
 
-    brow->directory = cons_printf_compile("${if;selected:true}${reverse}${endif} [${name}]${right_align} ", ARRAY_SIZE(dir_args), dir_args);
-    brow->song = cons_printf_compile("${if;selected:true}${reverse}${endif} ${song}${right_align}${duration;pad:true;seconds:true;minutes:true}", ARRAY_SIZE(song_args), song_args);
-    brow->song_filename = cons_printf_compile_song("${filename}");
-    brow->song_triple = cons_printf_compile_song("${color;f:cyan} ${title} ${color;f:default}"
-                                                      ">>${color;f:red} ${artist} ${color;f:default}"
-                                                      ">>${color;f:green} ${album} ");
+    brow->directory = cons_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_BROWSE, DIRECTORY)->u.str.str, ARRAY_SIZE(dir_args), dir_args);
+    brow->song = cons_printf_compile(CONFIG_GET(tui->cfg, TUI_CONFIG_BROWSE, SONG)->u.str.str, ARRAY_SIZE(song_args), song_args);
+    brow->song_triple = cons_printf_compile_song(CONFIG_GET(tui->cfg, TUI_CONFIG_BROWSE, SONG_TRIPLE)->u.str.str);
+    brow->song_filename = cons_printf_compile_song(CONFIG_GET(tui->cfg, TUI_CONFIG_BROWSE, SONG_FILENAME)->u.str.str);
 
     song_args[6].u.song.triple = brow->song_triple;
     song_args[6].u.song.filename = brow->song_filename;
+
+    brow->next_sel = 0;
 
     brow->sel.super_win.win_name = strdup("Browse");
 }
@@ -111,37 +122,22 @@ static void browse_win_clear(struct nclyr_win *win)
     cons_printf_compiled_free(brow->song_triple);
     cons_printf_compiled_free(brow->song_filename);
 
-    browse_win_clear_entries(brow);
-
     free(win->win_name);
 }
 
 static void browse_win_new_player_notif(struct nclyr_win *win, enum player_notif_type notif, struct player_state_full *state)
 {
-    struct directory_entry *entry;
     struct selectable_win *sel = container_of(win, struct selectable_win, super_win);
     struct browse_win *brow = container_of(win, struct browse_win, sel.super_win);
-    int i;
 
     if (notif != PLAYER_DIRECTORY)
         return ;
 
-    browse_win_clear_entries(brow);
-
     win->updated = 1;
-    sel->selected = 0;
-    sel->disp_offset = 0;
+    sel->selected = brow->next_sel;
+    sel->disp_offset = brow->next_disp_off;
     sel->total_lines = state->cwd.entry_count;
-
-    brow->entries = malloc(sizeof(*brow->entries) * sel->total_lines);
-
-    i = 0;
-    list_foreach_entry(&state->cwd.entries, entry, struct directory_entry, dir_entry) {
-        directory_entry_copy(brow->entries + i, entry);
-        i++;
-    }
-
-    win->updated = 1;
+    brow->waiting_for_directory = 0;
 
     a_sprintf(&win->win_name, "Browse - %s", state->cwd.name);
 
@@ -152,14 +148,35 @@ static void browse_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mou
 {
     struct selectable_win *sel = container_of(win, struct selectable_win, super_win);
     struct browse_win *brow = container_of(win, struct browse_win, sel.super_win);
+    struct tui_iface *tui = win->tui;
+
+    /* We don't handle any keypresses while we're waiting for the player to
+     * give us a directory. If we did, then we would risk sending multiple 'get
+     * directory' commands, along other things */
+    if (brow->waiting_for_directory)
+        return ;
 
     switch (ch) {
     case '\n':
-        if (brow->entries[sel->selected].type == ENTRY_TYPE_DIR) {
-            player_change_working_directory(player_current(), strdup(brow->entries[sel->selected].name));
+        if (tui->state.cwd.entries[sel->selected].type == ENTRY_TYPE_DIR) {
+            player_change_working_directory(player_current(), strdup(tui->state.cwd.entries[sel->selected].name));
             player_get_working_directory(player_current());
+
+            if (strcmp(tui->state.cwd.entries[sel->selected].name, "..") != 0) {
+                brow->directory_history[brow->directory_level].selected = sel->selected;
+                brow->directory_history[brow->directory_level].disp_offset = sel->disp_offset;
+                brow->directory_level++;
+                brow->next_sel = 0;
+                brow->next_disp_off = 0;
+            } else {
+                brow->directory_level--;
+                brow->next_sel = brow->directory_history[brow->directory_level].selected;
+                brow->next_disp_off = brow->directory_history[brow->directory_level].disp_offset;
+            }
+
+            brow->waiting_for_directory = 1;
         } else {
-            player_add_song(player_current(), strdup(brow->entries[sel->selected].song->name));
+            player_add_song(player_current(), strdup(tui->state.cwd.entries[sel->selected].song->name));
         }
         break;
     }

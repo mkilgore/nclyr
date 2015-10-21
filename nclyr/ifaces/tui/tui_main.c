@@ -166,10 +166,12 @@ static void handle_mouse(struct tui_iface *tui)
         else
             mevent.type = LEFT_RELEASED;
         break;
+
     case BUTTON3_PRESSED:
         DEBUG_PRINTF("Button3 Pressed\n");
         mevent.type = RIGHT_PRESSED;
         break;
+
     case BUTTON3_RELEASED:
         DEBUG_PRINTF("Button3 Released\n");
         if (tui->last_mevent == RIGHT_PRESSED)
@@ -177,10 +179,12 @@ static void handle_mouse(struct tui_iface *tui)
         else
             mevent.type = RIGHT_RELEASED;
         break;
+
     case BUTTON4_PRESSED:
         DEBUG_PRINTF("Button4 Pressed\n");
         mevent.type = SCROLL_UP;
         break;
+
     case BUTTON2_PRESSED:
         DEBUG_PRINTF("Button2 Pressed\n");
         mevent.type = SCROLL_DOWN;
@@ -216,6 +220,8 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
         tui->sel_window->keypresses,
         NULL
     };
+
+    DEBUG_PRINTF("Char: %d\n", ch);
 
     if (ch == KEY_MOUSE) {
         handle_mouse(tui);
@@ -322,10 +328,15 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
     main_notify[3].fd = STDIN_FILENO;
     main_notify[3].events = POLLIN;
 
+    DEBUG_PRINTF("Selected window: %d\n", tui->sel_window_index);
+    DEBUG_PRINTF("Tui windows: %p\n", tui->windows);
+    DEBUG_PRINTF("Player current: %p\n", player_current());
+
     tui->sel_window = tui->windows[tui->sel_window_index];
 
     player_get_working_directory(player_current());
 
+    DEBUG_PRINTF("Starting TUI\n");
     while (!tui->exit_flag) {
         curs_set(0);
 
@@ -340,20 +351,20 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
         if (tui->grab_input)
             mvprintw(LINES - 1, 0, ":%-*s", COLS - 1, inp_buf);
-        else
+        else if (LINES > 3)
             mvprintw(LINES - 1, 0, "%-*s", COLS, (tui->display)? tui->display: "");
-
-        refresh();
 
         if (tui->status->updated)
             tui->status->update(tui->status);
 
-        wrefresh(tui->status->win);
-
-        if (tui->sel_window->updated)
+        if (tui->sel_window->updated && LINES > 2)
             tui->sel_window->update(tui->sel_window);
 
-        wrefresh(tui->sel_window->win);
+        wnoutrefresh(tui->status->win);
+        if (LINES > 2)
+            wnoutrefresh(tui->sel_window->win);
+        wnoutrefresh(stdscr);
+        doupdate();
 
         /* We check if the currently selected window wants to show the cursor,
          * and display it if it does.

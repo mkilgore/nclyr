@@ -37,7 +37,7 @@ struct player_notification {
         size_t volume;
         struct playlist playlist;
         int song_pos;
-        struct directory *dir;
+        struct directory dir;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -112,20 +112,14 @@ struct player;
 struct player_controls {
     void (*ctrl) (struct player *, const struct player_ctrl_msg *);
 
-    unsigned int has_pause :1;
-    unsigned int has_toggle_pause :1;
-    unsigned int has_play :1;
-    unsigned int has_next :1;
-    unsigned int has_prev :1;
-    unsigned int has_seek :1;
-    unsigned int has_shuffle :1;
-    unsigned int has_set_volume :1;
-    unsigned int has_change_volume :1;
+    uint32_t has_ctrl_flag;
 };
+
 
 struct player {
     const char *name;
     int notify_fd;
+    uint32_t notify_flags;
 
     void (*start_thread) (struct player *);
     void (*stop_thread) (struct player *);
@@ -136,6 +130,40 @@ struct player {
     const struct nclyr_win **player_windows;
 };
 
+/* bit-flags indicating the type of notifications this player is capable of
+ * sending. This is important for enabling or disabling certain functionality
+ */
+enum player_notif_flags {
+    PN_HAS_NO_SONG,
+    PN_HAS_SONG,
+    PN_HAS_IS_UP,
+    PN_HAS_IS_DOWN,
+    PN_HAS_STATE,
+    PN_HAS_SEEK,
+    PN_HAS_VOLUME,
+    PN_HAS_PLAYLIST,
+    PN_HAS_SONG_POS,
+    PN_HAS_DIRECTORY,
+};
+
+/* bit-flags indicating the type of control commands this player is capable of
+ * recieving */
+enum player_ctrl_flags {
+    PC_HAS_PAUSE,
+    PC_HAS_TOGGLE_PAUSE,
+    PC_HAS_PLAY,
+    PC_HAS_NEXT,
+    PC_HAS_PREV,
+    PC_HAS_SEEK,
+    PC_HAS_SHUFFLE,
+    PC_HAS_SET_VOLUME,
+    PC_HAS_CHANGE_VOLUME,
+    PC_HAS_CHANGE_SONG,
+    PC_HAS_MOVE_SONG,
+    PC_HAS_ADD_SONG,
+    PC_HAS_GET_DIRECTORY,
+    PC_HAS_CHANGE_DIRECTORY,
+};
 
 extern struct player *players[];
 struct player *player_current(void);

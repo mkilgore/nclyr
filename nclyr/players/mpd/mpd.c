@@ -165,27 +165,32 @@ static void update_elapsed_time(struct mpd_player *player)
     }
 }
 
+static struct directory_entry *directory_add_entry(struct directory *dir)
+{
+    int entry = dir->entry_count++;
+    DEBUG_PRINTF("Entry %d\n", entry);
+    dir->entries = realloc(dir->entries, sizeof(*dir->entries) * dir->entry_count);
+
+    memset(dir->entries + entry, 0, sizeof(struct directory_entry));
+
+    return dir->entries + entry;
+}
+
 static void send_directory(struct mpd_player *player)
 {
-    struct directory *cwd;
+    struct directory cwd;
     struct mpd_entity *entity;
 
-    cwd = malloc(sizeof(*cwd));
+    directory_init(&cwd);
 
-    directory_init(cwd);
+    cwd.name = nstrdup(player->state.cwd.name);
+    mpd_send_list_meta(player->conn, cwd.name);
 
-    cwd->name = nstrdup(player->state.cwd.name);
-    mpd_send_list_meta(player->conn, cwd->name);
-
-    if (strcmp("/", player->state.cwd.name) != 0) {
-        struct directory_entry *entry = malloc(sizeof(*entry));
-        memset(entry, 0, sizeof(*entry));
+    if (strcmp("", player->state.cwd.name) != 0) {
+        struct directory_entry *entry = directory_add_entry(&cwd);
 
         entry->type = ENTRY_TYPE_DIR;
         entry->name = strdup("..");
-
-        cwd->entry_count++;
-        list_add_tail(&cwd->entries, &entry->dir_entry);
     }
 
     while ((entity = mpd_recv_entity(player->conn))) {
@@ -194,8 +199,7 @@ static void send_directory(struct mpd_player *player)
         if (type != MPD_ENTITY_TYPE_SONG && type != MPD_ENTITY_TYPE_DIRECTORY)
             goto free_entity;
 
-        struct directory_entry *entry = malloc(sizeof(*entry));
-        memset(entry, 0, sizeof(*entry));
+        struct directory_entry *entry = directory_add_entry(&cwd);
 
         switch (type) {
         case MPD_ENTITY_TYPE_DIRECTORY:
@@ -212,14 +216,12 @@ static void send_directory(struct mpd_player *player)
             break;
         }
 
-        cwd->entry_count++;
-        list_add_tail(&cwd->entries, &entry->dir_entry);
-
       free_entity:
         mpd_entity_free(entity);
     }
 
-    player_send_directory(&player->player, cwd);
+    DEBUG_PRINTF("Sending directory: %p\n", cwd.entries);
+    player_send_directory(&player->player, &cwd);
 }
 
 static void change_directory_up(struct mpd_player *player)
@@ -571,19 +573,37 @@ static void mpd_send_ctrl_msg (struct player *p, const struct player_ctrl_msg *m
 struct mpd_player mpd_player = {
     .player = {
         .name = "mpd",
+        .notify_flags = 0
+            | F(PN_HAS_NO_SONG)
+            | F(PN_HAS_SONG)
+            | F(PN_HAS_IS_UP)
+            | F(PN_HAS_IS_DOWN)
+            | F(PN_HAS_STATE)
+            | F(PN_HAS_SEEK)
+            | F(PN_HAS_VOLUME)
+            | F(PN_HAS_PLAYLIST)
+            | F(PN_HAS_SONG_POS)
+            | F(PN_HAS_DIRECTORY)
+            ,
         .start_thread = mpd_start_thread,
         .stop_thread = mpd_stop_thread,
         .ctrls = {
             .ctrl = mpd_send_ctrl_msg,
-            .has_pause = 1,
-            .has_toggle_pause = 1,
-            .has_play = 1,
-            .has_next = 1,
-            .has_prev = 1,
-            .has_seek = 0,
-            .has_shuffle = 0,
-            .has_set_volume = 1,
-            .has_change_volume = 1
+            .has_ctrl_flag = 0
+                | F(PC_HAS_PAUSE)
+                | F(PC_HAS_TOGGLE_PAUSE)
+                | F(PC_HAS_PLAY)
+                | F(PC_HAS_NEXT)
+                | F(PC_HAS_PREV)
+                | F(PC_HAS_SEEK)
+                | F(PC_HAS_SET_VOLUME)
+                | F(PC_HAS_CHANGE_VOLUME)
+                | F(PC_HAS_CHANGE_SONG)
+                | F(PC_HAS_MOVE_SONG)
+                | F(PC_HAS_ADD_SONG)
+                | F(PC_HAS_GET_DIRECTORY)
+                | F(PC_HAS_CHANGE_DIRECTORY)
+                ,
         }
     },
     .state = PLAYER_STATE_FULL_INIT(mpd_player.state)

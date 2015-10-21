@@ -102,6 +102,8 @@ static void *pianobar_inotify_thread(void *player)
     do {
         poll(fds, sizeof(fds)/sizeof(fds[0]), -1);
 
+        DEBUG_PRINTF("Out of poll\n");
+
         if (fds[1].revents & POLLIN)
             exit_flag = 1;
 
@@ -164,12 +166,22 @@ static void pianobar_stop_thread(struct player *player)
     pthread_join(pianobar->notif_thread, NULL);
 }
 
+static void pianobar_ctrl(struct player *player, const struct player_ctrl_msg *msg)
+{
+
+}
+
 struct pianobar_player pianobar_player = {
     .player = {
         .name = "pianobar",
         .start_thread = pianobar_start_thread,
         .stop_thread = pianobar_stop_thread,
-        .player_windows = (const struct nclyr_win *[]) { NULL }
+        .player_windows = (const struct nclyr_win *[]) { NULL },
+        .ctrls = {
+            .ctrl = pianobar_ctrl,
+            .has_ctrl_flag = 0
+              ,
+        }
     },
     .stop_pipe = { 0, 0},
 };

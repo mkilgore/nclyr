@@ -2,6 +2,7 @@
 %{
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "cons/color.h"
 
@@ -14,12 +15,37 @@ void yyerror(struct config_parser_state *state, const char *str);
 static void prefix_add(struct config_parser_state *state, char *prefix);
 static void prefix_remove(struct config_parser_state *state);
 
+#define INVALID_COLOR -2
+
+static int lookup_color(const char *name);
+
+struct color_pair_map {
+    const char *id;
+    int color;
+};
+
+#define MK_MAP(cname, cons) \
+    { .id = cname, .color = cons }
+
+static struct color_pair_map cmap[] = {
+    MK_MAP("black", CONS_COLOR_BLACK),
+    MK_MAP("red", CONS_COLOR_RED),
+    MK_MAP("green", CONS_COLOR_GREEN),
+    MK_MAP("yellow", CONS_COLOR_YELLOW),
+    MK_MAP("blue", CONS_COLOR_BLUE),
+    MK_MAP("magenta", CONS_COLOR_MAGENTA),
+    MK_MAP("cyan", CONS_COLOR_CYAN),
+    MK_MAP("white", CONS_COLOR_WHITE),
+    MK_MAP("default", CONS_COLOR_DEFAULT),
+};
+
+#undef MK_MAP
+
 #define YYERROR_VERBOSE
 %}
 
 %union {
     char *str;
-    int color;
     struct cons_color_pair pair;
 }
 
@@ -28,7 +54,6 @@ static void prefix_remove(struct config_parser_state *state);
 %token <str> TOK_STRING
 %token <str> TOK_IDENT
 %token <str> TOK_INTEGER
-%token <color> TOK_COLOR
 %token TOK_EOF TOK_ERR
 
 %type <str> string
@@ -110,6 +135,9 @@ string:
       TOK_STRING {
           $$ = $1;
       }
+      | TOK_IDENT {
+          $$ = $1;
+      }
       | string TOK_STRING {
           $1 = realloc($1, strlen($1) + strlen($2) + 1);
           strcat($1, $2);
@@ -119,9 +147,19 @@ string:
       ;
 
 color_pair:
-    TOK_COLOR ',' TOK_COLOR {
-        $$.f = $1;
-        $$.b = $3;
+    '(' TOK_IDENT ',' TOK_IDENT ')' {
+        $$.f = lookup_color($2);
+        $$.b = lookup_color($4);
+
+        if ($$.f == INVALID_COLOR) {
+            yyerror(state, $2);
+            YYERROR;
+        }
+
+        if ($$.b == INVALID_COLOR) {
+            yyerror(state, $4);
+            YYERROR;
+        }
     }
 
 %%
@@ -150,6 +188,28 @@ static void prefix_remove(struct config_parser_state *state)
         }
     }
     state->prefix[0] = '\0';
+}
+
+static int stringcasecmp(const char *s1, const char *s2)
+{
+    for (; *s1 && *s2; s1++, s2++)
+        if (toupper(*s1) != toupper(*s2))
+            return 1;
+
+    if (*s1 || *s2)
+        return 1;
+
+    return 0;
+}
+
+static int lookup_color(const char *name)
+{
+    int c;
+    for (c = 0; c < sizeof(cmap)/sizeof(*cmap); c++)
+        if (stringcasecmp(name, cmap[c].id) == 0)
+            return cmap[c].color;
+
+    return INVALID_COLOR;
 }
 
 void yyerror(struct config_parser_state *state, const char *str)

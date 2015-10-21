@@ -26,6 +26,13 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(*(arr)))
 
+/* Sets the bit referred to by 'flag'. */
+#define F(flag) (1 << (flag))
+
+#define bit_set(flag, bit) (flag) = ((flag) | (1 << (bit)))
+#define bit_clear(flag, bit) (flag) = ((flag) & ~(1 << (bit)))
+#define bit_test(flag, bit) (((flag) & (1 << (bit))) == (1 << (bit)))
+
 struct rd_string {
     char *str;
     int was_malloced :1;

@@ -62,8 +62,7 @@ void player_state_full_update(struct player_state_full *state, struct player_not
 
     case PLAYER_DIRECTORY:
         directory_clear(&state->cwd);
-        directory_init(&state->cwd);
-        directory_move(&state->cwd, notif->u.dir);
+        directory_move(&state->cwd, &notif->u.dir);
         break;
     }
 }

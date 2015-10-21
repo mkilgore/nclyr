@@ -11,19 +11,14 @@
 
 void directory_clear(struct directory *dir)
 {
-    struct directory_entry *next_entry, *entry;
+    int i;
 
     free(dir->name);
 
-    next_entry = list_first_entry(&dir->entries, struct directory_entry, dir_entry);
+    for (i = 0; i < dir->entry_count; i++)
+        directory_entry_clear(dir->entries + i);
 
-    while (!list_ptr_is_head(&dir->entries, &next_entry->dir_entry)) {
-        entry = next_entry;
-        next_entry = list_next_entry(entry, struct directory_entry, dir_entry);
-
-        directory_entry_clear(entry);
-        free(entry);
-    }
+    free(dir->entries);
 }
 
 void directory_entry_copy(struct directory_entry *new, struct directory_entry *entry)

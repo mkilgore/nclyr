@@ -80,16 +80,29 @@ void tui_window_del(struct tui_iface *tui, int window_id)
 }
 
 struct tui_window_desc window_descs[] = {
-    WIN_DESC("playlist", NULL, playlist_win_new),
+    WIN_DESC("playlist", NULL, playlist_win_new, 0
+            | F(PN_HAS_PLAYLIST)
+            ,
+            0),
 #if CONFIG_LIB_GLYR
-    WIN_DESC("lyrics", NULL, lyrics_win_new),
-    WIN_DESC("artist", NULL, artist_win_new),
+    WIN_DESC("lyrics", NULL, lyrics_win_new, 0
+            | F(PN_HAS_SONG)
+            ,
+            0),
+    WIN_DESC("artist", NULL, artist_win_new, 0
+            | F(PN_HAS_SONG)
+            ,
+            0),
 #endif
-    WIN_DESC("browse", NULL, browse_win_new),
-    WIN_DESC("config", NULL, config_win_new),
-    WIN_DESC("clock", NULL, clock_win_new),
+    WIN_DESC("browse", NULL, browse_win_new, 0
+            | F(PN_HAS_DIRECTORY)
+            ,
+            0
+            | F(PC_HAS_GET_DIRECTORY)),
+    WIN_DESC("config", NULL, config_win_new, 0, 0),
+    WIN_DESC("clock", NULL, clock_win_new, 0, 0),
 #if CONFIG_TUI_MPD_VISUALIZER
-    WIN_DESC("visual", "mpd", visual_win_new),
+    WIN_DESC("visual", "mpd", visual_win_new, 0, 0),
 #endif
     WIN_DESC_END()
 };

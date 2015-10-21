@@ -6,6 +6,12 @@
 #include "char_to_str.h"
 
 static const char *key_chart[] = {
+    /* Control characters */
+    [K_CONTROL('d')] = "C-d",
+    [K_CONTROL('u')] = "C-u",
+    [K_CONTROL('f')] = "C-f",
+    [K_CONTROL('b')] = "C-b",
+
     ['\n'] = "Enter",
     [' '] = "Space",
     "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*",

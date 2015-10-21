@@ -65,7 +65,7 @@ void player_send_song_pos(struct player *player, int song_pos)
 
 void player_send_directory(struct player *player, struct directory *dir)
 {
-    struct player_notification notif = { .type = PLAYER_DIRECTORY, .u.dir = dir };
+    struct player_notification notif = { .type = PLAYER_DIRECTORY, .u.dir = *dir };
     write(player->notify_fd, &notif, sizeof(notif));
 }
 

@@ -10,6 +10,7 @@ extern struct tui_iface tui_iface;
 enum tui_config {
     TUI_CONFIG_PLAYLIST,
     TUI_CONFIG_STATUSLINE,
+    TUI_CONFIG_BROWSE,
 #if CONFIG_PLAYER_MPD
     TUI_CONFIG_MPD,
 #endif

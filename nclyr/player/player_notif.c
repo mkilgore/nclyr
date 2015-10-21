@@ -22,8 +22,7 @@ void player_notification_clear(struct player_notification *notif)
         break;
 
     case PLAYER_DIRECTORY:
-        directory_clear(notif->u.dir);
-        free(notif->u.dir);
+        directory_clear(&notif->u.dir);
         break;
 
     case PLAYER_STATE:

@@ -58,8 +58,6 @@ void statusline_update(struct statusline *status)
 
         if (tui->state.song) {
             bar_len = (int)((float)cols * ((float)tui->state.seek_pos / (float)tui->state.song->duration));
-
-            DEBUG_PRINTF("Bar_len: %d\n", bar_len);
             /*
             mvwprintw(status->win, 0, cols - 13, "[%02d:%02d/%02d:%02d]",
                     tui->state.seek_pos / 60, tui->state.seek_pos % 60,

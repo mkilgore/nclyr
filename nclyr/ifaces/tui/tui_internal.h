@@ -64,11 +64,24 @@ enum tui_config_statusline {
     TUI_CONFIG_STATUSLINE_TOTAL
 };
 
+enum tui_config_browse {
+    TUI_CONFIG_BROWSE_SONG_TRIPLE,
+    TUI_CONFIG_BROWSE_SONG_FILENAME,
+    TUI_CONFIG_BROWSE_DIRECTORY,
+    TUI_CONFIG_BROWSE_SONG,
+};
+
 enum tui_config_mpd_visualizer {
     TUI_CONFIG_MPD_VISUALIZER_FILENAME,
     TUI_CONFIG_MPD_VISUALIZER_COLOR,
+    TUI_CONFIG_MPD_VISUALIZER_FPS,
+    TUI_CONFIG_MPD_VISUALIZER_SHOWFPS,
+    TUI_CONFIG_MPD_VISUALIZER_TYPE,
+    TUI_CONFIG_MPD_VISUALIZER_BKGDCOLOR,
+    TUI_CONFIG_MPD_VISUALIZER_SOUND,
     TUI_CONFIG_MPD_VISUALIZER_TOTAL
 };
+
 
 enum tui_config_mpd {
 #if CONFIG_TUI_MPD_VISUALIZER
@@ -80,12 +93,22 @@ enum tui_config_mpd {
 struct tui_window_desc {
     const char *name;
     const char *player; /* If not null, then it requires the player matching this name */
+    uint32_t required_notify_flags;
+    uint32_t required_ctrl_flags;
     struct nclyr_win *(*new)(void);
 };
 
 extern struct tui_window_desc window_descs[];
 
-#define WIN_DESC(wname, wplayer, winit) { .name = (wname), .player = (wplayer), .new = (winit) }
+#define WIN_DESC(wname, wplayer, winit, n_flags, c_flags) \
+    { \
+        .name = (wname), \
+        .player = (wplayer), \
+        .new = (winit),\
+        .required_notify_flags = (n_flags), \
+        .required_ctrl_flags = (c_flags), \
+    }
+
 #define WIN_DESC_END() { .name = NULL }
 
 void tui_window_init_dim(struct tui_iface *tui, struct nclyr_win *win, int rows, int cols, int y, int x);
@@ -94,5 +117,7 @@ struct nclyr_win *tui_window_new(struct tui_iface *tui, struct tui_window_desc *
 struct nclyr_win *tui_window_new_dim(struct tui_iface *tui, struct tui_window_desc *win_desc, int rows, int cols, int y, int x);
 void tui_window_add(struct tui_iface *tui, struct nclyr_win *win);
 void tui_window_del(struct tui_iface *tui, int window_id);
+
+#define K_CONTROL(k) (k - 'a' + 1)
 
 #endif
