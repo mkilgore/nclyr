@@ -28,14 +28,15 @@ void tui_keys_player(struct nclyr_win *win, int ch, struct nclyr_mouse_event *me
 
     switch (ch) {
     case ' ':
+    case 'p':
         player_toggle_pause(player);
         break;
 
-    case 'p':
+    case '<':
         player_prev(player);
         break;
 
-    case 'n':
+    case '>':
         player_next(player);
         break;
 
@@ -45,6 +46,34 @@ void tui_keys_player(struct nclyr_win *win, int ch, struct nclyr_mouse_event *me
 
     case '-':
         player_change_volume(player, -1);
+        break;
+
+    case '[':
+        player_seek(player, win->tui->state.seek_pos + 5);
+        break;
+
+    case ']':
+        player_seek(player, win->tui->state.seek_pos - 5);
+        break;
+
+    case 'z':
+        player_toggle_flags(player, (struct player_flags) { .is_random = 1 });
+        break;
+
+    case 'c':
+        player_toggle_flags(player, (struct player_flags) { .is_consume = 1 });
+        break;
+
+    case 's':
+        player_toggle_flags(player, (struct player_flags) { .is_single = 1 });
+        break;
+
+    case 'x':
+        player_toggle_flags(player, (struct player_flags) { .is_crossfade = 1 });
+        break;
+
+    case 'r':
+        player_toggle_flags(player, (struct player_flags) { .is_repeat = 1 });
         break;
     }
 }

@@ -2,7 +2,7 @@
 EXE       := nclyr
 EXEC      := NCLYR
 NCLYR_VERSION   := 0
-NCLYR_SUBLEVEL  := 1
+NCLYR_SUBLEVEL  := 9
 NCLYR_PATCH     := 0
 NCLYR_VERSION_N := $(NCLYR_VERSION).$(NCLYR_SUBLEVEL).$(NCLYR_PATCH)
 
@@ -31,9 +31,10 @@ endif
 ifdef CONFIG_PLAYER_MPD
 	NCLYR_CFLAGS += $(shell pkg-config --cflags libmpdclient)
 	NCLYR_LIBFLAGS += $(shell pkg-config --libs libmpdclient)
-endif
 
 ifdef CONFIG_TUI_MPD_VISUALIZER
 	NCLYR_LIBFLAGS += -lm -lfftw3
+endif
+
 endif
 

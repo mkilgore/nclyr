@@ -2,3 +2,6 @@
 *.d
 bin
 gen_config.mk
+cscope.files
+cscope.out
+

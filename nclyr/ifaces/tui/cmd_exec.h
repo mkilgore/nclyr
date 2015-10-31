@@ -8,6 +8,7 @@ struct tui_cmd {
     const char *cmd;
 
     void (*callback) (struct tui_iface *tui, int argc, char **argv);
+    const char *description;
 };
 
 #define TUI_CMD(command, call) { .cmd = (command), .callback = (call) }

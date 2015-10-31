@@ -39,7 +39,7 @@ static void config_add_group(struct line_win *line, struct item_group *group, in
             break;
 
         case CONFIG_STRING:
-            snprintf(line_buf, sizeof(line_buf), "%*s   Value: %s", ident * 4, "", item->u.str.str);
+            snprintf(line_buf, sizeof(line_buf), "%*s   Value: \"%s\"", ident * 4, "", item->u.str.str);
             break;
 
         case CONFIG_INTEGER:
@@ -73,7 +73,7 @@ static struct line_win config_window_init = {
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES(),
-            N_END()
+            NCLYR_END()
         },
         .init = config_init,
         .clean = line_clean,

@@ -129,8 +129,8 @@ static struct lyrics_win lyrics_window_init = {
             .lyr_types = (const enum lyr_data_type[]) { LYR_LYRICS, LYR_DATA_TYPE_COUNT },
             .keypresses = (const struct nclyr_keypress[]) {
                 LINE_KEYPRESSES(),
-                N_KEYPRESS('c', lyrics_handle_keypress, "Toggle line centering"),
-                N_END()
+                NCLYR_KEYPRESS('c', lyrics_handle_keypress, "Toggle line centering"),
+                NCLYR_END()
             },
             .init = NULL,
             .clean = line_clean,

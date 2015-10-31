@@ -42,12 +42,6 @@ void player_seek (struct player *p, size_t pos)
     p->ctrls.ctrl(p, &msg);
 }
 
-void player_shuffle (struct player *p)
-{
-    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_SHUFFLE };
-    p->ctrls.ctrl(p, &msg);
-}
-
 void player_set_volume (struct player *p, size_t volume)
 {
     struct player_ctrl_msg msg = { .type = PLAYER_CTRL_SET_VOLUME, .u.volume = volume };
@@ -87,6 +81,12 @@ void player_change_working_directory(struct player *p, char *dir)
 void player_add_song(struct player *p, char *song)
 {
     struct player_ctrl_msg msg = { .type = PLAYER_CTRL_ADD_SONG, .u.song_name = song };
+    p->ctrls.ctrl(p, &msg);
+}
+
+void player_toggle_flags(struct player *p, struct player_flags flags)
+{
+    struct player_ctrl_msg msg = { .type = PLAYER_CTRL_TOGGLE_FLAGS, .u.flags = flags };
     p->ctrls.ctrl(p, &msg);
 }
 

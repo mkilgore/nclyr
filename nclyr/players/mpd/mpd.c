@@ -106,6 +106,73 @@ static void get_and_send_playlist(struct mpd_player *player)
     player_send_playlist(&player->player, &playlist);
 }
 
+static void update_flags(struct mpd_player *player, struct mpd_status *status)
+{
+    int send = 0;
+
+    if (player->state.flags.is_random != mpd_status_get_random(status)) {
+        player->state.flags.is_random = mpd_status_get_random(status);
+        send = 1;
+    }
+
+    if (player->state.flags.is_single != mpd_status_get_single(status)) {
+        player->state.flags.is_single = mpd_status_get_single(status);
+        send = 1;
+    }
+
+    if (player->state.flags.is_consume != mpd_status_get_consume(status)) {
+        player->state.flags.is_consume = mpd_status_get_consume(status);
+        send = 1;
+    }
+
+    if (player->state.flags.is_crossfade != mpd_status_get_crossfade(status)) {
+        player->state.flags.is_crossfade = mpd_status_get_crossfade(status);
+        send = 1;
+    }
+
+    if (player->state.flags.is_repeat != mpd_status_get_repeat(status)) {
+        player->state.flags.is_repeat = mpd_status_get_repeat(status);
+        send = 1;
+    }
+
+    if (send)
+        player_send_flags(&player->player, player->state.flags);
+}
+
+static void send_initial_status(struct mpd_player *player)
+{
+    struct mpd_status *status;
+
+    status = mpd_run_status(player->conn);
+
+    if (!status)
+        return ;
+
+    player->state.seek_pos = mpd_status_get_elapsed_time(status);
+    player->seek_offset = player->state.seek_pos;
+    player->playing_started = time(NULL);
+
+    player->state.volume = mpd_status_get_volume(status);
+    player->state.flags.is_random = mpd_status_get_random(status);
+    player->state.flags.is_single = mpd_status_get_single(status);
+    player->state.flags.is_consume = mpd_status_get_consume(status);
+    player->state.flags.is_crossfade = mpd_status_get_crossfade(status);
+    player->state.flags.is_repeat = mpd_status_get_repeat(status);
+
+    player->state.state = mpd_state_to_player_state(mpd_status_get_state(status));
+    if (player->state.state != PLAYER_PLAYING) {
+        player->seek_offset = player->state.seek_pos;
+        player->playing_started = time(NULL);
+    }
+
+    player_send_seek(&player->player, player->state.seek_pos);
+    player_send_volume(&player->player, player->state.volume);
+    player_send_state(&player->player, player->state.state);
+    player_send_flags(&player->player, player->state.flags);
+
+    mpd_status_free(status);
+}
+
 static void update_status(struct mpd_player *player)
 {
     struct mpd_status *status;
@@ -122,7 +189,6 @@ static void update_status(struct mpd_player *player)
         player->playing_started = time(NULL);
 
         player_send_seek(&player->player, player->state.seek_pos);
-        DEBUG_PRINTF("Seek: %d\n", mpd_status_get_elapsed_time(status));
     }
 
     if (player->state.volume
@@ -148,6 +214,8 @@ static void update_status(struct mpd_player *player)
         player_send_song_pos(&player->player, mpd_status_get_song_pos(status));
     }
 
+    update_flags(player, status);
+
     mpd_status_free(status);
 }
 
@@ -160,7 +228,6 @@ static void update_elapsed_time(struct mpd_player *player)
     new_seek_pos = player->seek_offset + (int)difftime(time(NULL), player->playing_started);
     if (new_seek_pos != player->state.seek_pos) {
         player->state.seek_pos = new_seek_pos;
-        DEBUG_PRINTF("Seek: %d\n", new_seek_pos);
         player_send_seek(&player->player, new_seek_pos);
     }
 }
@@ -168,7 +235,6 @@ static void update_elapsed_time(struct mpd_player *player)
 static struct directory_entry *directory_add_entry(struct directory *dir)
 {
     int entry = dir->entry_count++;
-    DEBUG_PRINTF("Entry %d\n", entry);
     dir->entries = realloc(dir->entries, sizeof(*dir->entries) * dir->entry_count);
 
     memset(dir->entries + entry, 0, sizeof(struct directory_entry));
@@ -356,7 +422,7 @@ static int mpd_normal_loop(struct mpd_player *player)
 
     get_and_send_cur_song(player);
     get_and_send_playlist(player);
-    update_status(player);
+    send_initial_status(player);
 
     do {
         enum mpd_error err;
@@ -480,9 +546,22 @@ static int mpd_normal_loop(struct mpd_player *player)
                 mpd_run_seek_pos(player->conn, player->state.song_pos, msg.u.seek_pos);
                 break;
 
-            case PLAYER_CTRL_SHUFFLE:
-                break;
+            case PLAYER_CTRL_TOGGLE_FLAGS:
+                if (msg.u.flags.is_random)
+                    mpd_run_random(player->conn, !player->state.flags.is_random);
 
+                if (msg.u.flags.is_single)
+                    mpd_run_single(player->conn, !player->state.flags.is_single);
+
+                if (msg.u.flags.is_consume)
+                    mpd_run_consume(player->conn, !player->state.flags.is_consume);
+
+                if (msg.u.flags.is_crossfade)
+                    mpd_run_crossfade(player->conn, !player->state.flags.is_crossfade);
+
+                if (msg.u.flags.is_repeat)
+                    mpd_run_repeat(player->conn, !player->state.flags.is_repeat);
+                break;
             }
 
             update_status(player);
@@ -584,6 +663,7 @@ struct mpd_player mpd_player = {
             | F(PN_HAS_PLAYLIST)
             | F(PN_HAS_SONG_POS)
             | F(PN_HAS_DIRECTORY)
+            | F(PN_HAS_FLAGS)
             ,
         .start_thread = mpd_start_thread,
         .stop_thread = mpd_stop_thread,
@@ -603,6 +683,7 @@ struct mpd_player mpd_player = {
                 | F(PC_HAS_ADD_SONG)
                 | F(PC_HAS_GET_DIRECTORY)
                 | F(PC_HAS_CHANGE_DIRECTORY)
+                | F(PC_HAS_TOGGLE_FLAGS)
                 ,
         }
     },

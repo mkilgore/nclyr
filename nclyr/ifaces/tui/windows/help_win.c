@@ -126,7 +126,7 @@ struct line_win help_win = {
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
             LINE_KEYPRESSES(),
-            N_END()
+            NCLYR_END()
         },
         .init = help_init,
         .clean = line_clean,

@@ -52,9 +52,29 @@ static void tui_cmd_player_seek(struct tui_iface *tui, int argc, char **argv)
     player_seek(player_current(), seconds);
 }
 
-static void tui_cmd_player_shuffle(struct tui_iface *tui, int argc, char **argv)
+static void tui_cmd_player_random(struct tui_iface *tui, int argc, char **argv)
 {
-    player_shuffle(player_current());
+    player_toggle_flags(player_current(), (struct player_flags) { .is_random = 1});
+}
+
+static void tui_cmd_player_single(struct tui_iface *tui, int argc, char **argv)
+{
+    player_toggle_flags(player_current(), (struct player_flags) { .is_single = 1});
+}
+
+static void tui_cmd_player_consume(struct tui_iface *tui, int argc, char **argv)
+{
+    player_toggle_flags(player_current(), (struct player_flags) { .is_consume = 1});
+}
+
+static void tui_cmd_player_crossfade(struct tui_iface *tui, int argc, char **argv)
+{
+    player_toggle_flags(player_current(), (struct player_flags) { .is_crossfade = 1});
+}
+
+static void tui_cmd_player_repeat(struct tui_iface *tui, int argc, char **argv)
+{
+    player_toggle_flags(player_current(), (struct player_flags) { .is_repeat = 1});
 }
 
 static void tui_cmd_player_volume(struct tui_iface *tui, int argc, char **argv)
@@ -93,7 +113,11 @@ static struct tui_cmd player_cmds[] = {
     TUI_CMD("next",    tui_cmd_player_next),
     TUI_CMD("prev",    tui_cmd_player_prev),
     TUI_CMD("seek",    tui_cmd_player_seek),
-    TUI_CMD("shuffle", tui_cmd_player_shuffle),
+    TUI_CMD("random",  tui_cmd_player_random),
+    TUI_CMD("single",  tui_cmd_player_single),
+    TUI_CMD("consume",  tui_cmd_player_consume),
+    TUI_CMD("crossfade",  tui_cmd_player_crossfade),
+    TUI_CMD("repeat",  tui_cmd_player_repeat),
     TUI_CMD("volume",  tui_cmd_player_volume),
     TUI_CMD("song",    tui_cmd_player_song),
     TUI_CMD_END()

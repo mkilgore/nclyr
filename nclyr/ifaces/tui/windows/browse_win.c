@@ -95,6 +95,33 @@ static void browse_win_get_line(struct selectable_win *win, int line, int width,
     }
 }
 
+static void browse_win_line_selected(struct selectable_win *sel)
+{
+    struct browse_win *brow = container_of(sel, struct browse_win, sel);
+    struct tui_iface *tui = sel->super_win.tui;
+
+    if (tui->state.cwd.entries[sel->selected].type == ENTRY_TYPE_DIR) {
+        player_change_working_directory(player_current(), strdup(tui->state.cwd.entries[sel->selected].name));
+        player_get_working_directory(player_current());
+
+        if (strcmp(tui->state.cwd.entries[sel->selected].name, "..") != 0) {
+            brow->directory_history[brow->directory_level].selected = sel->selected;
+            brow->directory_history[brow->directory_level].disp_offset = sel->disp_offset;
+            brow->directory_level++;
+            brow->next_sel = 0;
+            brow->next_disp_off = 0;
+        } else {
+            brow->directory_level--;
+            brow->next_sel = brow->directory_history[brow->directory_level].selected;
+            brow->next_disp_off = brow->directory_history[brow->directory_level].disp_offset;
+        }
+
+        brow->waiting_for_directory = 1;
+    } else {
+        player_add_song(player_current(), strdup(tui->state.cwd.entries[sel->selected].song->name));
+    }
+}
+
 static void browse_win_init(struct nclyr_win *win)
 {
     struct browse_win *brow = container_of(win, struct browse_win, sel.super_win);
@@ -148,7 +175,6 @@ static void browse_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mou
 {
     struct selectable_win *sel = container_of(win, struct selectable_win, super_win);
     struct browse_win *brow = container_of(win, struct browse_win, sel.super_win);
-    struct tui_iface *tui = win->tui;
 
     /* We don't handle any keypresses while we're waiting for the player to
      * give us a directory. If we did, then we would risk sending multiple 'get
@@ -158,26 +184,7 @@ static void browse_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mou
 
     switch (ch) {
     case '\n':
-        if (tui->state.cwd.entries[sel->selected].type == ENTRY_TYPE_DIR) {
-            player_change_working_directory(player_current(), strdup(tui->state.cwd.entries[sel->selected].name));
-            player_get_working_directory(player_current());
-
-            if (strcmp(tui->state.cwd.entries[sel->selected].name, "..") != 0) {
-                brow->directory_history[brow->directory_level].selected = sel->selected;
-                brow->directory_history[brow->directory_level].disp_offset = sel->disp_offset;
-                brow->directory_level++;
-                brow->next_sel = 0;
-                brow->next_disp_off = 0;
-            } else {
-                brow->directory_level--;
-                brow->next_sel = brow->directory_history[brow->directory_level].selected;
-                brow->next_disp_off = brow->directory_history[brow->directory_level].disp_offset;
-            }
-
-            brow->waiting_for_directory = 1;
-        } else {
-            player_add_song(player_current(), strdup(tui->state.cwd.entries[sel->selected].song->name));
-        }
+        browse_win_line_selected(sel);
         break;
     }
 }
@@ -191,8 +198,8 @@ static struct browse_win browse_window_init = {
             .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
             .keypresses = (const struct nclyr_keypress[]) {
                 SELECTABLE_KEYPRESSES(),
-                N_KEYPRESS('\n', browse_win_handle_ch, "Change Directory\\Add Song"),
-                N_END()
+                NCLYR_KEYPRESS('\n', browse_win_handle_ch, "Change Directory\\Add Song"),
+                NCLYR_END()
             },
             .init = browse_win_init,
             .clean = browse_win_clear,
@@ -207,6 +214,7 @@ static struct browse_win browse_window_init = {
         .disp_offset = 0,
         .total_lines = 0,
         .get_line = browse_win_get_line,
+        .line_selected = browse_win_line_selected,
     },
 };
 

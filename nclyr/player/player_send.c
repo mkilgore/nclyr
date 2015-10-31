@@ -69,3 +69,9 @@ void player_send_directory(struct player *player, struct directory *dir)
     write(player->notify_fd, &notif, sizeof(notif));
 }
 
+void player_send_flags(struct player *player, struct player_flags flags)
+{
+    struct player_notification notif = { .type = PLAYER_FLAGS, .u.flags = flags };
+    write(player->notify_fd, &notif, sizeof(notif));
+}
+

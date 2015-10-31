@@ -32,6 +32,7 @@
 #define bit_set(flag, bit) (flag) = ((flag) | (1 << (bit)))
 #define bit_clear(flag, bit) (flag) = ((flag) & ~(1 << (bit)))
 #define bit_test(flag, bit) (((flag) & (1 << (bit))) == (1 << (bit)))
+#define bit_get(flag, bit) ((flag) & (1 << (bit)))
 
 struct rd_string {
     char *str;

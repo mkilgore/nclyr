@@ -22,17 +22,17 @@ void line_handle_mouse(struct nclyr_win *win, int ch, struct nclyr_mouse_event *
 void line_free_lines(struct line_win *);
 
 #define LINE_KEYPRESSES() \
-    N_KEYPRESS('j', line_handle_keypress, "Scroll down"), \
-    N_KEYPRESS('k', line_handle_keypress, "Scroll up"), \
-    N_KEYPRESS(KEY_DOWN, line_handle_keypress, "Scroll down"), \
-    N_KEYPRESS(KEY_UP, line_handle_keypress, "Scroll up"), \
-    N_KEYPRESS('J', line_handle_keypress, "Scroll down one page"), \
-    N_KEYPRESS('K', line_handle_keypress, "Scroll up one page"), \
-    N_KEYPRESS(KEY_LEFT, line_handle_keypress, "Scroll down one page"), \
-    N_KEYPRESS(KEY_RIGHT, line_handle_keypress, "Scroll up one page"), \
-    N_KEYPRESS(KEY_NPAGE, line_handle_keypress, "Scroll down one page"), \
-    N_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page"), \
-    N_MOUSE(SCROLL_UP, line_handle_mouse, "Scroll up"), \
-    N_MOUSE(SCROLL_DOWN, line_handle_mouse, "Scroll down")
+    NCLYR_KEYPRESS('j', line_handle_keypress, "Scroll down"), \
+    NCLYR_KEYPRESS('k', line_handle_keypress, "Scroll up"), \
+    NCLYR_KEYPRESS(KEY_DOWN, line_handle_keypress, "Scroll down"), \
+    NCLYR_KEYPRESS(KEY_UP, line_handle_keypress, "Scroll up"), \
+    NCLYR_KEYPRESS('J', line_handle_keypress, "Scroll down one page"), \
+    NCLYR_KEYPRESS('K', line_handle_keypress, "Scroll up one page"), \
+    NCLYR_KEYPRESS(KEY_LEFT, line_handle_keypress, "Scroll down one page"), \
+    NCLYR_KEYPRESS(KEY_RIGHT, line_handle_keypress, "Scroll up one page"), \
+    NCLYR_KEYPRESS(KEY_NPAGE, line_handle_keypress, "Scroll down one page"), \
+    NCLYR_KEYPRESS(KEY_PPAGE, line_handle_keypress, "Scroll up one page"), \
+    NCLYR_MOUSE(SCROLL_UP, line_handle_mouse, "Scroll up"), \
+    NCLYR_MOUSE(SCROLL_DOWN, line_handle_mouse, "Scroll down")
 
 #endif

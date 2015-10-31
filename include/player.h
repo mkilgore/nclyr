@@ -15,6 +15,14 @@ enum player_state {
     PLAYER_STOPPED
 };
 
+struct player_flags {
+    unsigned int is_random :1;
+    unsigned int is_single :1;
+    unsigned int is_consume :1;
+    unsigned int is_crossfade :1;
+    unsigned int is_repeat :1;
+};
+
 enum player_notif_type {
     PLAYER_NO_SONG,
     PLAYER_SONG,
@@ -26,6 +34,7 @@ enum player_notif_type {
     PLAYER_PLAYLIST,
     PLAYER_SONG_POS,
     PLAYER_DIRECTORY,
+    PLAYER_FLAGS,
 };
 
 struct player_notification {
@@ -38,6 +47,7 @@ struct player_notification {
         struct playlist playlist;
         int song_pos;
         struct directory dir;
+        struct player_flags flags;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
@@ -45,7 +55,7 @@ STATIC_ASSERT(sizeof(struct player_notification) <= PIPE_BUF);
 /* A struct capable of holding all the information recieved from every type of
  * player_notification */
 struct player_state_full {
-    int is_up :1;
+    unsigned int is_up :1;
     enum player_state state;
     struct song_info *song;
     size_t volume;
@@ -53,6 +63,7 @@ struct player_state_full {
     struct playlist playlist;
     int song_pos;
     struct directory cwd;
+    struct player_flags flags;
 };
 
 #define PLAYER_STATE_FULL_INIT(state_full) \
@@ -81,15 +92,14 @@ enum player_ctrl_msg_type {
     PLAYER_CTRL_NEXT,
     PLAYER_CTRL_PREV,
     PLAYER_CTRL_SEEK,
-    PLAYER_CTRL_SHUFFLE,
     PLAYER_CTRL_SET_VOLUME,
     PLAYER_CTRL_CHANGE_VOLUME,
     PLAYER_CTRL_CHANGE_SONG,
     PLAYER_CTRL_REMOVE_SONG,
-
     PLAYER_CTRL_ADD_SONG,
     PLAYER_CTRL_GET_DIRECTORY,
     PLAYER_CTRL_CHANGE_DIRECTORY,
+    PLAYER_CTRL_TOGGLE_FLAGS,
 };
 
 struct player_ctrl_msg {
@@ -102,13 +112,15 @@ struct player_ctrl_msg {
         int song_pos;
         char *change_dir;
         char *song_name;
+        struct player_flags flags;
     } u;
 };
 STATIC_ASSERT(sizeof(struct player_ctrl_msg) <= PIPE_BUF);
 
 struct player;
 
-/* pointers are set to NULL if player doesn't support that feature */
+/* 'has_ctrl_flag' holds bit-flags representing which control's the associated
+ * player supports */
 struct player_controls {
     void (*ctrl) (struct player *, const struct player_ctrl_msg *);
 
@@ -144,6 +156,7 @@ enum player_notif_flags {
     PN_HAS_PLAYLIST,
     PN_HAS_SONG_POS,
     PN_HAS_DIRECTORY,
+    PN_HAS_FLAGS,
 };
 
 /* bit-flags indicating the type of control commands this player is capable of
@@ -155,7 +168,6 @@ enum player_ctrl_flags {
     PC_HAS_NEXT,
     PC_HAS_PREV,
     PC_HAS_SEEK,
-    PC_HAS_SHUFFLE,
     PC_HAS_SET_VOLUME,
     PC_HAS_CHANGE_VOLUME,
     PC_HAS_CHANGE_SONG,
@@ -163,6 +175,7 @@ enum player_ctrl_flags {
     PC_HAS_ADD_SONG,
     PC_HAS_GET_DIRECTORY,
     PC_HAS_CHANGE_DIRECTORY,
+    PC_HAS_TOGGLE_FLAGS,
 };
 
 extern struct player *players[];
@@ -193,6 +206,7 @@ void player_remove_song(struct player *, int song_pos);
 void player_add_song(struct player *, char *song);
 void player_change_working_directory(struct player *, char *dir);
 void player_get_working_directory(struct player *);
+void player_toggle_flags(struct player *, struct player_flags);
 
 void player_send_is_up(struct player *);
 void player_send_is_down(struct player *);
@@ -204,6 +218,7 @@ void player_send_volume(struct player *, size_t volume);
 void player_send_playlist(struct player *, struct playlist *);
 void player_send_song_pos(struct player *, int song_pos);
 void player_send_directory(struct player *, struct directory *);
+void player_send_flags(struct player *, struct player_flags);
 
 enum {
 #if CONFIG_PLAYER_MPD

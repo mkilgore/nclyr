@@ -243,7 +243,7 @@ static struct clock_win clock_window_init = {
         .updated = 1,
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            N_END()
+            NCLYR_END()
         },
         .init = clock_init,
         .clean = clock_clean,

@@ -6,6 +6,8 @@
 #include <sys/poll.h>
 #include <signal.h>
 #include <ncurses.h>
+#include <term.h>
+#include <sys/ioctl.h>
 
 #include "song.h"
 #include "player.h"
@@ -24,8 +26,6 @@ static void handle_player_fd(struct tui_iface *tui, int playerfd)
     int i;
 
     read(playerfd, &notif, sizeof(notif));
-
-    DEBUG_PRINTF("Got Player Notification in TUI thread\n");
 
     player_state_full_update(&tui->state, &notif);
 
@@ -82,9 +82,19 @@ clear_song_notify:
     return ;
 }
 
+static void resize_win(struct nclyr_win *w, int rows)
+{
+    wresize(w->win, LINES - rows - 2, COLS);
+    w->updated = 1;
+
+    if (w->resize)
+        w->resize(w);
+}
+
 static void handle_signal_fd(struct tui_iface *tui, int signalfd)
 {
     int sig, rows, i;
+    struct winsize new_size;
 
     rows = getmaxy(tui->status->win);
 
@@ -93,24 +103,36 @@ static void handle_signal_fd(struct tui_iface *tui, int signalfd)
     case SIGINT:
         tui->exit_flag = 1;
         break;
+
     case SIGWINCH:
-        /* endwin() and refresh() are called to force ncurses to resize
-         * stdscr and display the new window. */
-        endwin();
-        refresh();
+        /* Resizing is exiensive, so we avoid doing it if possible by checking
+         * that the window actually resized when we recieved the SIGWINCH. */
+        ioctl(0, TIOCGWINSZ, &new_size);
+        if (LINES == new_size.ws_row && COLS == new_size.ws_col)
+            break;
+
+        /* endwin() + refresh() could work instead of resizeterm(), but calling
+         * endwin() exits curses and causes an ugly window flash. resizeterm()
+         * is nicer */
+        resizeterm(new_size.ws_row, new_size.ws_col);
+
+        /* untouching the root window is necessary to get the windows that
+         * overlay stdscr to not be covered by empty space from the touched
+         * stdscr. It's strange, but it's necessary. If you don't do this, then
+         * our other WINDOW's won't show until we change them a *second* time,
+         * the first time we attempt to display them after a resize will fail.
+         */
+        untouchwin(stdscr);
 
         for (i = 0; i < tui->window_count; i++) {
             struct nclyr_win *w = tui->windows[i];
-
-            delwin(w->win);
-            w->win = newwin(LINES - rows - 2, COLS, rows + 1, 0);
-            touchwin(w->win);
-            w->updated = 1;
-
-            if (w->resize)
-                w->resize(w);
+            resize_win(w, rows);
         }
 
+        resize_win(tui->help_win, rows);
+        resize_win(tui->manager_win, rows);
+
+        tui->status->updated = 1;
         tui->status->resize(tui->status, COLS);
         break;
     }
@@ -132,9 +154,11 @@ static void handle_mouse(struct tui_iface *tui)
     x = me.x;
     y = me.y;
 
-    DEBUG_PRINTF("Mouse event: 0x%08x - %d\n", me.bstate, v);
+    /* ERR's can be given for an empty queue */
+    if (v == ERR)
+        return ;
 
-    /* Either this function is bugged or the documentation s bugged. It says
+    /* Either this function is bugged or the documentation is bugged. It says
      * that sending it TRUE should allow us to convert (y, x) to
      * window-relative cords, but I've only gotten it to do so if I send it
      * FALSE instead. */
@@ -151,16 +175,14 @@ static void handle_mouse(struct tui_iface *tui)
 
     switch (me.bstate) {
     case BUTTON1_PRESSED:
-        DEBUG_PRINTF("Button1 Pressed\n");
         mevent.type = LEFT_PRESSED;
         break;
 
     /* Button4 is actually the scroll wheel, but I've seen a bug that a get
      * BUTTON4_RELEASED in place of a BUTTON1_RELEASED, causing us to lose the
-     * left click */
+     * left click. */
     case BUTTON4_RELEASED:
     case BUTTON1_RELEASED:
-        DEBUG_PRINTF("Button1 Released\n");
         if (tui->last_mevent == LEFT_PRESSED)
             mevent.type = LEFT_CLICKED;
         else
@@ -168,12 +190,10 @@ static void handle_mouse(struct tui_iface *tui)
         break;
 
     case BUTTON3_PRESSED:
-        DEBUG_PRINTF("Button3 Pressed\n");
         mevent.type = RIGHT_PRESSED;
         break;
 
     case BUTTON3_RELEASED:
-        DEBUG_PRINTF("Button3 Released\n");
         if (tui->last_mevent == RIGHT_PRESSED)
             mevent.type = RIGHT_CLICKED;
         else
@@ -181,12 +201,11 @@ static void handle_mouse(struct tui_iface *tui)
         break;
 
     case BUTTON4_PRESSED:
-        DEBUG_PRINTF("Button4 Pressed\n");
         mevent.type = SCROLL_UP;
         break;
 
     case BUTTON2_PRESSED:
-        DEBUG_PRINTF("Button2 Pressed\n");
+    case BUTTON5_PRESSED:
         mevent.type = SCROLL_DOWN;
         break;
 
@@ -194,7 +213,6 @@ static void handle_mouse(struct tui_iface *tui)
      * scroll. They seem to only be sent on duplicates, so we just repeat the
      * last event */
     case REPORT_MOUSE_POSITION:
-        DEBUG_PRINTF("Report mouse position\n");
         mevent.type = tui->last_mevent;
         break;
     }
@@ -221,15 +239,14 @@ static void handle_stdin_fd(struct tui_iface *tui, int stdinfd)
         NULL
     };
 
-    DEBUG_PRINTF("Char: %d\n", ch);
-
     if (ch == KEY_MOUSE) {
         handle_mouse(tui);
         goto found_key;
     }
 
     if (tui->grab_input) {
-        /* Not all systems actually return '\b' or KEY_BACKSPACE for the backspace key, crazy enough */
+        /* Not all systems actually return '\b' or KEY_BACKSPACE for the
+         * backspace key, crazy enough - My machine reports 127. */
         if (ch == KEY_BACKSPACE || ch == '\b' || ch == 127) {
             /* If they try to backspace past the beginning of the input, then
              * we exit command input */
@@ -309,8 +326,17 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
 
     rows = getmaxy(tui->status->win);
 
+    int player_notify_flags = player_current()->notify_flags;
+    int player_ctrl_flags = player_current()->ctrls.has_ctrl_flag;
+
     for (d = window_descs; d->name; d++) {
-        if (!d->player || strcmp(player_current()->name, d->player) == 0) {
+        /* We only show a window if the player name matches (Or is null,
+         * indicating any player), the player supports the required notify
+         * flags, and the player supports the required control flags */
+        if ((!d->player || strcmp(player_current()->name, d->player) == 0)
+            && (player_notify_flags & d->required_notify_flags) == d->required_notify_flags
+            && (player_ctrl_flags & d->required_ctrl_flags) == d->required_ctrl_flags) {
+
             DEBUG_PRINTF("Starting window %s\n", d->name);
             tui_window_add(tui, tui_window_new(tui, d));
         }
@@ -343,11 +369,13 @@ void tui_main_loop(struct nclyr_iface *iface, struct nclyr_pipes *pipes)
         for (i = 0; i < COLS; i++)
             mvaddch(rows, i, ACS_HLINE);
 
-        move(rows, COLS / 2 - strlen(tui->sel_window->win_name) / 2 - 2);
+        if (COLS > strlen(tui->sel_window->win_name) + 3) {
+            move(rows, COLS / 2 - strlen(tui->sel_window->win_name) / 2 - 2);
 
-        addch(ACS_RTEE);
-        printw(" %s ", tui->sel_window->win_name);
-        addch(ACS_LTEE);
+            addch(ACS_RTEE);
+            printw(" %s ", tui->sel_window->win_name);
+            addch(ACS_LTEE);
+        }
 
         if (tui->grab_input)
             mvprintw(LINES - 1, 0, ":%-*s", COLS - 1, inp_buf);

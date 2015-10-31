@@ -80,25 +80,12 @@ void tui_window_del(struct tui_iface *tui, int window_id)
 }
 
 struct tui_window_desc window_descs[] = {
-    WIN_DESC("playlist", NULL, playlist_win_new, 0
-            | F(PN_HAS_PLAYLIST)
-            ,
-            0),
+    WIN_DESC("playlist", NULL, playlist_win_new, F(PN_HAS_PLAYLIST), 0),
 #if CONFIG_LIB_GLYR
-    WIN_DESC("lyrics", NULL, lyrics_win_new, 0
-            | F(PN_HAS_SONG)
-            ,
-            0),
-    WIN_DESC("artist", NULL, artist_win_new, 0
-            | F(PN_HAS_SONG)
-            ,
-            0),
+    WIN_DESC("lyrics", NULL, lyrics_win_new, F(PN_HAS_SONG), 0),
+    WIN_DESC("artist", NULL, artist_win_new, F(PN_HAS_SONG), 0),
 #endif
-    WIN_DESC("browse", NULL, browse_win_new, 0
-            | F(PN_HAS_DIRECTORY)
-            ,
-            0
-            | F(PC_HAS_GET_DIRECTORY)),
+    WIN_DESC("browse", NULL, browse_win_new, F(PN_HAS_DIRECTORY), F(PC_HAS_GET_DIRECTORY)),
     WIN_DESC("config", NULL, config_win_new, 0, 0),
     WIN_DESC("clock", NULL, clock_win_new, 0, 0),
 #if CONFIG_TUI_MPD_VISUALIZER
@@ -117,18 +104,28 @@ struct tui_iface tui_iface  = {
     .windows = NULL,
     .window_count = 0,
     .global_keys = (const struct nclyr_keypress[]) {
-        N_KEYPRESS('q', tui_keys_global, "Switch to previous window."),
-        N_KEYPRESS('w', tui_keys_global, "Switch to next window."),
-        N_KEYPRESS('Q', tui_keys_global, "Exit TUI."),
-        N_KEYPRESS(':', tui_keys_global, "Start command entry."),
+        NCLYR_KEYPRESS('q', tui_keys_global, "Switch to previous window."),
+        NCLYR_KEYPRESS('w', tui_keys_global, "Switch to next window."),
+        NCLYR_KEYPRESS('Q', tui_keys_global, "Exit TUI."),
+        NCLYR_KEYPRESS(':', tui_keys_global, "Start command entry."),
 
-        N_KEYPRESS(' ', tui_keys_player, "Toggle Pause"),
-        N_KEYPRESS('p', tui_keys_player, "Previous song"),
-        N_KEYPRESS('n', tui_keys_player, "Next song"),
-        N_KEYPRESS('+', tui_keys_player, "+1 volume"),
-        N_KEYPRESS('-', tui_keys_player, "-1 volume"),
+        NCLYR_KEYPRESS('<', tui_keys_player, "Previous song"),
+        NCLYR_KEYPRESS('>', tui_keys_player, "Next song"),
+        NCLYR_KEYPRESS('+', tui_keys_player, "+1 volume"),
+        NCLYR_KEYPRESS('-', tui_keys_player, "-1 volume"),
 
-        N_END()
+        NCLYR_KEYPRESS(' ', tui_keys_player, "Toggle pause"),
+        NCLYR_KEYPRESS('p', tui_keys_player, "Toggle pause"),
+        NCLYR_KEYPRESS('z', tui_keys_player, "Toggle random"),
+        NCLYR_KEYPRESS('x', tui_keys_player, "Toggle crossfade"),
+        NCLYR_KEYPRESS('c', tui_keys_player, "Toggle consume"),
+        NCLYR_KEYPRESS('s', tui_keys_player, "Toggle single"),
+        NCLYR_KEYPRESS('r', tui_keys_player, "Toggle repeat"),
+
+        NCLYR_KEYPRESS('[', tui_keys_player, "Seek + 5"),
+        NCLYR_KEYPRESS(']', tui_keys_player, "Seek - 5"),
+
+        NCLYR_END()
     },
     .show_status = 1,
     .status = &statusline,

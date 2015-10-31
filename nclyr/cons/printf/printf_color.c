@@ -19,11 +19,16 @@ struct printf_opt_color {
 static void print_color(struct printf_opt *opt, struct cons_printf_compiled *comp, struct cons_str *chstr, size_t arg_count, const struct cons_printf_arg *args)
 {
     struct printf_opt_color *color = container_of(opt, struct printf_opt_color, opt);
+    chtype attrs = comp->attributes & NCLYR_A_ATTRIBUTES_ONLY;
+    int color_pair = PAIR_NUMBER(comp->attributes);
+
     if (color->have_f)
-        comp->colors.f = color->new_col.f;
+        color_pair = cons_color_num_change_forground(color_pair, color->new_col.f);
 
     if (color->have_b)
-        comp->colors.b = color->new_col.b;
+        color_pair = cons_color_num_change_background(color_pair, color->new_col.b);
+
+    comp->attributes = attrs | COLOR_PAIR(color_pair);
 }
 
 static void print_free(struct printf_opt *opt)

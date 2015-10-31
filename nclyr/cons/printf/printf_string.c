@@ -9,44 +9,33 @@
 #include "compiler.h"
 #include "debug.h"
 
-struct printf_opt_str {
-    struct printf_opt opt;
-    char *s;
-};
-
-static void print_string_print(struct printf_opt *opt, struct cons_printf_compiled *comp, struct cons_str *chstr, size_t arg_count, const struct cons_printf_arg *args)
-{
-    struct printf_opt_str *str = container_of(opt, struct printf_opt_str, opt);
-    cons_str_add_str(chstr, str->s, CONS_PRINTF_COMP_ATTRS(comp));
-}
-
 static void print_string_clear(struct printf_opt *opt)
 {
-    struct printf_opt_str *str = container_of(opt, struct printf_opt_str, opt);
-    free(str->s);
-    free(str);
+    free(opt->s);
+    free(opt);
 }
 
-static struct printf_opt_str *printf_opt_str_new(void)
+static struct printf_opt *printf_opt_str_new(void)
 {
-    struct printf_opt_str *po = malloc(sizeof(*po));
+    struct printf_opt *po = malloc(sizeof(*po));
     memset(po, 0, sizeof(*po));
-    po->opt.print = print_string_print;
-    po->opt.clear = print_string_clear;
+    po->type = PRINTF_OPT_STRING;
+    po->print = NULL; /* Performed in cons_printf directly */
+    po->clear = print_string_clear;
     return po;
 }
 
 struct printf_opt *print_string_get(const char *s)
 {
-    struct printf_opt_str *po = printf_opt_str_new();
+    struct printf_opt *po = printf_opt_str_new();
     po->s = strdup(s);
-    return &po->opt;
+    return po;
 }
 
 struct printf_opt *print_string_getn(const char *s, size_t len)
 {
-    struct printf_opt_str *po = printf_opt_str_new();
+    struct printf_opt *po = printf_opt_str_new();
     po->s = strndup(s, len);
-    return &po->opt;
+    return po;
 }
 

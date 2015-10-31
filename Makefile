@@ -178,6 +178,13 @@ $(objtree)/.%.d: $(srctree)/%.c $(objtree)/include/gen_config.h
 	@$(call mecho," CCDEP   $@","$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@")
 	$(Q)$(CC) -MM -MP -MF $@ $(CPPFLAGS) $(CFLAGS) $< -MT $(objtree)/$*.o -MT $@
 
+PHONY+=cscope
+cscope:
+	@echo " Generating cscope for nclyr"
+	$(Q)find ./ \
+		-name "*.[ch]" -print \
+		> ./cscope.files
+	$(Q)cscope -b -q
 
 DEP_LIST := $(foreach dep,$(DEPS),$(dir $(dep)).$(notdir $(dep)))
 DEP_LIST := $(DEP_LIST:.o=.d)

@@ -22,6 +22,11 @@ static struct cons_printf_arg args[] = {
     { .id = "paused", .type = CONS_ARG_BOOL },
     { .id = "volume", .type = CONS_ARG_INT },
     { .id = "song", .type = CONS_ARG_SONG },
+    { .id = "is_random", .type = CONS_ARG_BOOL },
+    { .id = "is_single", .type = CONS_ARG_BOOL },
+    { .id = "is_consume", .type = CONS_ARG_BOOL },
+    { .id = "is_crossfade", .type = CONS_ARG_BOOL },
+    { .id = "is_repeat", .type = CONS_ARG_BOOL },
 };
 
 void statusline_update(struct statusline *status)
@@ -47,6 +52,11 @@ void statusline_update(struct statusline *status)
             args[5].u.bool_val = tui->state.state == PLAYER_PAUSED;
             args[6].u.int_val = tui->state.volume;
             args[7].u.song.s = song;
+            args[8].u.bool_val = tui->state.flags.is_random;
+            args[9].u.bool_val = tui->state.flags.is_single;
+            args[10].u.bool_val = tui->state.flags.is_consume;
+            args[11].u.bool_val = tui->state.flags.is_crossfade;
+            args[12].u.bool_val = tui->state.flags.is_repeat;
 
             cons_str_init(&chstr);
             cons_printf(status->song_name, &chstr, cols, tui_get_chtype_from_window(status->win), args, ARRAY_SIZE(args));
@@ -101,6 +111,7 @@ void statusline_clean(struct statusline *status)
 void statusline_resize(struct statusline *status, int cols)
 {
     wresize(status->win, 2, cols);
+    touchwin(status->win);
     status->updated = 1;
 }
 
@@ -112,7 +123,8 @@ void statusline_player_notif(struct statusline *status, enum player_notif_type n
             || notif == PLAYER_IS_DOWN
             || notif == PLAYER_IS_UP
             || notif == PLAYER_VOLUME
-            || notif == PLAYER_STATE)
+            || notif == PLAYER_STATE
+            || notif == PLAYER_FLAGS)
         status->updated = 1;
 }
 

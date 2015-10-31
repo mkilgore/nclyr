@@ -19,7 +19,7 @@ static void print_arg_string(struct printf_opt *opt, struct cons_printf_compiled
 {
     struct printf_opt_arg_string *arg = container_of(opt, struct printf_opt_arg_string, opt);
     if (args[arg->arg].u.str_val)
-        cons_str_add_str(chstr, args[arg->arg].u.str_val, comp->attributes | COLOR_PAIR(cons_color_pair_to_num(&comp->colors)));
+        cons_str_add_str(chstr, args[arg->arg].u.str_val, CONS_PRINTF_COMP_ATTRS(comp));
 }
 
 struct printf_opt *printf_arg_parse_string(int index, char *id_par, size_t arg_count, const struct cons_printf_arg *args)

@@ -180,16 +180,21 @@ void cons_printf(cons_printf_compiled *print, struct cons_str *chstr, int max_wi
     /*
      * The color pair information A_COLOR is counted as an 'attribute', thus
      * A_ATTRIBUTES include A_COLOR (Even though the documentation of ncurses
-     * doesn't indicate this information). Thus, to get the *actual* attribute
-     * information that doesn't include the color pair, we have to remove the
-     * A_COLOR bits from our bitmask. Not doing this creates a subtle bug
-     * which makes the colors display wrong.
+     * doesn't indicate this information).
      */
-    comp->attributes = attrs & (A_ATTRIBUTES & ~A_COLOR);
-    cons_color_num_to_pair(PAIR_NUMBER(attrs), &comp->colors);
+    comp->attributes = attrs & (A_ATTRIBUTES);
 
-    for (cur = comp->head; cur; cur = cur->next)
-        (cur->print) (cur, comp, chstr, arg_count, args);
+    for (cur = comp->head; cur; cur = cur->next) {
+        switch (cur->type) {
+        case PRINTF_OPT_STRING:
+            cons_str_add_str(chstr, cur->s, CONS_PRINTF_COMP_ATTRS(comp));
+            break;
+
+        case PRINTF_OPT_CALLBACK:
+            (cur->print) (cur, comp, chstr, arg_count, args);
+            break;
+        }
+    }
 
     return ;
 }

@@ -32,4 +32,7 @@ const struct cons_color_pair *cons_color_get_default(void);
 int cons_color_pair_to_num(struct cons_color_pair *pair);
 void cons_color_num_to_pair(int pair1, struct cons_color_pair *pair2);
 
+int cons_color_num_change_forground(int pair, int forc);
+int cons_color_num_change_background(int pair, int backc);
+
 #endif

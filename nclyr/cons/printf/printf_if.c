@@ -61,7 +61,6 @@ static void print_if(struct printf_opt *opt, struct cons_printf_compiled *comp, 
         cons_printf(if_stmt->print, &new_chstr, chstr->max_width, CONS_PRINTF_COMP_ATTRS(comp), args, arg_count);
         cons_str_add_cons_str(chstr, &new_chstr);
         comp->attributes = if_stmt->print->attributes;
-        comp->colors = if_stmt->print->colors;
         cons_str_clear(&new_chstr);
     }
 }

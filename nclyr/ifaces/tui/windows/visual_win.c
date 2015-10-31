@@ -198,6 +198,16 @@ static void visual_win_clear(struct nclyr_win *win)
     fftw_destroy_plan(vis->f_plan);
 }
 
+static void visual_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
+{
+    struct visual_win *vis = container_of(win, struct visual_win, win);
+
+    if (vis->draw_func == draw_wave)
+        vis->draw_func = draw_spectr;
+    else
+        vis->draw_func = draw_wave;
+}
+
 static struct visual_win visual_window_init = {
     .win = {
         .win_name = "Visualizer",
@@ -205,7 +215,8 @@ static struct visual_win visual_window_init = {
         .timeout = 50, /* 20 FPS */
         .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
         .keypresses = (const struct nclyr_keypress[]) {
-            N_END()
+            NCLYR_KEYPRESS('v', visual_win_handle_ch, "Toggle visual display"),
+            NCLYR_END()
         },
         .init = visual_win_init,
         .clean = visual_win_clear,

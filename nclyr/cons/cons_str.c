@@ -43,9 +43,9 @@ void cons_str_setwidth(struct cons_str *chstr, int width)
 
 void cons_str_add_cons_str(struct cons_str *dest, const struct cons_str *src)
 {
-    chtype *cur;
     chtype *str = src->chstr;
     int len = src->length;
+    int len_copied;
 
     if (!src->chstr)
         return ;
@@ -53,28 +53,30 @@ void cons_str_add_cons_str(struct cons_str *dest, const struct cons_str *src)
     if (dest->max_width == 0) {
         cons_str_resize(dest, dest->length + len);
 
-        for (cur = dest->chstr + dest->length; *str; str++, cur++)
-            *cur = *str;
+        memcpy(dest->chstr + dest->length, str, len * sizeof(chtype));
+        len_copied = len;
     } else {
-        for (cur = dest->chstr + dest->length;
-             *str && (cur - dest->chstr) < dest->max_width;
-             str++, cur++)
-            *cur = *str;
+        len_copied = (len > dest->max_width - dest->length)
+                     ? dest->max_width - dest->length
+                     : len;
+        memcpy(dest->chstr + dest->length, str, len_copied * sizeof(chtype));
     }
 
-    *cur = '\0';
+    dest->chstr[len_copied + dest->length] = '\0';
 
-    dest->length += len;
+    dest->length += len_copied;
 }
 
 void cons_str_add_str(struct cons_str *chstr, const char *str, cons_attr attrs)
 {
     chtype *cur;
     int len = strlen(str);
+    int len_copied = 0;
 
     if (chstr->max_width == 0) {
         cons_str_resize(chstr, chstr->length + len);
 
+        len_copied = len;
         for (cur = chstr->chstr + chstr->length; *str; str++, cur++)
             *cur = *str | attrs;
         *cur = '\0';
@@ -83,11 +85,11 @@ void cons_str_add_str(struct cons_str *chstr, const char *str, cons_attr attrs)
              *str && ((cur - chstr->chstr) < chstr->max_width - 1);
              str++, cur++)
             *cur = *str | attrs;
+        len_copied = cur - (chstr->chstr + chstr->length);
         *cur = '\0';
     }
 
-
-    chstr->length += len;
+    chstr->length += len_copied;
 }
 
 void cons_str_add_cons_str_at(struct cons_str *dest, const struct cons_str *src, int at)

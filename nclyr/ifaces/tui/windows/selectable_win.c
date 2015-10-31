@@ -70,10 +70,17 @@ void selectable_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_
     case K_CONTROL('d'):
         if (sel->disp_offset < sel->total_lines - 1) {
             int half = rows / 2;
+
             if (half < ((sel->total_lines - 1) - sel->disp_offset))
                 sel->disp_offset += half;
             else
                 sel->disp_offset = sel->total_lines - 1;
+
+            sel->selected += half;
+
+            if (sel->selected >= sel->total_lines)
+                sel->selected = sel->total_lines - 1;
+
             win->updated = 1;
         }
         break;
@@ -81,10 +88,17 @@ void selectable_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_
     case K_CONTROL('u'):
         if (sel->disp_offset > 0) {
             int half = rows / 2;
+
             if (half < sel->disp_offset)
                 sel->disp_offset -= half;
             else
                 sel->disp_offset = 0;
+
+            sel->selected -= half;
+
+            if (sel->selected < 0)
+                sel->selected = 0;
+
             win->updated = 1;
         }
         break;
@@ -97,7 +111,11 @@ void selectable_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_
 
     case 'G':
         sel->selected = sel->total_lines - 1;
-        sel->disp_offset = sel->selected - rows;
+        sel->disp_offset = sel->selected - rows + 1;
+
+        if (sel->disp_offset < 0)
+            sel->disp_offset = 0;
+
         win->updated = 1;
         break;
     }
@@ -128,7 +146,17 @@ void selectable_win_handle_mouse(struct nclyr_win *win, int ch, struct nclyr_mou
             win->updated = 1;
         }
     } else if (mevent->type == LEFT_CLICKED) {
-        sel->selected = sel->disp_offset + mevent->y;
+        int new_sel;
+        new_sel = sel->disp_offset + mevent->y;
+
+        if (new_sel > sel->total_lines - 1)
+            new_sel = sel->total_lines - 1;
+
+        if (sel->selected == new_sel)
+            (sel->line_selected) (sel);
+        else
+            sel->selected = new_sel;
+
         win->updated = 1;
     }
 }

@@ -35,14 +35,14 @@ struct nclyr_keypress {
     const char *help_text;
 };
 
-#define N_KEYPRESS(chr, call, text) \
+#define NCLYR_KEYPRESS(chr, call, text) \
     { \
         .ch = (chr), \
         .callback = (call), \
         .help_text = (text) \
     }
 
-#define N_MOUSE(mtyp, call, text) \
+#define NCLYR_MOUSE(mtyp, call, text) \
     { \
         .ch = KEY_MOUSE, \
         .mtype = (mtyp), \
@@ -50,7 +50,7 @@ struct nclyr_keypress {
         .help_text = (text) \
     }
 
-#define N_END() { .ch = '\0', .mtype = 0, .callback = NULL, .help_text = NULL }
+#define NCLYR_END() { .ch = '\0', .mtype = 0, .callback = NULL, .help_text = NULL }
 
 
 #include "song.h"

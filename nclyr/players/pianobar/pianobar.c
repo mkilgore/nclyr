@@ -176,7 +176,10 @@ struct pianobar_player pianobar_player = {
         .name = "pianobar",
         .start_thread = pianobar_start_thread,
         .stop_thread = pianobar_stop_thread,
-        .player_windows = (const struct nclyr_win *[]) { NULL },
+        .notify_flags = 0
+            | F(PN_HAS_STATE)
+            | F(PN_HAS_SONG)
+            ,
         .ctrls = {
             .ctrl = pianobar_ctrl,
             .has_ctrl_flag = 0

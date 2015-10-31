@@ -42,23 +42,30 @@ static struct cons_printf_arg args[] = {
     { .id = "song", .type = CONS_ARG_SONG },
 };
 
+static void playlist_win_line_selected(struct selectable_win *sel)
+{
+    struct playlist_win *play = container_of(sel, struct playlist_win, super_win);
+    struct tui_iface *tui = sel->super_win.tui;
+
+    if (sel->selected == tui->state.song_pos)
+        return ;
+
+    if (play->waiting_for_song_change)
+        return ;
+
+    play->waiting_for_song_change = 1;
+
+    player_change_song(player_current(), sel->selected);
+}
+
 static void playlist_win_handle_ch(struct nclyr_win *win, int ch, struct nclyr_mouse_event *mevent)
 {
     struct selectable_win *sel = container_of(win, struct selectable_win, super_win);
     struct playlist_win *play = container_of(win, struct playlist_win, super_win.super_win);
-    struct tui_iface *tui = win->tui;
 
     switch (ch) {
     case '\n':
-        if (sel->selected == tui->state.song_pos)
-            break;
-
-        if (play->waiting_for_song_change)
-            break;
-
-        play->waiting_for_song_change = 1;
-
-        player_change_song(player_current(), sel->selected);
+        playlist_win_line_selected(sel);
         break;
 
     case 'd':
@@ -147,13 +154,13 @@ static struct playlist_win playlist_window_init = {
         .super_win = {
             .win_name = "Playlist",
             .win = NULL,
-            .timeout = 400,
+            .timeout = -1,
             .lyr_types = (const enum lyr_data_type[]) { LYR_DATA_TYPE_COUNT },
             .keypresses = (const struct nclyr_keypress[]) {
                 SELECTABLE_KEYPRESSES(),
-                N_KEYPRESS('\n', playlist_win_handle_ch, "Play selected song"),
-                N_KEYPRESS('d', playlist_win_handle_ch, "Remove selected song"),
-                N_END()
+                NCLYR_KEYPRESS('\n', playlist_win_handle_ch, "Play selected song"),
+                NCLYR_KEYPRESS('d', playlist_win_handle_ch, "Remove selected song"),
+                NCLYR_END()
             },
             .init = playlist_win_init,
             .clean = playlist_win_clear,
@@ -168,6 +175,7 @@ static struct playlist_win playlist_window_init = {
         .disp_offset = 0,
         .total_lines = 0,
         .get_line = playlist_win_get_line,
+        .line_selected = playlist_win_line_selected,
     }
 };
 
