@@ -48,11 +48,11 @@ void tui_keys_player(struct nclyr_win *win, int ch, struct nclyr_mouse_event *me
         player_change_volume(player, -1);
         break;
 
-    case '[':
+    case ']':
         player_seek(player, win->tui->state.seek_pos + 5);
         break;
 
-    case ']':
+    case '[':
         player_seek(player, win->tui->state.seek_pos - 5);
         break;
 

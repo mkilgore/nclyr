@@ -47,8 +47,10 @@ static void playlist_win_line_selected(struct selectable_win *sel)
     struct playlist_win *play = container_of(sel, struct playlist_win, super_win);
     struct tui_iface *tui = sel->super_win.tui;
 
-    if (sel->selected == tui->state.song_pos)
+    if (sel->selected == tui->state.song_pos) {
+        player_seek(player_current(), 0);
         return ;
+    }
 
     if (play->waiting_for_song_change)
         return ;
